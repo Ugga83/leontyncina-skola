@@ -15,7 +15,7 @@ V = {'a': 'a', 'e': 'ɛ', 'i': 'ɪ', 'o': 'ɔ', 'u': 'u', 'á': 'aː', 'é': 'ɛ
 
 def synth(ssml, out):
     body = {'input': {'ssml': ssml}, 'voice': {'languageCode': 'cs-CZ', 'name': 'cs-CZ-Wavenet-B'},
-            'audioConfig': {'audioEncoding': 'MP3', 'speakingRate': 0.85, 'sampleRateHertz': 24000}}
+            'audioConfig': {'audioEncoding': 'MP3', 'speakingRate': 0.72, 'sampleRateHertz': 24000}}
     req = urllib.request.Request('https://texttospeech.googleapis.com/v1/text:synthesize',
                                  data=json.dumps(body).encode(),
                                  headers={'Content-Type': 'application/json', 'X-Goog-Api-Key': KEY})
@@ -34,6 +34,6 @@ for p in phrases:
     synth(f'<speak><phoneme alphabet="ipa" ph="{C[s[0]] + V[s[1]]}">{s}</phoneme></speak>', '/tmp/syl.mp3')
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', '/tmp/syl.mp3', '-af',
                     'silenceremove=start_periods=1:start_threshold=-50dB,areverse,'
-                    'silenceremove=start_periods=1:start_threshold=-50dB,areverse,adelay=60,apad=pad_dur=0.15',
+                    'silenceremove=start_periods=1:start_threshold=-50dB,areverse,loudnorm=I=-17:TP=-1.5:LRA=7,aresample=24000,adelay=60,apad=pad_dur=0.15',
                     '-ac', '1', '-b:a', '48k', os.path.join(fixed, p['k'] + '.mp3')], check=True)
     print(s)
