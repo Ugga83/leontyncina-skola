@@ -8,22 +8,22 @@ const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
 
 // ---------- data ----------
 const L = {
-  S:{grp:'smile', voiced:false, aff:false, emo:'🐍', name:'had',      who:'Had syčí',        snd:'sss',   pair:'Š',
+  S:{grp:'smile', voiced:false, aff:false, emo:'🐍', name:'had',      who:'Had syčí',        snd:'s',   pair:'Š',
      words:[['sova','🦉'],['slon','🐘'],['sýr','🧀'],['sáňky','🛷'],['pes','🐕'],['nos','👃']],
      syl:['sa','se','si','so','su']},
-  Z:{grp:'smile', voiced:true,  aff:false, emo:'🐝', name:'včelka',   who:'Včelka bzučí',    snd:'zzz',   pair:'Ž',
+  Z:{grp:'smile', voiced:true,  aff:false, emo:'🐝', name:'včelka',   who:'Včelka bzučí',    snd:'z',   pair:'Ž',
      words:[['zebra','🦓'],['zámek','🏰'],['zub','🦷'],['zmrzlina','🍦'],['koza','🐐'],['váza','🏺']],
      syl:['za','ze','zi','zo','zu']},
-  C:{grp:'smile', voiced:false, aff:true,  emo:'🦗', name:'cvrček',   who:'Cvrček cvrká',    snd:'c, c, c', pair:'Č',
+  C:{grp:'smile', voiced:false, aff:true,  emo:'🦗', name:'cvrček',   who:'Cvrček cvrká',    snd:'c', pair:'Č',
      words:[['citron','🍋'],['cibule','🧅'],['opice','🐒'],['ovce','🐑'],['palec','👍'],['měsíc','🌙']],
      syl:['ca','ce','ci','co','cu']},
-  'Š':{grp:'round', voiced:false, aff:false, emo:'🚂', name:'mašinka', who:'Mašinka šumí',   snd:'ššš',   pair:'S',
+  'Š':{grp:'round', voiced:false, aff:false, emo:'🚂', name:'mašinka', who:'Mašinka šumí',   snd:'š',   pair:'S',
      words:[['šnek','🐌'],['šála','🧣'],['šaty','👗'],['myš','🐭'],['koš','🧺'],['hruška','🍐']],
      syl:['ša','še','ši','šo','šu']},
-  'Ž':{grp:'round', voiced:true,  aff:false, emo:'🪲', name:'brouček', who:'Brouček letí',   snd:'žžž',   pair:'Z',
+  'Ž':{grp:'round', voiced:true,  aff:false, emo:'🪲', name:'brouček', who:'Brouček letí',   snd:'ž',   pair:'Z',
      words:[['žába','🐸'],['žirafa','🦒'],['ježek','🦔'],['lžíce','🥄'],['žížala','🪱'],['nůžky','✂️']],
      syl:['ža','že','ži','žo','žu']},
-  'Č':{grp:'round', voiced:false, aff:true,  emo:'🐱', name:'kočička', who:'Voláme kočičku',  snd:'č, č, č', pair:'C',
+  'Č':{grp:'round', voiced:false, aff:true,  emo:'🐱', name:'kočička', who:'Voláme kočičku',  snd:'č', pair:'C',
      words:[['čokoláda','🍫'],['čaj','🍵'],['kočka','🐱'],['klíč','🔑'],['míč','⚽'],['čert','😈']],
      syl:['ča','če','či','čo','ču']},
 };
