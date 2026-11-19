@@ -37,33 +37,38 @@ const SHOP = [
   {id:'medal',  e:'🏅', n:'Medaile',           p:45, slot:'neck'},
   {id:'gem',    e:'💎', n:'Diamant',           p:70, slot:'neck'},
   // ---- do boudy: pos = [x %, depth 0 back wall..1 front, real size m] standing on the floor; wall = [x %, y %, m] hanging ----
-  {id:'bone',   e:'🦴', n:'Kostička',          p:5,  slot:'room', pos:[33,.92,.22]},
-  {id:'bowl',   e:'🥣', n:'Miska',             p:6,  slot:'room', pos:[39,.80,.28]},
-  {id:'ball',   e:'🎾', n:'Míček',             p:8,  slot:'room', pos:[64,.95,.14]},
-  {id:'meat',   e:'🍖', n:'Masíčko',           p:9,  slot:'room', pos:[44,.97,.22]},
-  {id:'balloon',e:'🎈', n:'Balonek',           p:10, slot:'room', wall:[6,18,.4]},
-  {id:'car',    e:'🚗', n:'Autíčko',           p:12, slot:'room', pos:[58,1,.22]},
-  {id:'puzzle', e:'🧩', n:'Skládačka',         p:12, slot:'room', pos:[80,.98,.24]},
-  {id:'plant',  e:'🪴', n:'Kytka v květináči', p:14, slot:'room', pos:[56,0,.6]},
-  {id:'frame',  e:'🖼️', n:'Obrázek',           p:15, slot:'room', wall:[16,24,.5]},
-  {id:'clock',  e:'🕰️', n:'Hodiny',            p:16, slot:'room', wall:[30,16,.35]},
-  {id:'books',  e:'📚', n:'Knížky',            p:16, slot:'room', wall:[76,27,.45]},
-  {id:'teddy',  e:'🧸', n:'Plyšák',            p:18, slot:'room', pos:[8,.8,.4]},
-  {id:'cake',   e:'🎂', n:'Dort',              p:20, slot:'room', pos:[72,.88,.3]},
-  {id:'mirror', e:'🪞', n:'Zrcátko',           p:20, slot:'room', wall:[30,34,.45]},
-  {id:'kite',   e:'🪁', n:'Drak',              p:22, slot:'room', wall:[92,17,.6]},
-  {id:'flowers',e:'💐', n:'Kytice',            p:22, slot:'room', pos:[38,0,.38]},
-  {id:'bed',    e:'🛏️', n:'Pelíšek',           p:30, slot:'room', pos:[22,.4,1.0]},
-  {id:'drum',   e:'🥁', n:'Bubínek',           p:30, slot:'room', pos:[66,.55,.4]},
-  {id:'guitar', e:'🎸', n:'Kytara',            p:32, slot:'room', pos:[6,.5,.8]},
-  {id:'fish',   e:'🐠', n:'Akvárium',          p:35, slot:'room', pos:[47,0,.4]},
-  {id:'tv',     e:'📺', n:'Televize',          p:40, slot:'room', pos:[64,0,.62]},
-  {id:'sofa',   e:'🛋️', n:'Gauč',              p:45, slot:'room', pos:[78,.18,1.6]},
-  {id:'slide',  e:'🛝', n:'Skluzavka',         p:45, slot:'room', pos:[8,.12,1.3]},
-  {id:'piano',  e:'🎹', n:'Piano',             p:50, slot:'room', pos:[27,.02,.75]},
-  {id:'tree',   e:'🎄', n:'Stromeček',         p:55, slot:'room', pos:[94,.02,1.4]},
-  {id:'rocket', e:'🚀', n:'Raketa',            p:65, slot:'room', wall:[60,12,.3]},
-  {id:'unicorn',e:'🦄', n:'Houpací jednorožec',p:80, slot:'room', pos:[88,.66,.55]},
+  {id:'bone',   e:'🦴', n:'Kostička',          p:5,  slot:'room', pos:[31,.93,.3]},
+  {id:'bowl',   e:'🥣', n:'Miska',             p:6,  slot:'room', pos:[39,.8,.34]},
+  {id:'ball',   e:'🎾', n:'Míček',             p:8,  slot:'room', pos:[64,.92,.3]},
+  {id:'meat',   e:'🍖', n:'Masíčko',           p:9,  slot:'room', pos:[44,.98,.3]},
+  {id:'balloon',e:'🎈', n:'Balonek',           p:10, slot:'room', wall:[7,13,.45]},
+  {id:'car',    e:'🚗', n:'Autíčko',           p:12, slot:'room', pos:[57,1,.34]},
+  {id:'puzzle', e:'🧩', n:'Skládačka',         p:12, slot:'room', pos:[80,.97,.34]},
+  {id:'plant',  e:'🪴', n:'Kytka v květináči', p:14, slot:'room', pos:[52,0,.6]},
+  {id:'frame',  e:'🖼️', n:'Obrázek',           p:15, slot:'room', wall:[12,25,.55]},
+  {id:'clock',  e:'🕰️', n:'Hodiny na poličku',            p:16, slot:'room', pos:[66,.88,.35], on:'wshelf'},
+  {id:'books',  e:'📚', n:'Knížky do knihovny',            p:16, slot:'room', pos:[24,.9,.3], on:'bookcase'},
+  {id:'teddy',  e:'🧸', n:'Plyšák',            p:18, slot:'room', pos:[9,.82,.5]},
+  {id:'cake',   e:'🎂', n:'Dort',              p:20, slot:'room', pos:[72,.88,.36], on:'table'},
+  {id:'mirror', e:'🪞', n:'Zrcátko',           p:20, slot:'room', wall:[33,22,.45]},
+  {id:'kite',   e:'🪁', n:'Drak',              p:22, slot:'room', wall:[93,17,.6]},
+  {id:'flowers',e:'💐', n:'Kytice',            p:22, slot:'room', pos:[86,.95,.4], on:'table'},
+  {id:'bed',    e:'🛏️', n:'Pelíšek',           p:30, slot:'room', pos:[20,.45,1.0], svg:'dogbed'},
+  {id:'drum',   e:'🥁', n:'Bubínek',           p:30, slot:'room', pos:[67,.55,.45]},
+  {id:'guitar', e:'🎸', n:'Kytara',            p:32, slot:'room', pos:[5,.55,.8]},
+  {id:'fish',   e:'🐠', n:'Akvárium',          p:35, slot:'room', pos:[48,.9,.45], on:'dresser', svg:'tank'},
+  {id:'tv',     e:'📺', n:'Televize',          p:40, slot:'room', pos:[60,.9,.6], on:'dresser'},
+  {id:'sofa',   e:'🛋️', n:'Gauč',              p:45, slot:'room', pos:[81,.18,1.6]},
+  {id:'slide',  e:'🛝', n:'Skluzavka',         p:45, slot:'room', pos:[8,.15,1.25]},
+  {id:'piano',  e:'🎹', n:'Piano',             p:50, slot:'room', pos:[37,.02,.75]},
+  {id:'tree',   e:'🎄', n:'Stromeček',         p:55, slot:'room', pos:[95,.02,1.4]},
+  {id:'rocket', e:'🚀', n:'Raketa',            p:65, slot:'room', pos:[54,.95,.35], on:'wshelf'},
+  {id:'unicorn',e:'🦄', n:'Houpací jednorožec',p:80, slot:'room', pos:[88,.66,.6]},
+  // ---- nábytek: other things stand on it (item.on) ----
+  {id:'wshelf', e:'', n:'Polička',  p:15, slot:'furn', wall:[80,31,.9], svg:'wshelf', say:'Na to potřebuju poličku. Kup ji nejdřív.'},
+  {id:'table',  e:'', n:'Stolek',   p:20, slot:'furn', pos:[46,.25,.7], svg:'table', say:'Na to potřebuju stolek. Kup ho nejdřív.'},
+  {id:'dresser',e:'', n:'Komoda',   p:25, slot:'furn', pos:[64,0,1.3], svg:'dresser', say:'Na to potřebuju komodu. Kup ji nejdřív.'},
+  {id:'bookcase',e:'',n:'Knihovna', p:30, slot:'furn', pos:[24,0,.9], svg:'bookcase', say:'Na to potřebuju knihovnu. Kup ji nejdřív.'},
   // ---- vylepšení boudy: slot wall / floor / window / light ----
   {id:'wpink',  e:'🩷', n:'Růžová stěna',      p:20, slot:'wall',   v:'#ffd6e7'},
   {id:'wblue',  e:'🩵', n:'Modrá stěna',       p:20, slot:'wall',   v:'#cfe9ff'},
@@ -118,7 +123,7 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
 <section id="shop" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Ayřina bouda</h1><div class="wallet" id="shopWallet"></div></div>
   <div class="kennel" id="kennel"></div>
-  <div class="tabs" id="shopTabs"><button data-tab="wear" class="on">👒 Na sebe</button><button data-tab="room">🛋️ Do boudy</button><button data-tab="house">🎨 Vylepšení</button><button data-tab="tr">🎁 Poklady</button></div>
+  <div class="tabs" id="shopTabs"><button data-tab="wear" class="on">👒 Na sebe</button><button data-tab="room">🧸 Do boudy</button><button data-tab="furn">🪑 Nábytek</button><button data-tab="house">🎨 Vylepšení</button><button data-tab="tr">🎁 Poklady</button></div>
   <div class="lcard"><div class="items" id="shopItems"></div></div>
 </section>
 <section id="journey" class="screen scroll">
@@ -158,40 +163,120 @@ function renderHub(){
 
 // ---------- shop + kennel ----------
 let shopTab = 'wear';
-const inTab = it => shopTab==='wear' ? WEAR_SLOTS.includes(it.slot) : shopTab==='room' ? it.slot==='room' : HOUSE_SLOTS.includes(it.slot);
+const inTab = it => shopTab==='wear' ? WEAR_SLOTS.includes(it.slot) : shopTab==='room' ? it.slot==='room'
+  : shopTab==='furn' ? it.slot==='furn' : HOUSE_SLOTS.includes(it.slot);
+const needs = it => it.on && !owned().includes(it.on) ? SHOP.find(f=>f.id===it.on) : null;
 function itemHTML(it){
-  const have = owned().includes(it.id), on = wear()[it.slot]===it.id, togg = it.slot!=='room';
-  const label = !have ? `⭐ ${it.p}` : !togg ? 'máš' : on ? (WEAR_SLOTS.includes(it.slot)?'nosí':'je tam') : (WEAR_SLOTS.includes(it.slot)?'obléct':'použít');
-  return `<button class="item ${have?'have':''} ${on?'on':''} ${!have && wallet()<it.p?'poor':''}" data-it="${it.id}">
-    <span class="ie">${it.e}</span><span class="in">${it.n}</span><span class="ip">${label}</span></button>`;
+  const have = owned().includes(it.id), on = wear()[it.slot]===it.id, togg = !['room','furn'].includes(it.slot);
+  const need = !have && needs(it);
+  const label = need ? `nejdřív ${need.n.toLowerCase()}` : !have ? `⭐ ${it.p}` : !togg ? 'máš' : on ? (WEAR_SLOTS.includes(it.slot)?'nosí':'je tam') : (WEAR_SLOTS.includes(it.slot)?'obléct':'použít');
+  const icon = it.svg ? `<svg viewBox="0 0 ${FURN[it.svg].w} ${FURN[it.svg].h}">${FURN[it.svg].draw(true)}</svg>` : it.e;
+  return `<button class="item ${have?'have':''} ${on?'on':''} ${need?'need':''} ${!have && !need && wallet()<it.p?'poor':''}" data-it="${it.id}">
+    <span class="ie">${icon}</span><span class="in">${it.n}</span><span class="ip">${label}</span></button>`;
 }
-// One scale for the whole room so things keep real proportions (Ayra ~0.6 m sitting,
-// a sofa 1.6 m...). Things further back stand higher on the floor and look smaller.
-const FLOOR = 58, M = 15;   // floor line in % of the height, cqw per metre at the back wall
-function place(p, ayra, shadow){
-  const [x, d, m] = p, k = .8 + d*.55, size = m*M*k;
-  const bottom = 100 - (FLOOR + d*(97-FLOOR));
-  if (shadow) return `left:${x}%;bottom:${bottom}%;width:${size*.75}cqw;margin-left:${-size*.375}cqw;z-index:${9+Math.round(d*100)}`;
-  return `left:${x}%;bottom:${bottom}%;font-size:${size}cqw;z-index:${10+Math.round(d*100)}`;
+
+// ---------- the room ----------
+// Everything uses one scale (centimetres -> cqw), so things keep real proportions: Ayra sits ~70 cm,
+// a sofa is 160 cm wide, a TV 60 cm. Things further back stand higher on the floor and look smaller.
+// Small things stand on furniture (item.on) the way they would in a real room.
+const FLOOR = 58, M = 15;                // floor line in % of the height; cqw per metre at the back wall
+const kOf = d => .8 + d*.55;             // perspective scale: d = 0 back wall .. 1 front
+const H = 75;                            // the room is 4:3, so its height is 75 cqw
+const BOOKS = [[7,34,'#e2574c'],[6,30,'#3f8fd2'],[8,36,'#f2b134'],[5,28,'#5fb36b'],[7,33,'#9b6bd3'],[6,31,'#ef8a3c'],[8,35,'#2f6fae'],[6,29,'#d94f8a']];
+function bookRow(x0, yBottom, from, n){
+  let x = x0, out = '';
+  for (let i=0;i<n;i++){
+    const [w,h,c] = BOOKS[(from+i)%BOOKS.length];
+    out += `<rect x="${x}" y="${yBottom-h}" width="${w}" height="${h}" rx="1" fill="${c}"/><rect x="${x}" y="${yBottom-h+5}" width="${w}" height="2" fill="#ffffff66"/>`;
+    x += w + .6;
+  }
+  return out;
 }
-function kitHTML(i){
-  if (i.wall) return `<span class="kit wall" style="left:${i.wall[0]}%;top:${i.wall[1]}%;font-size:${i.wall[2]*M*.8}cqw">${i.e}</span>`;
-  return `<span class="kit floor${i.id==='fish'?' tank':''}" style="${place(i.pos)}">${i.e}</span>`;
+// furniture drawings, sizes in cm (w x h); surf = height of the top they hold things on
+const FURN = {
+  bookcase:{w:90,h:150,surf:150, draw:full=>`
+    <rect x="0" y="4" width="90" height="146" rx="3" fill="#b8763d"/><rect x="6" y="9" width="78" height="135" fill="#6e4220"/>
+    <rect x="-1" y="0" width="92" height="8" rx="3" fill="#cf9157"/><rect x="6" y="52" width="78" height="5" fill="#cf9157"/>
+    <rect x="6" y="97" width="78" height="5" fill="#cf9157"/><rect x="0" y="144" width="90" height="6" fill="#8f5a2b"/>
+    ${full ? bookRow(9,52,0,9) + bookRow(10,97,3,6) + `<rect x="58" y="80" width="22" height="7" rx="1" fill="#5fb36b"/><rect x="60" y="73" width="19" height="7" rx="1" fill="#e2574c"/>` + bookRow(9,144,5,10) : ''}`},
+  dresser:{w:130,h:62,surf:62, draw:()=>`
+    <rect x="10" y="50" width="7" height="12" fill="#7a4a22"/><rect x="113" y="50" width="7" height="12" fill="#7a4a22"/>
+    <rect x="3" y="6" width="124" height="46" rx="3" fill="#b8763d"/><rect x="0" y="0" width="130" height="8" rx="3" fill="#d39a5f"/>
+    <rect x="9" y="13" width="54" height="33" rx="3" fill="#cf9157"/><rect x="67" y="13" width="54" height="33" rx="3" fill="#cf9157"/>
+    <circle cx="36" cy="29" r="3.5" fill="#7a4a22"/><circle cx="94" cy="29" r="3.5" fill="#7a4a22"/>`},
+  table:{w:70,h:55,surf:53, draw:()=>`
+    <ellipse cx="35" cy="51" rx="20" ry="4" fill="#8f5a2b"/><rect x="31" y="8" width="8" height="43" fill="#a86a35"/>
+    <ellipse cx="35" cy="8" rx="35" ry="5" fill="#b8763d"/><ellipse cx="35" cy="5.5" rx="35" ry="5" fill="#d9a066"/>`},
+  wshelf:{w:90,h:22,surf:22, draw:()=>`
+    <path d="M14 6 L24 6 L14 22 Z" fill="#8f5a2b"/><path d="M76 6 L66 6 L76 22 Z" fill="#8f5a2b"/>
+    <rect x="0" y="0" width="90" height="7" rx="2" fill="#cf9157"/><rect x="0" y="5" width="90" height="2" fill="#a86a35"/>`, top:true},
+  dogbed:{w:100,h:38, draw:()=>`
+    <ellipse cx="50" cy="20" rx="50" ry="16" fill="#c9443c"/><ellipse cx="50" cy="21" rx="40" ry="10" fill="#f6dcc6"/>
+    <ellipse cx="50" cy="23" rx="33" ry="6.5" fill="#efcdb2"/>
+    <path d="M0 20 Q0 38 50 38 Q100 38 100 20 Q96 31 50 31 Q4 31 0 20 Z" fill="#e2574c"/>
+    <path d="M10 28 Q50 36 90 28" stroke="#ffffff88" stroke-width="2" fill="none" stroke-dasharray="4 4"/>`},
+  tank:{w:50,h:36, draw:()=>`
+    <rect x="1" y="5" width="48" height="31" rx="3" fill="#bfe8ff" stroke="#eaf7ff" stroke-width="2"/>
+    <rect x="3" y="9" width="44" height="25" fill="#6fc3ef"/><rect x="3" y="28" width="44" height="6" fill="#e3c48d"/>
+    <path d="M10 30 Q8 20 12 13 M13 30 Q15 22 12 16 M40 30 Q38 22 41 15" stroke="#3fa55a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <circle cx="30" cy="14" r="1.4" fill="#fff9"/><circle cx="33" cy="11" r="1" fill="#fff9"/>
+    <text x="27" y="26" font-size="14" text-anchor="middle">🐠</text><rect x="0" y="2" width="50" height="5" rx="2" fill="#4c5a66"/>`},
+};
+// where an item stands: {x %, bottom %, size cqw, z}
+function spot(it, own){
+  const base = it.on && own.includes(it.on) ? SHOP.find(f=>f.id===it.on) : null;
+  if (base && base.wall){                                   // on the wall shelf
+    const s = M*.8/100, [fx, fy] = base.wall;
+    const dx = {clock:-22, rocket:22}[it.id] || 0;
+    return {x: fx + dx*s, bottom: 100 - fy, size: it.pos[2]*M*.8, z: 6};
+  }
+  if (base){                                                // on a piece of furniture
+    const [fx, d] = base.pos, k = kOf(d), f = FURN[base.svg];
+    const dx = {tv:-30, fish:33, flowers:-14, cake:15, books:0}[it.id] || 0;
+    const bottom = 100 - (FLOOR + d*(97-FLOOR)) + (f.surf*M*k/100)/H*100 - .4;
+    return {x: fx + dx*M*k/100, bottom, size: it.pos[2]*M*k, z: 10+Math.round(d*100)+1};
+  }
+  const [x, d, m] = it.pos, k = kOf(d);
+  return {x, bottom: 100 - (FLOOR + d*(97-FLOOR)), size: m*M*k, z: 10+Math.round(d*100)};
+}
+function kitHTML(it, own){
+  if (it.id==='books' && own.includes('bookcase')) return '';          // drawn inside the bookcase
+  if (it.wall && it.slot!=='furn')
+    return `<span class="kit wall" style="left:${it.wall[0]}%;top:${it.wall[1]}%;font-size:${it.wall[2]*M*.8}cqw">${it.e}</span>`;
+  if (it.slot==='furn' && it.wall){
+    const f = FURN[it.svg], w = it.wall[2]*M*.8;
+    return `<svg class="kit furn" viewBox="0 0 ${f.w} ${f.h}" style="left:${it.wall[0]}%;top:${it.wall[1]}%;width:${w}cqw;margin-left:${-w/2}cqw;z-index:5">${f.draw()}</svg>`;
+  }
+  const p = spot(it, own);
+  if (it.svg){
+    const f = FURN[it.svg], w = it.pos[2]*M*kOf(it.pos[1]);
+    const full = it.id==='bookcase' && own.includes('books');
+    return `<svg class="kit furn" viewBox="0 0 ${f.w} ${f.h}" style="left:${p.x}%;bottom:${p.bottom}%;width:${w}cqw;margin-left:${-w/2}cqw;z-index:${p.z}">${f.draw(full)}</svg>`;
+  }
+  return `<span class="kit floor" style="left:${p.x}%;bottom:${p.bottom}%;font-size:${p.size}cqw;z-index:${p.z}">${it.e}</span>`;
+}
+// things bought before furniture existed get their piece of furniture for free
+if (!get('furnv1', false)){
+  const own = owned();
+  SHOP.forEach(i=>{ if (i.on && own.includes(i.id) && !own.includes(i.on)) own.push(i.on); });
+  set('owned', own); set('furnv1', true);
 }
 function renderKennel(){
   const w = wear(), own = owned();
   const wall = (SHOP.find(i=>i.id===w.wall)||{}).v || '#efe3cf';
   const floor = (SHOP.find(i=>i.id===w.floor)||{}).v || 'plain';
   const win = (SHOP.find(i=>i.id===w.window)||{}).v;
-  const items = SHOP.filter(i=>i.slot==='room' && own.includes(i.id));
+  const items = SHOP.filter(i=>(i.slot==='room' || i.slot==='furn') && own.includes(i.id));
+  const ay = spot({pos:[50,.7,.7]}, own);
   $('#kennel').style.setProperty('--wall', wall);
   $('#kennel').className = 'kennel floor-'+floor + (w.light ? ' lit' : '');
   $('#kennel').innerHTML = `
     <div class="roof"></div><div class="wallz"></div><div class="floorz"></div>
     ${win ? `<div class="win"><span>${win}</span></div>` : ''}
     ${w.light ? '<div class="garland">✨ ✨ ✨ ✨ ✨ ✨ ✨</div>' : ''}
-    ${items.map(kitHTML).join('')}
-    <div class="owl kayra full" style="${place([50,.7,.7],true)}"></div><div class="kshadow" style="${place([50,.7,.7],true,1)}"></div>
+    ${items.map(i=>kitHTML(i, own)).join('')}
+    <div class="kshadow" style="left:${ay.x}%;bottom:${ay.bottom}%;width:${ay.size*.75}cqw;margin-left:${-ay.size*.375}cqw;z-index:${ay.z-1}"></div>
+    <div class="owl kayra full" style="left:${ay.x}%;bottom:${ay.bottom}%;font-size:${ay.size}cqw;z-index:${ay.z}"></div>
     ${!items.length && !win && !w.wall ? '<div class="kempty">Ayřina bouda je zatím prázdná. Kup jí něco hezkého! 🛍️</div>' : ''}`;
   decorate();
 }
@@ -217,12 +302,14 @@ document.getElementById('shop').addEventListener('click', e=>{
   const b = e.target.closest('[data-it]'); if (!b) return;
   const it = SHOP.find(i=>i.id===b.dataset.it), own = owned();
   if (!own.includes(it.id)){
+    const need = needs(it);
+    if (need){ sfx.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); speak(need.say); return; }
     if (wallet() < it.p){ sfx.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); speak(SAY.poor); return; }
     set('wallet', wallet() - it.p); own.push(it.id); set('owned', own);
     sfx.good(); confetti(30); speak(WEAR_SLOTS.includes(it.slot) ? pick(SAY.wear) : SAY.room);
-    if (it.slot!=='room'){ const w = wear(); w[it.slot] = it.id; set('wear', w); }
+    if (!['room','furn'].includes(it.slot)){ const w = wear(); w[it.slot] = it.id; set('wear', w); }
     $('#kennel').scrollIntoView({behavior:'smooth', block:'start'});
-  } else if (it.slot!=='room'){
+  } else if (!['room','furn'].includes(it.slot)){
     const w = wear(); w[it.slot] = w[it.slot]===it.id ? null : it.id; set('wear', w); sfx.tap();
   }
   renderShop(); renderHub();
@@ -312,7 +399,7 @@ function openGift(){
 document.addEventListener('click', e=>{ if (e.target.closest('#openGift')){ sfx.tap(); openGift(); } });
 
 A.rewards = {afterRound, renderHub, decorate, PLACES};
-A.phraseSources.push(()=>Object.values(SAY).flat());
+A.phraseSources.push(()=>[...Object.values(SAY).flat(), ...SHOP.filter(i=>i.say).map(i=>i.say)]);
 renderHub(); decorate();
 mo.observe(document.body,{childList:true,subtree:true});
 })();
