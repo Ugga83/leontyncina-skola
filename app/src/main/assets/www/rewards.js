@@ -36,34 +36,34 @@ const SHOP = [
   {id:'beads',  e:'📿', n:'Korále',            p:25, slot:'neck'},
   {id:'medal',  e:'🏅', n:'Medaile',           p:45, slot:'neck'},
   {id:'gem',    e:'💎', n:'Diamant',           p:70, slot:'neck'},
-  // ---- do boudy (placed in the kennel): pos = [x %, y %, size] ----
-  {id:'bone',   e:'🦴', n:'Kostička',          p:5,  slot:'room', pos:[30,90,6]},
-  {id:'bowl',   e:'🥣', n:'Miska',             p:6,  slot:'room', pos:[40,90,7]},
-  {id:'ball',   e:'🎾', n:'Míček',             p:8,  slot:'room', pos:[62,92,5]},
-  {id:'meat',   e:'🍖', n:'Masíčko',           p:9,  slot:'room', pos:[46,93,6]},
-  {id:'balloon',e:'🎈', n:'Balonek',           p:10, slot:'room', pos:[7,30,8]},
-  {id:'car',    e:'🚗', n:'Autíčko',           p:12, slot:'room', pos:[55,96,6]},
-  {id:'puzzle', e:'🧩', n:'Skládačka',         p:12, slot:'room', pos:[84,94,6]},
-  {id:'plant',  e:'🪴', n:'Kytka v květináči', p:14, slot:'room', pos:[96,62,10]},
-  {id:'frame',  e:'🖼️', n:'Obrázek',           p:15, slot:'room', pos:[16,14,11]},
-  {id:'clock',  e:'🕰️', n:'Hodiny',            p:16, slot:'room', pos:[84,10,9]},
-  {id:'books',  e:'📚', n:'Knížky',            p:16, slot:'room', pos:[78,34,9]},
-  {id:'teddy',  e:'🧸', n:'Plyšák',            p:18, slot:'room', pos:[9,90,9]},
-  {id:'cake',   e:'🎂', n:'Dort',              p:20, slot:'room', pos:[74,90,8]},
-  {id:'mirror', e:'🪞', n:'Zrcátko',           p:20, slot:'room', pos:[28,30,9]},
-  {id:'kite',   e:'🪁', n:'Drak',              p:22, slot:'room', pos:[94,24,9]},
-  {id:'flowers',e:'💐', n:'Kytice',            p:22, slot:'room', pos:[66,46,8]},
-  {id:'bed',    e:'🛏️', n:'Pelíšek',           p:30, slot:'room', pos:[18,70,17]},
-  {id:'drum',   e:'🥁', n:'Bubínek',           p:30, slot:'room', pos:[68,78,9]},
-  {id:'guitar', e:'🎸', n:'Kytara',            p:32, slot:'room', pos:[92,80,11]},
-  {id:'fish',   e:'🐠', n:'Akvárium',          p:35, slot:'room', pos:[38,44,8]},
-  {id:'tv',     e:'📺', n:'Televize',          p:40, slot:'room', pos:[60,40,11]},
-  {id:'sofa',   e:'🛋️', n:'Gauč',              p:45, slot:'room', pos:[80,64,17]},
-  {id:'slide',  e:'🛝', n:'Skluzavka',         p:45, slot:'room', pos:[4,58,13]},
-  {id:'piano',  e:'🎹', n:'Piano',             p:50, slot:'room', pos:[30,58,12]},
-  {id:'tree',   e:'🎄', n:'Stromeček',         p:55, slot:'room', pos:[96,40,14]},
-  {id:'rocket', e:'🚀', n:'Raketa',            p:65, slot:'room', pos:[66,20,9]},
-  {id:'unicorn',e:'🦄', n:'Houpací jednorožec',p:80, slot:'room', pos:[66,62,13]},
+  // ---- do boudy: pos = [x %, depth 0 back wall..1 front, real size m] standing on the floor; wall = [x %, y %, m] hanging ----
+  {id:'bone',   e:'🦴', n:'Kostička',          p:5,  slot:'room', pos:[33,.92,.22]},
+  {id:'bowl',   e:'🥣', n:'Miska',             p:6,  slot:'room', pos:[39,.80,.28]},
+  {id:'ball',   e:'🎾', n:'Míček',             p:8,  slot:'room', pos:[64,.95,.14]},
+  {id:'meat',   e:'🍖', n:'Masíčko',           p:9,  slot:'room', pos:[44,.97,.22]},
+  {id:'balloon',e:'🎈', n:'Balonek',           p:10, slot:'room', wall:[6,18,.4]},
+  {id:'car',    e:'🚗', n:'Autíčko',           p:12, slot:'room', pos:[58,1,.22]},
+  {id:'puzzle', e:'🧩', n:'Skládačka',         p:12, slot:'room', pos:[80,.98,.24]},
+  {id:'plant',  e:'🪴', n:'Kytka v květináči', p:14, slot:'room', pos:[56,0,.6]},
+  {id:'frame',  e:'🖼️', n:'Obrázek',           p:15, slot:'room', wall:[16,24,.5]},
+  {id:'clock',  e:'🕰️', n:'Hodiny',            p:16, slot:'room', wall:[30,16,.35]},
+  {id:'books',  e:'📚', n:'Knížky',            p:16, slot:'room', wall:[76,27,.45]},
+  {id:'teddy',  e:'🧸', n:'Plyšák',            p:18, slot:'room', pos:[8,.8,.4]},
+  {id:'cake',   e:'🎂', n:'Dort',              p:20, slot:'room', pos:[72,.88,.3]},
+  {id:'mirror', e:'🪞', n:'Zrcátko',           p:20, slot:'room', wall:[30,34,.45]},
+  {id:'kite',   e:'🪁', n:'Drak',              p:22, slot:'room', wall:[92,17,.6]},
+  {id:'flowers',e:'💐', n:'Kytice',            p:22, slot:'room', pos:[38,0,.38]},
+  {id:'bed',    e:'🛏️', n:'Pelíšek',           p:30, slot:'room', pos:[22,.4,1.0]},
+  {id:'drum',   e:'🥁', n:'Bubínek',           p:30, slot:'room', pos:[66,.55,.4]},
+  {id:'guitar', e:'🎸', n:'Kytara',            p:32, slot:'room', pos:[6,.5,.8]},
+  {id:'fish',   e:'🐠', n:'Akvárium',          p:35, slot:'room', pos:[47,0,.4]},
+  {id:'tv',     e:'📺', n:'Televize',          p:40, slot:'room', pos:[64,0,.62]},
+  {id:'sofa',   e:'🛋️', n:'Gauč',              p:45, slot:'room', pos:[78,.18,1.6]},
+  {id:'slide',  e:'🛝', n:'Skluzavka',         p:45, slot:'room', pos:[8,.12,1.3]},
+  {id:'piano',  e:'🎹', n:'Piano',             p:50, slot:'room', pos:[27,.02,.75]},
+  {id:'tree',   e:'🎄', n:'Stromeček',         p:55, slot:'room', pos:[94,.02,1.4]},
+  {id:'rocket', e:'🚀', n:'Raketa',            p:65, slot:'room', wall:[60,12,.3]},
+  {id:'unicorn',e:'🦄', n:'Houpací jednorožec',p:80, slot:'room', pos:[88,.66,.55]},
   // ---- vylepšení boudy: slot wall / floor / window / light ----
   {id:'wpink',  e:'🩷', n:'Růžová stěna',      p:20, slot:'wall',   v:'#ffd6e7'},
   {id:'wblue',  e:'🩵', n:'Modrá stěna',       p:20, slot:'wall',   v:'#cfe9ff'},
@@ -165,6 +165,19 @@ function itemHTML(it){
   return `<button class="item ${have?'have':''} ${on?'on':''} ${!have && wallet()<it.p?'poor':''}" data-it="${it.id}">
     <span class="ie">${it.e}</span><span class="in">${it.n}</span><span class="ip">${label}</span></button>`;
 }
+// One scale for the whole room so things keep real proportions (Ayra ~0.6 m sitting,
+// a sofa 1.6 m...). Things further back stand higher on the floor and look smaller.
+const FLOOR = 58, M = 15;   // floor line in % of the height, cqw per metre at the back wall
+function place(p, ayra, shadow){
+  const [x, d, m] = p, k = .8 + d*.55, size = m*M*k;
+  const bottom = 100 - (FLOOR + d*(97-FLOOR));
+  if (shadow) return `left:${x}%;bottom:${bottom}%;width:${size*.75}cqw;margin-left:${-size*.375}cqw;z-index:${9+Math.round(d*100)}`;
+  return `left:${x}%;bottom:${bottom}%;font-size:${size}cqw;z-index:${10+Math.round(d*100)}`;
+}
+function kitHTML(i){
+  if (i.wall) return `<span class="kit wall" style="left:${i.wall[0]}%;top:${i.wall[1]}%;font-size:${i.wall[2]*M*.8}cqw">${i.e}</span>`;
+  return `<span class="kit floor${i.id==='fish'?' tank':''}" style="${place(i.pos)}">${i.e}</span>`;
+}
 function renderKennel(){
   const w = wear(), own = owned();
   const wall = (SHOP.find(i=>i.id===w.wall)||{}).v || '#efe3cf';
@@ -177,8 +190,8 @@ function renderKennel(){
     <div class="roof"></div><div class="wallz"></div><div class="floorz"></div>
     ${win ? `<div class="win"><span>${win}</span></div>` : ''}
     ${w.light ? '<div class="garland">✨ ✨ ✨ ✨ ✨ ✨ ✨</div>' : ''}
-    ${items.map(i=>`<span class="kit" style="left:${i.pos[0]}%;top:${i.pos[1]}%;--s:${i.pos[2]}">${i.e}</span>`).join('')}
-    <div class="owl kayra full"></div>
+    ${items.map(kitHTML).join('')}
+    <div class="owl kayra full" style="${place([50,.7,.7],true)}"></div><div class="kshadow" style="${place([50,.7,.7],true,1)}"></div>
     ${!items.length && !win && !w.wall ? '<div class="kempty">Ayřina bouda je zatím prázdná. Kup jí něco hezkého! 🛍️</div>' : ''}`;
   decorate();
 }

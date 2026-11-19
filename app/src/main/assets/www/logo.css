@@ -192,9 +192,9 @@
 /* Ayra's kennel */
 .kennel{position:relative;width:100%;max-width:820px;aspect-ratio:4/3;container-type:inline-size;border-radius:24px;overflow:hidden;
   box-shadow:0 8px 0 #00000018;--wall:#efe3cf;background:var(--wall)}
-.kennel .wallz{position:absolute;inset:0 0 40% 0;background:var(--wall);
+.kennel .wallz{position:absolute;inset:0 0 42% 0;background:var(--wall);
   background-image:repeating-linear-gradient(90deg,transparent 0 9%,#00000008 9% 9.6%)}
-.kennel .floorz{position:absolute;inset:60% 0 0 0;background:#d9b98f;border-top:4px solid #b88c5a}
+.kennel .floorz{position:absolute;inset:58% 0 0 0;background:#d9b98f;border-top:4px solid #b88c5a}
 .kennel.floor-carpet .floorz{background:repeating-linear-gradient(45deg,#f28b9a 0 12px,#ef7c8d 12px 24px)}
 .kennel.floor-wood .floorz{background:repeating-linear-gradient(90deg,#c48a52 0 14%,#b57b45 14% 14.5%)}
 .kennel .roof{position:absolute;left:-2%;right:-2%;top:-1%;height:8%;background:#b5651d;border-bottom:4px solid #7a3e0e;z-index:2}
@@ -215,3 +215,11 @@
 .owl.full .acc-head{font-size:.24em;top:-2%;left:46%}
 .owl.full .acc-eyes{font-size:.26em;top:14%;left:46%}
 .owl.full .acc-neck{font-size:.22em;top:43%;bottom:auto;left:46%}
+
+/* realistic room: one scale, things stand on the floor (bottom anchored), further back = smaller */
+.kennel .kit.floor{top:auto;transform:none;margin-left:-.5em;filter:drop-shadow(0 .25em .12em #0000002e)}
+.kennel .kit.wall{transform:translate(-50%,-50%);filter:drop-shadow(.06em .08em 0 #00000022);z-index:3}
+.kennel .kit.tank{background:linear-gradient(#bfe9ff,#7cc8f0);border:.08em solid #e8f6ff;border-radius:.12em;padding:.15em .3em;margin-left:-.8em;font-size:inherit}
+.kennel .kayra.full{top:auto;transform:none;margin-left:-.5em;width:1em;height:1em}
+.kennel .kshadow{position:absolute;height:2.2cqw;margin-bottom:-1.1cqw;border-radius:50%;background:#0000002a}
+.kennel .win{z-index:1}
