@@ -39,7 +39,7 @@ const R_MSG = {
   readStart:'Čti slabiky nahlas. Já poslouchám.', readManual:'Čti slabiky nahlas. Po každé klepni na fajfku.', again:'Zkus to znovu.', listen:'Poslouchej.',
   later:'Tuhle si přečteme později.', silent:'Neslyšela jsem tě. Řekni to nahlas.',
   allDone:'Všechny slabiky máš přečtené!', noMic:'Mikrofon nefunguje. Čti nahlas a potvrď tlačítkem.',
-  findHelp:'Poslouchej a najdi slabiku.', find:'Najdi slabiku.'
+  findHelp:'Poslouchej a najdi slabiku.'
 };
 const todayISO = ()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 
@@ -86,6 +86,7 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
   <div class="dots" id="rfDots"></div>
   <div class="gtalk"><div class="owl">🦉</div><div class="bubble" id="rfBubble"></div></div>
   <div class="answers rfans" id="rfAns"></div>
+  <div class="btns" style="padding-bottom:6px"><button class="bigbtn" style="--c:var(--orange);--d:var(--orange-d)" id="rfAgain">🔊 Znovu</button></div>
 </section>`);
 
 const lessonById = id => R_LESSONS.find(l=>l.id===id);
@@ -138,6 +139,10 @@ function sttAvailable(){
   return STT_KIND==='web';
 }
 let webRec = null;
+const STT_ERR = {1:'pomalý internet', 2:'chybí internet', 3:'problém s mikrofonem', 4:'chyba serveru rozpoznávání',
+  5:'chyba aplikace', 6:'nic jsem neslyšela (ticho)', 7:'zvuk byl, ale nerozpoznala jsem slovo', 8:'rozpoznávání je zaneprázdněné',
+  9:'chybí povolení mikrofonu', 10:'moc požadavků', 11:'odpojeno od serveru', 12:'čeština není podporovaná', 13:'chybí stažená čeština'};
+function sttError(code){ return `chyba ${code}: ${STT_ERR[code]||'neznámá'}`; }
 function listenOnce(onReady){
   return new Promise(done=>{
     const id = String(++sttSeq);
@@ -209,9 +214,9 @@ function showCur(){
   const el = cellEl(c); if (el){ el.classList.add('cur'); }
   const big = $('#rrSyl'); big.textContent = c.s; big.classList.remove('pop','good'); void big.offsetWidth; big.classList.add('pop');
   $('#rrCount').textContent = `✅ ${RR.total-RR.queue.length} / ${RR.total}`;
-  $('#rrHeard').textContent = '';
+  if (RR.lastShown !== c){ $('#rrHeard').textContent = ''; RR.lastShown = c; }
   $('#rrOk').classList.remove('hint');
-  $('#rrBubble').textContent = 'Přečti slabiku nahlas.';
+  $('#rrBubble').textContent = RR.manual ? 'Přečti slabiku nahlas.' : 'Přečti slabiku nahlas (klidně 2×).';
 }
 function setMic(state){ const m=$('#rrMic'); m.className='mic '+(state||''); m.textContent = state==='busy'?'⏳':'🎤'; }
 async function loop(){
@@ -221,6 +226,8 @@ async function loop(){
     const c = RR.queue[0];
     if (RR.manual){ setMic('off'); return; }        // waits for the ✓ button
     setMic('busy');
+    await new Promise(r=>setTimeout(r,250));          // let the voice finish completely before the mic opens
+    if (my!==RR.run || !isOn('rread')) return;
     const r = await listenOnce(()=>{ if (my===RR.run) setMic('on'); });
     if (my!==RR.run || !isOn('rread')) return;
     setMic('off');
@@ -228,6 +235,7 @@ async function loop(){
       if (r.code===9 || r.code===5){ micWanted = 0; applyMode(); await speak(R_MSG.noMic); continue; }
       RR.silent++;
       $('#rrBubble').textContent = 'Neslyšela jsem tě.';
+      $('#rrHeard').textContent = '⚠️ ' + sttError(r.code);
       if (RR.silent >= 2){ RR.silent = 0; await speak(R_MSG.silent); $('#rrBubble').textContent='Klepni na 🎤 Znovu a čti.'; return; }
       continue;
     }
@@ -249,7 +257,7 @@ async function success(c){
 async function miss(c, heard){
   c.tries++; sfx.bad();
   const el = cellEl(c); if (el) el.classList.add('bad');
-  $('#rrHeard').textContent = heard.length ? `slyšela jsem: ${heard[0]}` : '';
+  $('#rrHeard').textContent = heard.length ? `slyšela jsem: ${heard.slice(0,3).join(' / ')}` : '';
   if (c.tries === 1){ $('#rrBubble').textContent='Zkus to znovu!'; await speak(R_MSG.again); }
   else if (c.tries === 2){ $('#rrBubble').textContent='Poslouchej: '+c.s; $('#rrOk').classList.add('hint'); await speak(R_MSG.listen); await speak(say(c.s), {queue:true}); }
   else { RR.queue.push(RR.queue.shift()); c.tries = 2; $('#rrBubble').textContent='Vrátíme se k ní.'; await speak(R_MSG.later); }
@@ -294,7 +302,7 @@ function startFind(){
   A.go('rfind'); showFind(true);
 }
 // the syllable is always spoken on its own (inside a sentence the voice may spell it out)
-function sayFind(s, queue){ speak(R_MSG.find, {queue:!!queue}); return speak(say(s), {queue:true}); }
+function sayFind(s, queue){ return speak(say(s), {queue:!!queue}); }
 function showFind(first){
   const s = RF.items[RF.idx]; RF.wrong = 0; RF.busy = false;
   const pool = [...new Set(day().cols.flat())].filter(x=>x.toLowerCase()!==s.toLowerCase());
@@ -310,6 +318,7 @@ function showFind(first){
   else sayFind(s);
 }
 $('#rfSay').addEventListener('click',()=>{ const s=RF.items[RF.idx]; if (s) sayFind(s); });
+$('#rfAgain').addEventListener('click',()=>{ const s=RF.items[RF.idx]; if (s){ sfx.tap(); sayFind(s); } });
 $('#rfAns').addEventListener('click', async e=>{
   const b = e.target.closest('.ans'); if (!b || RF.busy) return;
   const s = RF.items[RF.idx], my = rfRun;
