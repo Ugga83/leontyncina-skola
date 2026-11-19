@@ -43,7 +43,7 @@ Aplikace používá hlas zabudovaný v Androidu. Pokud chybí čeština:
 **Nastavení → Usnadnění (nebo Systém → Jazyky) → Převod textu na řeč** → modul Google → nainstalovat hlasová data **Čeština**.
 
 ## Hlas
-Sovička mluví českým neuronovým hlasem Microsoft „Vlasta“. Všechny věty se namluví předem při sestavení na GitHubu (`tools/gen_voice.py`, knihovna edge-tts) a přibalí se do aplikace jako mp3. Když nějaká věta chybí, použije se hlas telefonu.
+Sovička mluví českým neuronovým hlasem Microsoft „Vlasta“. Všechny věty se namluví předem při sestavení na GitHubu (`tools/gen_voice.py`, knihovna edge-tts) a přibalí se do aplikace jako mp3. Slabiky jsou namluvené zvlášť hlasem Google Wavenet s předepsanou výslovností (`tools/google_syllables.py`, klíč z proměnné GOOGLE_TTS_KEY se do repozitáře neukládá). Když nějaká věta chybí, použije se hlas telefonu.
 Po změně textů spusť `node tools/collect_phrases.js` (aktualizuje `voice/phrases.json`).
 
 ## Pro vývoj

@@ -11,6 +11,6 @@ Hlas Vlasta (edge-tts) samotnou hlásku neumí protáhnout, proto:
    (`build.py` = starší varianta s natažením, nepoužívá se.)
 Zdrojové soubory čte z aktuálního adresáře (s_0.mp3, sh_0.mp3, w9.mp3, x3.mp3, c_0.mp3, ch_0.mp3).
 
-Slabiky se s/z/c/š/ž/č (+ pi): hlas je čte špatně samostatně, proto se namluví zdvojeně pomalu („susu“, rate −40 %) a vyřízne se první slabika (`cut_syllable.py`); výsledky jsou ve `voice/fixed/`.
+Všechny slabiky (dvě písmena) jsou namluvené hlasem Google Wavenet s přesnou výslovností (IPA) – `tools/google_syllables.py`, výsledky ve `voice/fixed/`. Hlas Vlasta je čte špatně („so“ → „es o“).
 
 Aktuálně: každá hláska zazní jen jednou, v přirozené délce – `build_single.py`.
