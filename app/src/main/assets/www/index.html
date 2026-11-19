@@ -199,6 +199,10 @@ h1.subh{flex:1;font-size:clamp(26px,7vw,38px);text-align:left}
       <span class="lbl">Zvuk</span>
       <div class="seg" id="soundSeg"><button data-snd="1">🔊</button><button data-snd="0">🔇</button></div>
     </div>
+    <div class="row" id="updRow" style="margin-top:10px;display:none">
+      <span class="lbl">Verze <span id="appVer"></span></span>
+      <button class="pill" id="btnUpd" style="flex:0 0 auto;font-size:18px;padding:8px 14px">🔄 Aktualizace</button>
+    </div>
   </div>
   <div class="panel">
     <div class="row"><span class="lbl">Moje nálepky</span><span class="starsum" id="starSum">⭐ 0</span></div>
@@ -649,6 +653,10 @@ $('#answers').addEventListener('click', e=>{ const b=e.target.closest('.ans'); i
 
 // Android back button
 window.appBack = back;
+if (native && native.appVersion){
+  try{ $('#appVer').textContent = native.appVersion(); $('#updRow').style.display='flex'; }catch(e){}
+  $('#btnUpd').addEventListener('click',()=>{ sfx.tap(); try{ native.checkUpdate(); }catch(e){} });
+}
 
 // shared API for the other modules (logo.js, later reading)
 window.App = {speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, leaveHooks,

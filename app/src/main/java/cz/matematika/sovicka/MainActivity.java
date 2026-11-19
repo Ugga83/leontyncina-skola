@@ -38,6 +38,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
     private String pendingText;
     private String pendingId;
     private PermissionRequest pendingPerm;
+    private Updater updater;
     private static final int REQ_MEDIA = 42;
 
     @Override
@@ -65,6 +66,9 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         hideSystemBars();
 
         tts = new TextToSpeech(this, this);
+
+        updater = new Updater(this);
+        web.postDelayed(() -> updater.check(false), 3000);
     }
 
     @Override
@@ -191,6 +195,16 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         public int status() {
             return ttsStatus;
         }
+
+        @JavascriptInterface
+        public String appVersion() {
+            return updater.localVersionName();
+        }
+
+        @JavascriptInterface
+        public void checkUpdate() {
+            runOnUiThread(() -> updater.check(true));
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -228,6 +242,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
     protected void onResume() {
         super.onResume();
         web.onResume();
+        if (updater != null) updater.onResume();
     }
 
     @Override
