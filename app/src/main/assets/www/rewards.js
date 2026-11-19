@@ -106,13 +106,24 @@ function wear(){ return get('wear', {}); }
 if (get('rewv1', 0) === 0){ set('wallet', wallet() + 15); set('boxAt', A.S.total + BOX_EVERY); set('rewv1', 1); }
 
 // ---------- Ayra's accessories (shown on every Ayra picture) ----------
+// a knitted scarf drawn around Ayra's neck (the emoji one only hangs straight down)
+const SCARF = `<svg viewBox="0 0 100 64">
+  <path d="M3 10 Q50 30 97 10 L95 24 Q50 44 5 24 Z" fill="#e2574c"/>
+  <path d="M8 14 Q50 33 92 14 M8 19 Q50 38 92 19" stroke="#f47f73" stroke-width="1.6" fill="none"/>
+  <path d="M57 30 L71 29 L77 56 L62 58 Z" fill="#d94a40"/>
+  <rect x="59" y="38" width="15" height="3" fill="#f4a29a" transform="rotate(-6 66 39)"/><rect x="60" y="46" width="16" height="3" fill="#f4a29a" transform="rotate(-6 68 47)"/>
+  <path d="M63 58 v6 M66 57.6 v6 M69 57.2 v6 M72 56.8 v6 M75 56.4 v6" stroke="#d94a40" stroke-width="1.6"/>
+  <ellipse cx="64" cy="30" rx="9" ry="7" fill="#c43d33"/></svg>`;
 function decorate(){
   const w = wear();
   document.querySelectorAll('.owl').forEach(o=>{
     o.querySelectorAll('.acc').forEach(x=>x.remove());
     ['head','eyes','neck'].forEach(slot=>{
       const it = SHOP.find(i=>i.id===w[slot]); if (!it) return;
-      const s = document.createElement('span'); s.className='acc acc-'+slot; s.textContent = it.e; o.appendChild(s);
+      const s = document.createElement('span'); s.className='acc acc-'+slot;
+      if (it.id==='scarf' && o.classList.contains('full')){ s.className += ' wrap'; s.innerHTML = SCARF; }   // wrapped around the neck
+      else s.textContent = it.e;
+      o.appendChild(s);
     });
   });
 }

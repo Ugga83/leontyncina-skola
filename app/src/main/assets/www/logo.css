@@ -226,3 +226,5 @@
 .kennel .kit.furn{position:absolute;transform:none;font-size:inherit;overflow:visible;filter:drop-shadow(0 .6cqw .4cqw #00000030);animation:dropIn .5s backwards}
 .item .ie svg{height:34px;width:auto;max-width:60px}
 .item.need{opacity:.6}.item.need .ip{color:#8a6d3b;font-size:12px}
+.owl.full .acc-neck.wrap{font-size:1em;width:.52em;left:47%;top:45%;transform:translateX(-50%)}
+.owl.full .acc-neck.wrap svg{display:block;width:100%;height:auto}
