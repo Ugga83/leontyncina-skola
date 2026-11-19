@@ -147,7 +147,7 @@ function sttError(code){ return `chyba ${code}: ${STT_ERR[code]||'neznámá'}`; 
 function listenOnce(onReady){
   return new Promise(done=>{
     const id = String(++sttSeq);
-    const t = setTimeout(()=>{ if (sttWait[id]){ delete sttWait[id]; stopListen(); done({ok:false, code:6}); } }, 12000);
+    const t = setTimeout(()=>{ if (sttWait[id]){ delete sttWait[id]; stopListen(); done({ok:false, code:6}); } }, 16000);
     sttWait[id] = {ready:onReady, done:r=>{ clearTimeout(t); done(r); }};
     if (STT_KIND==='native'){ try{ native.listen(id); }catch(e){ window.__stt(id,'err',5); } return; }
     try{
@@ -214,6 +214,8 @@ function startRead(fresh){
   A.go('rread');
   if (STT_KIND==='native' && native.setHints){ try{ native.setHints(JSON.stringify([...new Set(cells.map(c=>c.s.toLowerCase()))])); }catch(e){} }
   $('#rrGrid').innerHTML = gridHTML(day(), 'mini');
+  $('#rrGrid').style.setProperty('--rows', Math.max(...day().cols.map(c=>c.length)));
+  $('#rrGrid').style.setProperty('--cols', day().cols.length);
   doneSet.forEach(k=>{ const [ci,ri]=k.split('-'); const el=document.querySelector(`#rrGrid .rs[data-c="${ci}"][data-r="${ri}"]`); if (el) el.classList.add('done'); });
   applyMode();
   showCur(); setMic('off');
@@ -248,7 +250,7 @@ async function loop(){
       RR.silent++;
       $('#rrBubble').textContent = 'Neslyšela jsem tě.';
       $('#rrHeard').textContent = '⚠️ ' + sttError(r.code);
-      if (RR.silent >= 2){ RR.silent = 0; await speak(R_MSG.silent); $('#rrBubble').textContent='Klepni na 🎤 Znovu a čti.'; return; }
+      if (RR.silent >= 3){ RR.silent = 0; await speak(R_MSG.silent); $('#rrBubble').textContent='Klepni na 🎤 Znovu a čti.'; return; }
       continue;
     }
     RR.silent = 0;

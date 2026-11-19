@@ -68,7 +68,7 @@ class CloudSpeech {
         worker.start();
     }
 
-    /** Records until ~0.7 s of silence after speech, max 4 s. Returns null if no speech at all. */
+    /** Records until ~1.3 s of silence after speech, max 10 s (children read slowly). Returns null if no speech at all. */
     @SuppressWarnings("MissingPermission")
     private byte[] record(Callback cb) throws Exception {
         int min = AudioRecord.getMinBufferSize(RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
@@ -83,7 +83,7 @@ class CloudSpeech {
         int silentMs = 0, totalMs = 0;
         double noise = 300;                                       // running noise floor
         try {
-            while (!cancelled && totalMs < 4000) {
+            while (!cancelled && totalMs < 10000) {
                 int n = ar.read(buf, 0, buf.length);
                 if (n <= 0) continue;
                 double sum = 0;
@@ -100,8 +100,8 @@ class CloudSpeech {
                 if (!spoke && totalMs < 300) noise = Math.max(150, (noise + rms) / 2);
                 boolean loud = rms > Math.max(700, noise * 3);
                 if (loud) { spoke = true; silentMs = 0; }
-                else if (spoke) { silentMs += ms; if (silentMs >= 700) break; }
-                if (!spoke && totalMs >= 3500) break;             // nobody said anything
+                else if (spoke) { silentMs += ms; if (silentMs >= 1300) break; }
+                if (!spoke && totalMs >= 8000) break;             // nobody said anything
             }
         } finally {
             try { ar.stop(); } catch (Exception ignored) { }

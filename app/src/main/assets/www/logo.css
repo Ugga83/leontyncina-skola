@@ -235,3 +235,8 @@
 .rgrid.mini{padding:4px 6px;gap:4px}
 .rgrid.mini .rcol{gap:2px}
 .rgrid.mini .rs.cur{transform:none;outline-offset:-3px}
+/* the worksheet fills the whole card: rows stretch, letters grow with the free space */
+.rgrid.mini{container-type:size;overflow:hidden;align-content:stretch}
+.rgrid.mini .rcol{justify-content:space-around}
+.rgrid.mini .rs{flex:0 0 calc(100% / var(--rows,10) - 2px);min-height:0;display:flex;align-items:center;justify-content:center;
+  font-size:min(calc(100cqh / var(--rows,10) * .62), calc(100cqw / var(--cols,3) * .3), 64px)}
