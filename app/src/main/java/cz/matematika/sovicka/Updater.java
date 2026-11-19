@@ -33,7 +33,7 @@ class Updater {
     // the name-based URL is only a fallback.
     private static final String[] LATEST = {
             "https://api.github.com/repositories/1464087746/releases/latest",
-            "https://api.github.com/repos/Ugga83/Matematika-/releases/latest",
+            "https://api.github.com/repos/Ugga83/leontyncina-skola/releases/latest",
     };
 
     private final Activity act;
