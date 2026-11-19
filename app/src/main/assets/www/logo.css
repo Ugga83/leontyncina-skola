@@ -228,3 +228,10 @@
 .item.need{opacity:.6}.item.need .ip{color:#8a6d3b;font-size:12px}
 .owl.full .acc-neck.wrap{font-size:1em;width:.52em;left:47%;top:45%;transform:translateX(-50%)}
 .owl.full .acc-neck.wrap svg{display:block;width:100%;height:auto}
+/* reading: syllable and mic side by side so the whole worksheet fits under them */
+.rrtop{display:flex;align-items:center;justify-content:center;gap:14px;width:100%}
+.rrcard .rsyl{font-size:clamp(70px,22vw,130px)}
+.rrcard .heard{min-height:1.1em;font-size:15px}
+.rgrid.mini{padding:4px 6px;gap:4px}
+.rgrid.mini .rcol{gap:2px}
+.rgrid.mini .rs.cur{transform:none;outline-offset:-3px}

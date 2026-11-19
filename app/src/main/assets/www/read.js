@@ -68,8 +68,7 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
     <div class="scount" id="rrCount"></div></div>
   <div class="gtalk"><div class="owl"></div><div class="bubble" id="rrBubble"></div></div>
   <div class="card rrcard">
-    <div class="rsyl" id="rrSyl"></div>
-    <div class="mic" id="rrMic">🎤</div>
+    <div class="rrtop"><div class="rsyl" id="rrSyl"></div><div class="mic" id="rrMic">🎤</div></div>
     <div class="heard" id="rrHeard"></div>
     <div class="rgrid mini" id="rrGrid"></div>
   </div>
@@ -225,7 +224,7 @@ function cellEl(c){ return document.querySelector(`#rrGrid .rs[data-c="${c.ci}"]
 function showCur(){
   const c = RR.queue[0]; if (!c) return;
   document.querySelectorAll('#rrGrid .rs').forEach(x=>x.classList.remove('cur'));
-  const el = cellEl(c); if (el){ el.classList.add('cur'); }
+  const el = cellEl(c); if (el){ el.classList.add('cur'); el.scrollIntoView({block:'nearest'}); }
   const big = $('#rrSyl'); big.textContent = c.s; big.classList.remove('pop','good'); void big.offsetWidth; big.classList.add('pop');
   $('#rrCount').textContent = `✅ ${RR.total-RR.queue.length} / ${RR.total}`;
   if (RR.lastShown !== c){ $('#rrHeard').textContent = ''; RR.lastShown = c; }
