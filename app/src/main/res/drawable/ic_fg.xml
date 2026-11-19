@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- star -->
+    <path android:fillColor="#FFD447" android:strokeColor="#E5A100" android:strokeWidth="2.5" android:strokeLineJoin="round"
+        android:pathData="M54.0,26.0 L62.2,44.7 L82.5,46.7 L67.3,60.3 L71.6,80.3 L54.0,70.0 L36.4,80.3 L40.7,60.3 L25.5,46.7 L45.8,44.7 Z" />
+    <!-- eyes -->
+    <path android:fillColor="#2B2D4A" android:pathData="M48,52 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <path android:fillColor="#2B2D4A" android:pathData="M60,52 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <!-- smile -->
+    <path android:strokeColor="#2B2D4A" android:strokeWidth="2.5" android:strokeLineCap="round"
+        android:pathData="M48,60 Q54,66 60,60" />
+</vector>

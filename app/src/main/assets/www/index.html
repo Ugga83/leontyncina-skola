@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#8fd3ff">
+<title>Počítání se Sovičkou</title>
+<style>
+@font-face{font-family:'Fredoka';font-weight:300 700;font-display:swap;src:url(fonts/fredoka-latin.woff2) format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Fredoka';font-weight:300 700;font-display:swap;src:url(fonts/fredoka-latin-ext.woff2) format('woff2');
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1E00-1E9F}
+:root{
+  --ink:#2b2d4a; --ink-soft:#5d6088; --card:#ffffff;
+  --sky1:#8fd3ff; --sky2:#d9f1ff; --sun:#ffd447;
+  --coral:#ff7b7b; --coral-d:#e05555;
+  --teal:#2fc7a0; --teal-d:#1f9f7e;
+  --violet:#9a7bff; --violet-d:#7656e6;
+  --orange:#ffad3b; --orange-d:#e58b12;
+  --good:#3ccf6e; --bad:#ff6161;
+  --radius:28px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{
+  font-family:'Fredoka',system-ui,sans-serif;color:var(--ink);
+  background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 62%,#e9f9d9 62%,#b8e88f 100%);
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;
+}
+/* scenery */
+.scenery{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.sun{position:absolute;top:-40px;right:-40px;width:170px;height:170px;border-radius:50%;
+  background:radial-gradient(circle,#fff3a8 0 45%,var(--sun) 46% 100%);box-shadow:0 0 0 18px #ffe9824d,0 0 0 40px #ffe98226}
+.cloud{position:absolute;background:#fff;border-radius:60px;opacity:.9;animation:drift linear infinite}
+.cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cloud::before{width:55%;height:150%;left:15%;top:-60%}
+.cloud::after{width:40%;height:120%;right:12%;top:-40%}
+.c1{width:130px;height:40px;top:12%;left:-150px;animation-duration:60s}
+.c2{width:90px;height:28px;top:30%;left:-150px;animation-duration:85s;animation-delay:-40s}
+.c3{width:110px;height:34px;top:5%;left:-150px;animation-duration:72s;animation-delay:-20s}
+@keyframes drift{to{transform:translateX(calc(100vw + 300px))}}
+.hill{position:absolute;bottom:-60px;border-radius:50%;background:#9ad86f}
+.h1{width:70vw;height:200px;left:-15vw}.h2{width:80vw;height:230px;right:-25vw;background:#86cc5c}
+
+.screen{position:fixed;inset:0;z-index:1;display:none;flex-direction:column;align-items:center;
+  padding:max(14px,env(safe-area-inset-top)) 16px max(14px,env(safe-area-inset-bottom));}
+.screen.active{display:flex;animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0;transform:scale(.98)}}
+
+/* ---------- HOME ---------- */
+#home{justify-content:flex-start;gap:12px;overflow-y:auto}
+.hero{display:flex;align-items:center;gap:12px;margin-top:6px;width:100%;max-width:720px}
+.owl{font-size:68px;line-height:1;filter:drop-shadow(0 6px 0 #0000001a);animation:bob 3s ease-in-out infinite;cursor:pointer}
+@keyframes bob{50%{transform:translateY(-6px) rotate(-3deg)}}
+.bubble{position:relative;background:#fff;border-radius:22px;padding:12px 16px;font-size:clamp(17px,4.6vw,24px);font-weight:600;
+  box-shadow:0 5px 0 #0000001a;flex:1;min-height:54px;display:flex;align-items:center}
+.bubble::before{content:"";position:absolute;left:-12px;top:50%;margin-top:-10px;border:10px solid transparent;border-right:14px solid #fff;border-left:0}
+h1{margin:0;font-size:clamp(26px,7vw,40px);line-height:1.05;letter-spacing:.5px;color:#fff;
+  text-shadow:0 3px 0 #3a7fc4,0 6px 0 #00000022;text-align:center}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:720px}
+.tile{border:0;font:inherit;color:#fff;border-radius:var(--radius);padding:16px 10px 14px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;
+  box-shadow:0 8px 0 var(--d),0 12px 18px #00000022;background:var(--c);transition:transform .1s}
+.tile:active{transform:translateY(6px);box-shadow:0 2px 0 var(--d)}
+.tile .ic{font-size:clamp(40px,11vw,60px);line-height:1.1}
+.tile .t{font-size:clamp(18px,4.8vw,26px);font-weight:700;text-align:center;line-height:1.1}
+.tile .s{font-size:clamp(16px,4.2vw,22px);font-weight:600;background:#ffffff33;border-radius:12px;padding:2px 10px;margin-top:2px}
+.t-cmp{--c:var(--teal);--d:var(--teal-d)}
+.t-add{--c:var(--coral);--d:var(--coral-d)}
+.t-sub{--c:var(--violet);--d:var(--violet-d)}
+.t-mix{--c:var(--orange);--d:var(--orange-d)}
+.panel{background:#ffffffd9;border-radius:22px;padding:12px 14px;width:100%;max-width:720px;box-shadow:0 5px 0 #00000014}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.lbl{font-weight:700;font-size:19px}
+.seg{display:flex;background:#e8ecf7;border-radius:16px;padding:4px}
+.seg button{border:0;font:inherit;font-weight:700;font-size:19px;padding:6px 16px;border-radius:12px;background:transparent;color:var(--ink-soft);cursor:pointer}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 3px 0 #0000001a}
+.stickers{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.stk{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:28px;background:#fff7d6;box-shadow:inset 0 -3px 0 #0000000f}
+.stk.lock{background:#eef0f6;filter:grayscale(1);opacity:.45;font-size:20px;color:#999}
+.starsum{font-weight:700;font-size:19px}
+.warn{display:none;background:#fff1c9;border:2px dashed #e5b43a;border-radius:16px;padding:10px 12px;font-size:16px;line-height:1.3;max-width:720px}
+
+/* ---------- GAME ---------- */
+#game{gap:10px}
+.top{display:flex;align-items:center;gap:10px;width:100%;max-width:820px}
+.round-btn{width:54px;height:54px;flex:0 0 54px;border-radius:50%;border:0;background:#fff;font-size:28px;cursor:pointer;
+  box-shadow:0 5px 0 #00000022;display:grid;place-items:center}
+.round-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #00000022}
+.dots{flex:1;display:flex;gap:4px;justify-content:center;min-width:0}
+.dot{flex:0 1 auto;width:clamp(10px,2.7vw,20px);height:clamp(10px,2.7vw,20px);border-radius:50%;background:#ffffff99;box-shadow:inset 0 -2px 0 #0000001a}
+.dot.cur{background:#fff;outline:3px solid #3a7fc4}
+.dot.gold{background:var(--sun)}.dot.ok{background:var(--good)}
+.scount{background:#fff;border-radius:20px;padding:6px 12px;font-weight:700;font-size:22px;box-shadow:0 5px 0 #00000022;white-space:nowrap}
+.scount.pop{animation:pop .5s}
+@keyframes pop{40%{transform:scale(1.35)}}
+.gtalk{display:flex;align-items:center;gap:10px;width:100%;max-width:820px}
+.gtalk .owl{font-size:50px}
+.gtalk .bubble{font-size:clamp(16px,4.4vw,22px);min-height:48px}
+
+.card{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 0 #00000014,0 14px 24px #0000001a;
+  width:100%;max-width:820px;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:14px 10px;position:relative}
+.visual{display:flex;align-items:center;justify-content:center;gap:clamp(6px,2vw,18px);width:100%}
+.gwrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+.grp{--cols:3;display:grid;grid-template-columns:repeat(var(--cols),var(--isz));gap:4px;padding:10px;border-radius:22px;
+  background:#f3f6ff;border:3px dashed #cdd6f3;min-width:70px;min-height:70px;justify-content:center;align-content:center;cursor:pointer;
+  --isz:clamp(30px,9vw,58px)}
+.visual .grp{--isz:min(80px,calc(72vw / (var(--tc,3) + 1.8)))}
+.grp.empty{display:grid;place-items:center;color:#a5add0;font-size:18px;font-weight:600}
+.it{width:var(--isz);height:var(--isz);font-size:calc(var(--isz)*.82);line-height:1;display:grid;place-items:center;position:relative;
+  transition:opacity .5s,transform .5s,filter .5s}
+.it.in{animation:dropIn .45s cubic-bezier(.3,1.6,.5,1) backwards}
+@keyframes dropIn{from{transform:translateY(-30px) scale(.3);opacity:0}}
+.it.gone{opacity:.28;filter:grayscale(1);transform:scale(.8) rotate(-12deg)}
+.it.gone::after{content:"";position:absolute;inset:10%;background:
+  linear-gradient(45deg,transparent 44%,var(--bad) 44% 56%,transparent 56%),linear-gradient(-45deg,transparent 44%,var(--bad) 44% 56%,transparent 56%)}
+.it.count{animation:countPop .45s}
+@keyframes countPop{40%{transform:scale(1.4) translateY(-6px)}}
+.it .badge{position:absolute;top:-6px;right:-6px;background:var(--violet);color:#fff;font-size:14px;font-weight:700;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-family:'Fredoka',sans-serif}
+.num{font-size:clamp(30px,8vw,48px);font-weight:700;line-height:1;color:var(--ink)}
+.opsign{font-size:clamp(36px,10vw,64px);font-weight:700;color:var(--ink-soft)}
+.expr{display:flex;align-items:center;gap:clamp(8px,2.5vw,18px);font-size:clamp(46px,13vw,86px);font-weight:700;line-height:1}
+.expr .o{color:var(--ink-soft)}
+.slot{min-width:1.25em;height:1.25em;padding:0 .1em;border-radius:22px;border:4px dashed #b9c3e6;display:grid;place-items:center;color:#b9c3e6;background:#f7f9ff}
+.slot.filled{border-style:solid;border-color:var(--good);background:#e6fbe9;color:var(--good);animation:pop .5s}
+.cmp-slot{font-size:clamp(46px,13vw,86px);font-weight:700}
+
+.answers{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(8px,2vw,14px);width:100%;max-width:820px;padding-bottom:6px}
+.ans{--c:#fff;--d:#c9d2ee;border:0;font:inherit;font-weight:700;color:var(--ink);background:var(--c);cursor:pointer;
+  width:clamp(58px,15vw,92px);height:clamp(58px,15vw,92px);border-radius:24px;font-size:clamp(34px,9vw,54px);
+  box-shadow:0 7px 0 var(--d),0 10px 14px #00000018;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;transition:transform .08s}
+.ans:active{transform:translateY(5px);box-shadow:0 2px 0 var(--d)}
+.ans:nth-child(6n+1){--c:#ffe1e1;--d:#f3b1b1}.ans:nth-child(6n+2){--c:#fff1cc;--d:#efd08a}.ans:nth-child(6n+3){--c:#dbf7e9;--d:#9fdcbf}
+.ans:nth-child(6n+4){--c:#dcefff;--d:#a2c9ef}.ans:nth-child(6n+5){--c:#ece4ff;--d:#c2b2f2}.ans:nth-child(6n+6){--c:#ffe4f4;--d:#f0b0d6}
+.ans.sign{width:clamp(92px,26vw,150px);height:clamp(92px,24vw,130px);font-size:clamp(48px,13vw,74px)}
+.ans.sign small{font-size:clamp(15px,4vw,20px);font-weight:600;margin-top:4px;color:var(--ink-soft)}
+.ans.wrong{--c:#ffd6d6 !important;--d:var(--bad) !important;opacity:.55;animation:shake .45s;pointer-events:none}
+.ans.right{--c:#c9f6d4 !important;--d:var(--good) !important;animation:pop .5s}
+@keyframes shake{20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
+.answers.locked .ans{pointer-events:none}
+
+/* ---------- END ---------- */
+#end{justify-content:center;gap:16px;text-align:center}
+.trophy{font-size:110px;animation:bob 2s ease-in-out infinite;filter:drop-shadow(0 8px 0 #0000001a)}
+.endcard{background:#fff;border-radius:var(--radius);padding:20px 22px;box-shadow:0 8px 0 #00000014;max-width:520px;width:100%}
+.endcard h2{margin:0 0 6px;font-size:clamp(30px,8vw,44px)}
+.bigstars{font-size:clamp(26px,7vw,40px);letter-spacing:2px;word-break:break-all;line-height:1.3}
+.newstk{margin-top:12px;font-size:20px;font-weight:600}
+.newstk span{font-size:60px;display:block;animation:pop 1s}
+.btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.bigbtn{border:0;font:inherit;font-weight:700;font-size:24px;color:#fff;padding:14px 26px;border-radius:22px;cursor:pointer;
+  background:var(--c);box-shadow:0 7px 0 var(--d)}
+.bigbtn:active{transform:translateY(5px);box-shadow:0 2px 0 var(--d)}
+
+/* confetti */
+.conf{position:fixed;top:-20px;width:12px;height:16px;z-index:50;pointer-events:none;border-radius:3px;animation:fall linear forwards}
+@keyframes fall{to{transform:translate(var(--dx),110vh) rotate(var(--r));}}
+
+@media (orientation:landscape) and (max-height:520px){
+  .gtalk{display:none}
+  .visual .grp{--isz:min(13vh,calc(64vw / (var(--tc,3) + 2)))}
+  .expr{font-size:clamp(36px,11vh,70px)}
+  .ans{width:clamp(50px,13vh,80px);height:clamp(50px,13vh,80px);font-size:clamp(28px,8vh,46px)}
+  .ans.sign{height:clamp(64px,18vh,110px)}
+  .tiles{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="scenery"><div class="sun"></div><div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div><div class="hill h1"></div><div class="hill h2"></div></div>
+
+<!-- HOME -->
+<section id="home" class="screen active">
+  <h1>Počítání se Sovičkou</h1>
+  <div class="hero">
+    <div class="owl" id="homeOwl" title="Sovička">🦉</div>
+    <div class="bubble" id="homeBubble">Ahoj! Na co máš dneska chuť?</div>
+  </div>
+  <div class="tiles">
+    <button class="tile t-cmp" data-mode="cmp"><span class="ic">🐊</span><span class="t">Větší, menší,<br>rovná se</span><span class="s">3 &gt; 2</span></button>
+    <button class="tile t-add" data-mode="add"><span class="ic">🍎</span><span class="t">Sčítání</span><span class="s">2 + 1</span></button>
+    <button class="tile t-sub" data-mode="sub"><span class="ic">🎈</span><span class="t">Odčítání</span><span class="s">4 − 1</span></button>
+    <button class="tile t-mix" data-mode="mix"><span class="ic">🎲</span><span class="t">Všechno<br>dohromady</span><span class="s">+ − &lt; &gt;</span></button>
+  </div>
+  <div class="warn" id="ttsWarn">🔇 Sovička zatím nemá český hlas. Otevři v telefonu <b>Nastavení → Usnadnění / Systém → Převod textu na řeč</b>, zvol Google a stáhni <b>češtinu</b>. Pak aplikaci znovu spusť.</div>
+  <div class="panel">
+    <div class="row">
+      <span class="lbl">Počítáme do</span>
+      <div class="seg" id="rangeSeg"><button data-max="5">5</button><button data-max="10">10</button></div>
+      <div class="seg" id="soundSeg"><button data-snd="1">🔊</button><button data-snd="0">🔇</button></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="row"><span class="lbl">Moje nálepky</span><span class="starsum" id="starSum">⭐ 0</span></div>
+    <div class="stickers" id="stickers"></div>
+  </div>
+</section>
+
+<!-- GAME -->
+<section id="game" class="screen">
+  <div class="top">
+    <button class="round-btn" id="btnHome" aria-label="Domů">🏠</button>
+    <div class="dots" id="dots"></div>
+    <div class="scount" id="scount">⭐ 0</div>
+    <button class="round-btn" id="btnSay" aria-label="Zopakovat">🔊</button>
+  </div>
+  <div class="gtalk"><div class="owl" id="gameOwl">🦉</div><div class="bubble" id="gameBubble"></div></div>
+  <div class="card" id="card"></div>
+  <div class="answers" id="answers"></div>
+</section>
+
+<!-- END -->
+<section id="end" class="screen">
+  <div class="trophy">🏆</div>
+  <div class="endcard">
+    <h2 id="endTitle">Hurá!</h2>
+    <div class="bigstars" id="endStars"></div>
+    <div class="newstk" id="newStk"></div>
+  </div>
+  <div class="btns">
+    <button class="bigbtn" style="--c:var(--teal);--d:var(--teal-d)" id="btnAgain">🔁 Znovu</button>
+    <button class="bigbtn" style="--c:var(--violet);--d:var(--violet-d)" id="btnEndHome">🏠 Domů</button>
+  </div>
+</section>
+
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s);
+const ROUND = 10;
+const WORDS = ['nula','jedna','dva','tři','čtyři','pět','šest','sedm','osm','devět','deset'];
+const EMOJI = ['🍎','🍓','⭐','🐞','🐟','🎈','🌸','🐥','🍪','🦋','🍐','🐸','🧁','🚗'];
+const STICKERS = ['🐶','🐱','🦊','🐼','🐨','🦁','🐸','🦄','🐰','🐯','🐧','🐢','🐝','🐬','🦖','🌈'];
+const PRAISE = ['Výborně!','Super!','Správně!','Skvělé!','Jsi šikulka!','Paráda!','Bezva!'];
+
+// ---------- storage ----------
+const store = {
+  get(k,d){try{const v=localStorage.getItem('mat_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('mat_'+k,JSON.stringify(v))}catch(e){}}
+};
+const S = {max:store.get('max',5), sound:store.get('sound',1), total:store.get('total',0),
+  mode:'add', tasks:[], idx:0, stars:0, wrong:0, busy:false, results:[]};
+
+// ---------- speech ----------
+const native = window.AndroidTTS || null;
+let sid = 0; const pending = {};
+window.__ttsDone = id => { const f = pending[id]; if (f){ delete pending[id]; f(); } };
+let czVoice = null;
+function pickVoice(){
+  if (!('speechSynthesis' in window)) return;
+  const vs = speechSynthesis.getVoices();
+  czVoice = vs.find(v=>/^cs/i.test(v.lang)) || null;
+}
+if ('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function ttsAvailable(){
+  if (native) { try { return native.status() !== 2; } catch(e){ return false; } }
+  return 'speechSynthesis' in window;
+}
+// speak(text, {queue}) -> Promise resolved when finished (or after a fallback timeout)
+function speak(text, opt){
+  opt = opt||{};
+  return new Promise(resolve=>{
+    let done=false; const fin=()=>{ if(!done){done=true;resolve();} };
+    const est = 700 + text.length*75;
+    setTimeout(fin, est*2.2 + 1500);
+    if (!S.sound || !ttsAvailable()){ setTimeout(fin, Math.min(est, 1600)); return; }
+    const id = String(++sid);
+    pending[id] = fin;
+    if (native){ try{ native.speak(text, !opt.queue, id); }catch(e){ setTimeout(fin, 500); } return; }
+    try{
+      if (!opt.queue) speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang='cs-CZ'; if (czVoice) u.voice=czVoice; u.rate=.9; u.pitch=1.1;
+      u.onend = fin; u.onerror = fin;
+      speechSynthesis.speak(u);
+    }catch(e){ setTimeout(fin, 500); }
+  });
+}
+function hush(){
+  Object.keys(pending).forEach(k=>{ const f=pending[k]; delete pending[k]; f(); });
+  try{ if (native) native.stop(); else if ('speechSynthesis' in window) speechSynthesis.cancel(); }catch(e){}
+}
+
+// ---------- sound effects ----------
+let actx=null;
+function tone(freqs, dur, type, gain){
+  if (!S.sound) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if (actx.state==='suspended') actx.resume();
+    const t0 = actx.currentTime;
+    freqs.forEach((f,i)=>{
+      const o=actx.createOscillator(), g=actx.createGain();
+      o.type=type||'sine'; o.frequency.value=f;
+      const st=t0+i*dur*.8;
+      g.gain.setValueAtTime(0,st); g.gain.linearRampToValueAtTime(gain||.18,st+.02); g.gain.exponentialRampToValueAtTime(.001,st+dur);
+      o.connect(g).connect(actx.destination); o.start(st); o.stop(st+dur+.05);
+    });
+  }catch(e){}
+}
+const sfx = {
+  good:()=>tone([660,880,1175],.18,'triangle',.2),
+  bad:()=>tone([220,180],.22,'square',.06),
+  tap:()=>tone([520],.08,'sine',.12),
+  pop:()=>tone([900],.07,'sine',.1),
+  win:()=>tone([523,659,784,1047,784,1047],.2,'triangle',.2)
+};
+
+// ---------- helpers ----------
+const rnd = (a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick = arr=>arr[Math.floor(Math.random()*arr.length)];
+const W = n=>WORDS[n];
+const cap = s=>s.charAt(0).toUpperCase()+s.slice(1);
+function starsPhrase(n){
+  if (n===0) return 'žádnou hvězdičku';
+  if (n===1) return 'jednu hvězdičku';
+  if (n===2) return 'dvě hvězdičky';
+  if (n<5) return W(n)+' hvězdičky';
+  return W(n)+' hvězdiček';
+}
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active', s.id===id)); }
+
+// ---------- task generation ----------
+function genTask(type, max){
+  let a,b;
+  if (type==='add'){
+    const zero = Math.random()<.12;
+    do{
+      a = rnd(zero?0:1, max-1); b = rnd(zero?0:1, max-a);
+    } while (a+b===0 || a+b>max);
+    if (Math.random()<.5) [a,b]=[b,a];
+    return {type,a,b,answer:a+b};
+  }
+  if (type==='sub'){
+    a = rnd(1,max);
+    b = Math.random()<.12 ? (Math.random()<.5?0:a) : rnd(1,Math.max(1,a-(a>1?1:0)));
+    if (b>a) b=a;
+    return {type,a,b,answer:a-b};
+  }
+  // cmp
+  a = rnd(Math.random()<.1?0:1, max);
+  if (Math.random()<.25) b = a; else { do { b = rnd(Math.random()<.1?0:1, max); } while (b===a); }
+  return {type,a,b,answer: a>b?'>':a<b?'<':'='};
+}
+function buildRound(mode){
+  const out=[]; let last='';
+  const types = mode==='mix'?['add','sub','cmp']:[mode];
+  while(out.length<ROUND){
+    const t = genTask(pick(types), S.max);
+    const key = t.type+t.a+'_'+t.b;
+    if (key===last || out.filter(x=>x.type+x.a+'_'+x.b===key).length>=1 && Math.random()<.85) continue;
+    t.emoji = pick(EMOJI); t.emoji2 = pick(EMOJI.filter(e=>e!==t.emoji));
+    out.push(t); last=key;
+  }
+  return out;
+}
+
+// ---------- phrases ----------
+function prompt(t){
+  if (t.type==='add') return `Kolik je ${W(t.a)} plus ${W(t.b)}?`;
+  if (t.type==='sub') return `Kolik je ${W(t.a)} mínus ${W(t.b)}?`;
+  return `Které znaménko patří mezi ${W(t.a)} a ${W(t.b)}? Větší, menší, nebo rovná se?`;
+}
+function solution(t){
+  if (t.type==='add') return `${cap(W(t.a))} plus ${W(t.b)} je ${W(t.answer)}.`;
+  if (t.type==='sub') return `${cap(W(t.a))} mínus ${W(t.b)} je ${W(t.answer)}.`;
+  if (t.answer==='>') return `${cap(W(t.a))} je větší než ${W(t.b)}.`;
+  if (t.answer==='<') return `${cap(W(t.a))} je menší než ${W(t.b)}.`;
+  return `${cap(W(t.a))} se rovná ${W(t.b)}.`;
+}
+function bubbleText(t){
+  if (t.type==='add') return `Kolik je ${t.a} + ${t.b}?`;
+  if (t.type==='sub') return `Kolik je ${t.a} − ${t.b}?`;
+  return `Je ${t.a} větší, menší, nebo stejně jako ${t.b}?`;
+}
+
+// ---------- rendering ----------
+function cols(n){ return n<=3?Math.max(n,1):n<=6?3:n<=8?4:5; }
+function groupHTML(n, emoji, gi, label){
+  if (n===0) return `<div class="gwrap"><div class="grp empty" data-g="${gi}">nic</div>${label?`<div class="num">0</div>`:''}</div>`;
+  let h=''; for(let i=0;i<n;i++) h+=`<div class="it in" style="animation-delay:${i*70}ms">${emoji}</div>`;
+  return `<div class="gwrap"><div class="grp" data-g="${gi}" style="--cols:${cols(n)}">${h}</div>${label?`<div class="num">${n}</div>`:''}</div>`;
+}
+function renderTask(queue){
+  const t = S.tasks[S.idx];
+  S.wrong=0; S.busy=false;
+  const card = $('#card'), ans = $('#answers');
+  ans.classList.remove('locked');
+  // dots
+  $('#dots').innerHTML = S.tasks.map((_,i)=>{
+    const r=S.results[i]; return `<div class="dot ${i===S.idx?'cur':''} ${r===1?'gold':r===2?'ok':''}"></div>`;
+  }).join('');
+  $('#scount').textContent = '⭐ '+S.stars;
+  $('#gameBubble').textContent = bubbleText(t);
+
+  if (t.type==='add'){
+    card.innerHTML = `<div class="visual">${groupHTML(t.a,t.emoji,0,true)}<div class="opsign">+</div>${groupHTML(t.b,t.emoji,1,true)}</div>
+      <div class="expr"><span>${t.a}</span><span class="o">+</span><span>${t.b}</span><span class="o">=</span><span class="slot" id="slot">?</span></div>`;
+  } else if (t.type==='sub'){
+    card.innerHTML = `<div class="visual">${groupHTML(t.a,t.emoji,0,false)}</div>
+      <div class="expr"><span>${t.a}</span><span class="o">−</span><span>${t.b}</span><span class="o">=</span><span class="slot" id="slot">?</span></div>`;
+    const items = card.querySelectorAll('.it');
+    setTimeout(()=>{ for(let i=t.a-t.b;i<t.a;i++){ items[i] && items[i].classList.add('gone'); } if (t.b) sfx.pop(); }, 300 + t.a*70 + 350);
+  } else {
+    card.innerHTML = `<div class="visual">${groupHTML(t.a,t.emoji,0,true)}<span class="slot cmp-slot" id="slot">?</span>${groupHTML(t.b,t.emoji2,1,true)}</div>`;
+  }
+
+  const vis=card.querySelector('.visual');
+  vis.style.setProperty('--tc', t.type==='sub'?cols(t.a):cols(t.a)+cols(t.b));
+  if (t.type==='cmp'){
+    ans.innerHTML = [['<','menší'],['=','rovná se'],['>','větší']]
+      .map(([s,l])=>`<button class="ans sign" data-v="${s}">${s==='<'?'&lt;':s==='>'?'&gt;':s}<small>${l}</small></button>`).join('');
+  } else {
+    let h=''; for(let i=0;i<=S.max;i++) h+=`<button class="ans" data-v="${i}">${i}</button>`;
+    ans.innerHTML = h;
+  }
+  // tap a group to count it aloud
+  card.querySelectorAll('.grp').forEach(g=>g.addEventListener('click',()=>{ if(!S.busy) countItems([...g.querySelectorAll('.it:not(.gone)')]); }));
+  speak(prompt(t), {queue:!!queue});
+}
+
+let counting = 0;
+async function countItems(items){
+  const my = ++counting;
+  hush();
+  for (let i=0;i<items.length;i++){
+    if (my!==counting) return;
+    const el = items[i];
+    el.classList.remove('count'); void el.offsetWidth; el.classList.add('count');
+    let b = el.querySelector('.badge'); if(!b){ b=document.createElement('span'); b.className='badge'; el.appendChild(b); }
+    b.textContent = i+1;
+    sfx.tap();
+    speak(W(i+1), {queue:true});
+    await new Promise(r=>setTimeout(r, 750));
+  }
+  setTimeout(()=>{ if (my===counting) document.querySelectorAll('.badge').forEach(b=>b.remove()); }, 1500);
+}
+
+function hint(t){
+  const card=$('#card');
+  if (t.type==='add') return countItems([...card.querySelectorAll('.it')]);
+  if (t.type==='sub') return countItems([...card.querySelectorAll('.it:not(.gone)')]);
+  // compare: count left, then right
+  return (async()=>{
+    const gs = card.querySelectorAll('.grp');
+    await countItems([...gs[0].querySelectorAll('.it')]);
+    await new Promise(r=>setTimeout(r,500));
+    await countItems([...gs[1].querySelectorAll('.it')]);
+  })();
+}
+
+async function answer(btn){
+  if (S.busy) return;
+  const t = S.tasks[S.idx];
+  const v = btn.dataset.v;
+  const ok = String(t.answer)===v;
+  counting++;
+  if (ok){
+    S.busy=true; $('#answers').classList.add('locked');
+    btn.classList.add('right');
+    const slot=$('#slot'); slot.textContent = v; slot.classList.add('filled');
+    sfx.good(); confetti(S.wrong===0?40:18);
+    if (S.wrong===0){ S.stars++; S.results[S.idx]=1; const sc=$('#scount'); sc.textContent='⭐ '+S.stars; sc.classList.remove('pop'); void sc.offsetWidth; sc.classList.add('pop'); }
+    else S.results[S.idx]=2;
+    const p = pick(PRAISE);
+    $('#gameBubble').textContent = p+' '+solutionShort(t);
+    await speak(p+' '+solution(t));
+    await new Promise(r=>setTimeout(r,450));
+    if (!$('#game').classList.contains('active')) return;
+    next();
+  } else {
+    S.wrong++;
+    btn.classList.add('wrong'); sfx.bad();
+    if (navigator.vibrate) try{navigator.vibrate(80)}catch(e){}
+    if (S.wrong===1){
+      $('#gameBubble').textContent = 'To není ono. Zkus to znovu!';
+      speak('To není ono. Zkus to znovu.');
+    } else {
+      $('#gameBubble').textContent = 'Spočítáme to spolu!';
+      S.busy=true;
+      await speak('Nevadí. Spočítáme to spolu.');
+      S.busy=false;
+      hint(t);
+    }
+  }
+}
+function solutionShort(t){
+  if (t.type==='add') return `${t.a} + ${t.b} = ${t.answer}`;
+  if (t.type==='sub') return `${t.a} − ${t.b} = ${t.answer}`;
+  return `${t.a} ${t.answer} ${t.b}`;
+}
+
+function next(){
+  S.idx++;
+  if (S.idx>=S.tasks.length) return finish();
+  renderTask();
+}
+
+function start(mode){
+  S.mode=mode; S.tasks=buildRound(mode); S.idx=0; S.stars=0; S.results=[];
+  show('game'); renderTask(true);
+}
+
+function finish(){
+  const before = Math.floor(S.total/10);
+  S.total += S.stars; store.set('total', S.total);
+  const after = Math.floor(S.total/10);
+  show('end');
+  sfx.win(); confetti(80);
+  const titles = S.stars>=9?'Úžasné!':S.stars>=6?'Hurá, skvělá práce!':'Dobrá práce!';
+  $('#endTitle').textContent = titles;
+  $('#endStars').textContent = S.stars ? '⭐'.repeat(S.stars) : '💪';
+  let say = `${titles} Získala jsi ${starsPhrase(S.stars)} z deseti.`;
+  if (after>before && before<STICKERS.length){
+    const s = STICKERS[Math.min(after,STICKERS.length)-1];
+    $('#newStk').innerHTML = `Nová nálepka do sbírky!<span>${s}</span>`;
+    say += ' A máš novou nálepku do sbírky!';
+  } else {
+    const need = 10 - (S.total%10);
+    $('#newStk').textContent = after<STICKERS.length ? `Do další nálepky chybí ${need} ⭐` : 'Máš všechny nálepky! 🎉';
+  }
+  speak(say);
+}
+
+function confetti(n){
+  const colors=['#ff7b7b','#ffd447','#2fc7a0','#9a7bff','#ffad3b','#5ab8ff','#ff8fd0'];
+  for(let i=0;i<n;i++){
+    const c=document.createElement('div'); c.className='conf';
+    c.style.left=Math.random()*100+'vw'; c.style.background=pick(colors);
+    c.style.setProperty('--dx',(Math.random()*160-80)+'px'); c.style.setProperty('--r',(Math.random()*720-360)+'deg');
+    c.style.animationDuration=(1.4+Math.random()*1.4)+'s'; c.style.animationDelay=(Math.random()*.3)+'s';
+    if (Math.random()<.4) c.style.borderRadius='50%';
+    document.body.appendChild(c); setTimeout(()=>c.remove(), 3300);
+  }
+}
+
+// ---------- home ----------
+function renderHome(){
+  document.querySelectorAll('#rangeSeg button').forEach(b=>b.classList.toggle('on', +b.dataset.max===S.max));
+  document.querySelectorAll('#soundSeg button').forEach(b=>b.classList.toggle('on', +b.dataset.snd===S.sound));
+  $('#starSum').textContent = '⭐ '+S.total;
+  const got = Math.min(Math.floor(S.total/10), STICKERS.length);
+  $('#stickers').innerHTML = STICKERS.map((s,i)=> i<got?`<div class="stk">${s}</div>`:`<div class="stk lock">?</div>`).join('');
+}
+function goHome(){
+  counting++; hush(); show('home'); renderHome();
+}
+const MODE_SAY = {cmp:'Porovnáváme. Větší, menší, nebo rovná se.', add:'Jdeme sčítat!', sub:'Jdeme odčítat!', mix:'Všechno dohromady. Jdeme na to!'};
+document.querySelectorAll('.tile').forEach(t=>t.addEventListener('click',()=>{
+  sfx.tap(); const m=t.dataset.mode;
+  speak(MODE_SAY[m]).then(()=>{}); // short intro, then the first task speaks (queued)
+  setTimeout(()=>start(m), 50);
+}));
+document.querySelectorAll('#rangeSeg button').forEach(b=>b.addEventListener('click',()=>{
+  S.max=+b.dataset.max; store.set('max',S.max); renderHome(); sfx.tap(); speak('Počítáme do '+W(S.max)+'.');
+}));
+document.querySelectorAll('#soundSeg button').forEach(b=>b.addEventListener('click',()=>{
+  S.sound=+b.dataset.snd; store.set('sound',S.sound); if(!S.sound) hush(); renderHome(); sfx.tap(); if (S.sound) speak('Zvuk zapnutý.');
+}));
+$('#homeOwl').addEventListener('click',()=>{ const t=pick(['Ahoj! Já jsem Sovička. Vyber si hru!','Pojď si se mnou počítat!','Za každý správný příklad dostaneš hvězdičku.']); $('#homeBubble').textContent=t; speak(t); });
+$('#btnHome').addEventListener('click', goHome);
+$('#btnEndHome').addEventListener('click', goHome);
+$('#btnAgain').addEventListener('click', ()=>{ hush(); start(S.mode); });
+$('#btnSay').addEventListener('click', ()=>{ counting++; const t=S.tasks[S.idx]; if(t){ $('#gameBubble').textContent=bubbleText(t); speak(prompt(t)); }});
+$('#gameOwl').addEventListener('click', ()=>$('#btnSay').click());
+$('#answers').addEventListener('click', e=>{ const b=e.target.closest('.ans'); if(b) answer(b); });
+
+// Android back button
+window.appBack = function(){
+  if (!$('#home').classList.contains('active')){ goHome(); return true; }
+  return false;
+};
+
+renderHome();
+// warn if the device has no Czech voice
+setTimeout(()=>{
+  let missing=false;
+  if (native){ try{ missing = native.status()===2; }catch(e){} }
+  else if ('speechSynthesis' in window){ pickVoice(); missing = !czVoice && speechSynthesis.getVoices().length>0; }
+  if (missing) $('#ttsWarn').style.display='block';
+}, 2500);
+if (native) setTimeout(()=>speak('Ahoj! Na co máš dneska chuť?'), 600);
+})();
+</script>
+</body>
+</html>
