@@ -24,7 +24,13 @@ def fnv(text):
     return f"{h:08x}"
 
 
+# spelling for the voice only: Ayra is pronounced "Ajra"
+SAY_AS = {"Ayra": "Ajra", "Ayro": "Ajro", "Ayru": "Ajru", "Ayrou": "Ajrou", "Ayře": "Ajře"}
+
+
 def synth(text, out):
+    for a, b in SAY_AS.items():
+        text = text.replace(a, b)
     body = {"input": {"text": text}, "voice": {"languageCode": "cs-CZ", "name": VOICE},
             "audioConfig": {"audioEncoding": "MP3", "sampleRateHertz": 24000}}
     req = urllib.request.Request("https://texttospeech.googleapis.com/v1/text:synthesize",

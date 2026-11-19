@@ -2,7 +2,13 @@
 (function(){
 'use strict';
 const A = window.App; if (!A) return;
-const {sfx, confetti, store} = A;
+const {sfx, confetti, store, speak, pick} = A;
+const SAY = {
+  wear:['Haf! Děkuju, to mi sluší!','Haf haf! Moc se mi to líbí!'], room:'Haf! To je pro mě? Děkuju!',
+  poor:'Na tohle ještě nemáme dost hvězdiček.', shop:'Vítej v obchůdku! Co mi koupíš?',
+  journey:'Tohle je naše cesta. Na konci jsou prázdniny!', paws:'Za každý den s procvičováním dostaneš tlapku.',
+  week:'Haf haf! Pět tlapek za týden! Tady máš bonus.', gift:'Haf! Máš dárek! Otevři ho.', gold:'Haf haf! Zlatý poklad!', yay:'Paráda!'
+};
 const $ = s => document.querySelector(s);
 
 // ---------- data ----------
@@ -99,7 +105,7 @@ if (stkPanel) stkPanel.outerHTML = `
     <div class="stknext" id="rewNext"></div>
   </div>`;
 document.querySelectorAll('[data-rgo]').forEach(b=>b.addEventListener('click',()=>{ sfx.tap(); open(b.dataset.rgo); }));
-function open(id){ A.go(id); if (id==='shop') renderShop(); if (id==='journey') renderJourney(); if (id==='paws') renderPaws(); }
+function open(id){ A.go(id); if (id==='shop') renderShop(); if (id==='journey') renderJourney(); if (id==='paws') renderPaws(); speak(SAY[id]); }
 
 function renderHub(){
   const st = get('stk', {got:0,have:0,cost:5});
@@ -135,9 +141,9 @@ document.getElementById('shop').addEventListener('click', e=>{
   const b = e.target.closest('[data-it]'); if (!b) return;
   const it = SHOP.find(i=>i.id===b.dataset.it), own = owned();
   if (!own.includes(it.id)){
-    if (wallet() < it.p){ sfx.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); return; }
+    if (wallet() < it.p){ sfx.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); speak(SAY.poor); return; }
     set('wallet', wallet() - it.p); own.push(it.id); set('owned', own);
-    sfx.good(); confetti(30);
+    sfx.good(); confetti(30); speak(it.slot==='room' ? SAY.room : pick(SAY.wear));
     if (it.slot!=='room'){ const w = wear(); w[it.slot] = it.id; set('wear', w); }
   } else if (it.slot!=='room'){
     const w = wear(); w[it.slot] = w[it.slot]===it.id ? null : it.id; set('wear', w); sfx.tap();
@@ -197,12 +203,12 @@ function afterRound(add){
   if (!paws.includes(today)){ paws.push(today); set('paws', paws); out.push('🐾 Dnešní tlapka je v kalendáři!'); }
   const wk = weekOf(today); let inWeek = 0; for (let d=0; d<7; d++) if (paws.includes(wk*7-3+d)) inWeek++;
   const wb = get('weekBonus', []);
-  if (inWeek >= 5 && !wb.includes(wk)){ wb.push(wk); set('weekBonus', wb); set('wallet', wallet()+WEEK_BONUS); out.push(`🎉 5 tlapek za týden: bonus ${WEEK_BONUS} ⭐!`); }
+  if (inWeek >= 5 && !wb.includes(wk)){ wb.push(wk); set('weekBonus', wb); set('wallet', wallet()+WEEK_BONUS); out.push(`🎉 5 tlapek za týden: bonus ${WEEK_BONUS} ⭐!`); speak(SAY.week, {queue:true}); }
   // surprise box every BOX_EVERY stars (all-time)
   let boxAt = get('boxAt', A.S.total + BOX_EVERY), boxes = 0;
   while (A.S.total >= boxAt){ boxes++; boxAt += BOX_EVERY; }
   set('boxAt', boxAt);
-  if (boxes) set('boxes', get('boxes',0) + boxes);
+  if (boxes){ set('boxes', get('boxes',0) + boxes); speak(SAY.gift, {queue:true}); }
   if (get('boxes',0) > 0) out.push(`<button class="giftbtn" id="openGift">🎁 Otevři dárek${get('boxes',0)>1?' ('+get('boxes',0)+')':''}</button>`);
   out.push(`<span class="small">Teď máš ⭐ ${wallet()} na nákupy v obchůdku</span>`);
   renderHub();
@@ -220,7 +226,7 @@ function openGift(){
     if (tr[t]){ set('wallet', wallet()+2); txt = `${t} tenhle poklad už máš, tak ⭐ 2 navíc!`; }
     else { tr[t] = 1; set('treasures', tr); txt = `${t} nový ${tier==='gold'?'ZLATÝ ':tier==='rare'?'vzácný ':''}poklad!`; }
   }
-  sfx.win(); confetti(60);
+  sfx.win(); confetti(60); speak(/ZLATÝ/.test(txt) ? SAY.gold : SAY.yay);
   const b = $('#openGift');
   if (b){ const d = document.createElement('div'); d.className='giftres'; d.textContent = txt; b.parentNode.insertBefore(d, b);
     const left = get('boxes',0); if (left>0) b.textContent = '🎁 Otevři další dárek ('+left+')'; else b.remove(); }
@@ -229,6 +235,7 @@ function openGift(){
 document.addEventListener('click', e=>{ if (e.target.closest('#openGift')){ sfx.tap(); openGift(); } });
 
 A.rewards = {afterRound, renderHub, decorate, PLACES};
+A.phraseSources.push(()=>Object.values(SAY).flat());
 renderHub(); decorate();
 mo.observe(document.body,{childList:true,subtree:true});
 })();

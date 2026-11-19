@@ -302,6 +302,7 @@ function addStars(n){                                     // returns the sticker
   return won;
 }
 
+const BARKS = ['Haf!','Haf haf!'];
 const PRAISE = ['Výborně!','Super!','Správně!','Skvělé!','Jsi šikulka!','Paráda!','Bezva!','Jsi jednička!'];
 const VOC = 'Leontýnko';            // oslovení (5. pád)
 const withName = (p, chance)=> Math.random()<chance ? p.replace(/([!.?])$/, ', '+VOC+'$1') : p;
@@ -567,7 +568,7 @@ async function answer(btn){
     else S.results[S.idx]=2;
     const p = withName(pick(PRAISE), .08);
     $('#gameBubble').textContent = p+' '+solutionShort(t);
-    speak(p);
+    if (Math.random() < .2){ speak(pick(BARKS)); speak(p, {queue:true}); } else speak(p);
     await speak(solution(t), {queue:true});
     await new Promise(r=>setTimeout(r,450));
     if (!$('#game').classList.contains('active')) return;
@@ -612,6 +613,7 @@ function start(mode){
 const HINT_HIDDEN = 'Nevadí. Ukážu ti obrázky a spočítáme to spolu.', HINT_SHOWN = 'Nevadí. Spočítáme to spolu.';
 const END_TITLES = [`Úžasné, ${VOC}!`, 'Hurá, skvělá práce!', 'Dobrá práce!'];
 const NEW_STICKER = 'A máš novou nálepku do sbírky!';
+const STATION_SAY = 'Haf! Jsme na nové zastávce a máme nového kamaráda!';
 const starsSay = (n, of)=> `Získala jsi ${starsPhrase(n)}${of?' z deseti':''}.`;
 function finish(){ finishRound(S.stars, ()=>start(S.mode), 'home'); }
 let againFn = null;
@@ -634,6 +636,7 @@ function finishRound(score, again, backTo, of){
   speak(titles);
   speak(starsSay(add, 0), {queue:true});
   const P = App.rewards ? App.rewards.PLACES : null;
+  if (won.length) speak(STATION_SAY, {queue:true});
   if (won.length && P){
     const i = st.got-1;
     $('#newStk').innerHTML = `Ayra došla na zastávku ${P[i][0]} ${P[i][1]} a potkala kamaráda!<span>${won.join(' ')}</span>` + extra;
@@ -688,9 +691,9 @@ document.querySelectorAll('#hub .tile').forEach(t=>t.addEventListener('click',()
   if (g==='home') speak('Jdeme počítat!');
 }));
 const READ_SOON = 'Čtení teprve připravujeme. Brzy tu bude!';
-const HUB_OWL = [`${VOC}, ty jsi ale šikovná holčička!`, 'Za každou správnou odpověď dostaneš hvězdičku.'];
-const HOME_OWL = ['Pojď si se mnou počítat!', 'Za každý správný příklad dostaneš hvězdičku.', 'Ty jsi ale chytrá holčička!'];
-const GREETING = `Ahoj ${VOC}! Co budeme dělat?`;
+const HUB_OWL = ['Ahoj! Já jsem Ayra. Haf!', `${VOC}, ty jsi ale šikovná holčička!`, 'Za každé kolo dostaneš hvězdičky. Za ně mi můžeš koupit něco hezkého!', 'Haf haf! Pojď si se mnou hrát a učit se!'];
+const HOME_OWL = ['Pojď si se mnou počítat!', 'Haf! Počítání mě moc baví!', 'Ty jsi ale chytrá holčička!'];
+const GREETING = `Haf! Ahoj ${VOC}! Co budeme dělat?`;
 const PICS_SAY = ['Obrázky ukážu.', 'Obrázky schovám. Zkus počítat bez nich!', 'Obrázky jsou zpátky.', 'Obrázky jsem schovala.'];
 $('#hubOwl').addEventListener('click',()=>{ const t=pick(HUB_OWL); $('#hubBubble').textContent=t; speak(t); });
 const MODE_SAY = {cmp:'Porovnáváme. Větší, menší, nebo rovná se.', add:'Jdeme sčítat!', sub:'Jdeme odčítat!', mix:'Všechno dohromady. Jdeme na to!'};
@@ -730,7 +733,7 @@ window.appBack = back;
 
 // shared API for the other modules (logo.js, later reading)
 const phraseSources = [()=>{
-  const out = [GREETING, READ_SOON, 'Jdeme počítat!', 'Zvuk zapnutý.', 'Počítáme do pět.', 'Počítáme do deset.',
+  const out = [GREETING, READ_SOON, STATION_SAY, ...BARKS, 'Jdeme počítat!', 'Zvuk zapnutý.', 'Počítáme do pět.', 'Počítáme do deset.',
     'To není ono. Zkus to znovu!', HINT_HIDDEN, HINT_SHOWN, NEW_STICKER,
     ...END_TITLES, ...HUB_OWL, ...HOME_OWL, ...PICS_SAY, ...Object.values(MODE_SAY)];
   PRAISE.forEach(p=>out.push(p, nameVariant(p)));
@@ -746,7 +749,7 @@ const phraseSources = [()=>{
 // every sentence the app can say, for pre-recording the voice (tools/gen_voice.py)
 window.__allPhrases = ()=>[...new Set(phraseSources.flatMap(f=>f()).map(t=>t.trim()))].sort();
 window.__vkey = vkey;
-window.App = {STICKERS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, leaveHooks, phraseSources,
+window.App = {STICKERS, BARKS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, leaveHooks, phraseSources,
   onLeave:f=>leaveHooks.push(f)};
 
 // sticker state {got, have, cost, earned, first}; first run: keep every sticker already earned (old rule: one per 10 stars)
