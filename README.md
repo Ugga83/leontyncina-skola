@@ -11,7 +11,7 @@ Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čte
 - Na obrazovce Ayra oslovuje **Leontýnku**; nahlas jméno neříká (hlas ho neumí vyslovit plynule).
 - Ayra vše **čte nahlas česky** (zadání, pochvalu i správné řešení)
 - klepnutím na skupinku obrázků je Ayra nahlas **spočítá**; po dvou chybách počítá sama a napoví
-- hvězdičky za správné odpovědi napoprvé a **sbírka nálepek** (nová za každých 10 ⭐)
+- hvězdičky za správné odpovědi napoprvé a **sbírka 30 nálepek**; každá další stojí víc (10, 15, 20 … ⭐), na úvodní obrazovce ukazatel postupu
 
 **Logopedie (C S Z / Č Š Ž)**
 - ke každé hlásce obrázek úst zepředu i z boku (kde je jazyk, kudy jde vzduch); u Č Š Ž podle logopedky špička jazyka dolů a prst pod bradou, na který jazyk míří, postup krok za krokem čtený nahlas a ukázka zvuku
