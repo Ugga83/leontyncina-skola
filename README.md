@@ -12,7 +12,7 @@ Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čte
 - Ayra vše **čte nahlas česky** (zadání, pochvalu i správné řešení)
 - klepnutím na skupinku obrázků je Ayra nahlas **spočítá**; po dvou chybách počítá sama a napoví
 - 1–3 hvězdičky za kolo (bez denního limitu), za ně:
-  - 🛍️ **obchůdek pro Ayru** (mašle, klobouky, brýle, šála… Ayra je nosí v celé aplikaci; věci do pokojíčku)
+  - 🏠 **Ayřina bouda** – na začátku prázdná; přes 60 věcí: na sebe (Ayra je nosí v celé aplikaci), nábytek a hračky do boudy, barva stěn, podlaha, okno, světýlka
   - 🗺️ **Ayřina cesta** – 30 zastávek s kamarády-zvířátky, délka kroků se přizpůsobuje, aby cesta skončila koncem června
   - 🐾 **kalendář tlapek** – tlapka za každý den procvičování, 5 tlapek v týdnu = bonus 5 ⭐
   - 🎁 **dárek** za každých 10 ⭐ (hvězdičky navíc nebo poklad – běžný / vzácný / zlatý)

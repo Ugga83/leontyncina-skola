@@ -5,7 +5,7 @@ const A = window.App; if (!A) return;
 const {sfx, confetti, store, speak, pick} = A;
 const SAY = {
   wear:['Haf! Děkuju, to mi sluší!','Haf haf! Moc se mi to líbí!'], room:'Haf! To je pro mě? Děkuju!',
-  poor:'Na tohle ještě nemáme dost hvězdiček.', shop:'Vítej v obchůdku! Co mi koupíš?',
+  poor:'Na tohle ještě nemáme dost hvězdiček.', shop:'Vítej v mojí boudě! Co mi koupíš?',
   journey:'Tohle je naše cesta. Na konci jsou prázdniny!', paws:'Za každý den s procvičováním dostaneš tlapku.',
   week:'Haf haf! Pět tlapek za týden! Tady máš bonus.', gift:'Haf! Máš dárek! Otevři ho.', gold:'Haf haf! Zlatý poklad!', yay:'Paráda!'
 };
@@ -13,28 +13,69 @@ const $ = s => document.querySelector(s);
 
 // ---------- data ----------
 const SHOP = [
-  // slot: head / eyes / neck = Ayra wears it; room = goes to Ayra's room
-  {id:'bow',    e:'🎀', n:'Mašle',            p:8,  slot:'head'},
-  {id:'flower', e:'🌸', n:'Kytička',          p:10, slot:'head'},
-  {id:'cap',    e:'🧢', n:'Kšiltovka',        p:15, slot:'head'},
-  {id:'hat',    e:'👒', n:'Slaměný klobouk',  p:22, slot:'head'},
-  {id:'tophat', e:'🎩', n:'Cylindr',          p:28, slot:'head'},
-  {id:'grad',   e:'🎓', n:'Školní čepice',    p:35, slot:'head'},
-  {id:'crown',  e:'👑', n:'Korunka',          p:60, slot:'head'},
-  {id:'glass',  e:'👓', n:'Brýle',            p:12, slot:'eyes'},
-  {id:'sun',    e:'🕶️', n:'Sluneční brýle',   p:20, slot:'eyes'},
-  {id:'scarf',  e:'🧣', n:'Šála',             p:15, slot:'neck'},
-  {id:'beads',  e:'📿', n:'Korále',           p:25, slot:'neck'},
-  {id:'medal',  e:'🏅', n:'Medaile',          p:45, slot:'neck'},
-  {id:'bone',   e:'🦴', n:'Kostička',         p:5,  slot:'room'},
-  {id:'ball',   e:'🎾', n:'Míček',            p:8,  slot:'room'},
-  {id:'teddy',  e:'🧸', n:'Plyšák',           p:18, slot:'room'},
-  {id:'cake',   e:'🎂', n:'Dort',             p:20, slot:'room'},
-  {id:'kite',   e:'🪁', n:'Drak',             p:22, slot:'room'},
-  {id:'bed',    e:'🛏️', n:'Pelíšek',          p:30, slot:'room'},
-  {id:'slide',  e:'🛝', n:'Skluzavka',        p:40, slot:'room'},
-  {id:'house',  e:'🏠', n:'Bouda',            p:50, slot:'room'},
+  // ---- na sebe (Ayra wears it everywhere): slot head / eyes / neck ----
+  {id:'bow',    e:'🎀', n:'Mašle',             p:8,  slot:'head'},
+  {id:'flower', e:'🌸', n:'Kytička',           p:10, slot:'head'},
+  {id:'daisy',  e:'🌼', n:'Sedmikráska',       p:10, slot:'head'},
+  {id:'cherry', e:'🍒', n:'Třešničky',         p:12, slot:'head'},
+  {id:'fly',    e:'🦋', n:'Motýlek',           p:14, slot:'head'},
+  {id:'rose',   e:'🌹', n:'Růže',              p:16, slot:'head'},
+  {id:'sunfl',  e:'🌻', n:'Slunečnice',        p:16, slot:'head'},
+  {id:'cap',    e:'🧢', n:'Kšiltovka',         p:15, slot:'head'},
+  {id:'hat',    e:'👒', n:'Slaměný klobouk',   p:22, slot:'head'},
+  {id:'tophat', e:'🎩', n:'Cylindr',           p:28, slot:'head'},
+  {id:'grad',   e:'🎓', n:'Školní čepice',     p:35, slot:'head'},
+  {id:'crown',  e:'👑', n:'Korunka',           p:60, slot:'head'},
+  {id:'glass',  e:'👓', n:'Brýle',             p:12, slot:'eyes'},
+  {id:'sun',    e:'🕶️', n:'Sluneční brýle',    p:20, slot:'eyes'},
+  {id:'goggle', e:'🥽', n:'Lyžařské brýle',    p:25, slot:'eyes'},
+  {id:'scarf',  e:'🧣', n:'Šála',              p:15, slot:'neck'},
+  {id:'ribbon', e:'🎗️', n:'Stužka',            p:10, slot:'neck'},
+  {id:'bell',   e:'🔔', n:'Zvoneček',          p:14, slot:'neck'},
+  {id:'hibis',  e:'🌺', n:'Havajská kytka',    p:18, slot:'neck'},
+  {id:'beads',  e:'📿', n:'Korále',            p:25, slot:'neck'},
+  {id:'medal',  e:'🏅', n:'Medaile',           p:45, slot:'neck'},
+  {id:'gem',    e:'💎', n:'Diamant',           p:70, slot:'neck'},
+  // ---- do boudy (placed in the kennel): pos = [x %, y %, size] ----
+  {id:'bone',   e:'🦴', n:'Kostička',          p:5,  slot:'room', pos:[30,90,6]},
+  {id:'bowl',   e:'🥣', n:'Miska',             p:6,  slot:'room', pos:[40,90,7]},
+  {id:'ball',   e:'🎾', n:'Míček',             p:8,  slot:'room', pos:[62,92,5]},
+  {id:'meat',   e:'🍖', n:'Masíčko',           p:9,  slot:'room', pos:[46,93,6]},
+  {id:'balloon',e:'🎈', n:'Balonek',           p:10, slot:'room', pos:[7,30,8]},
+  {id:'car',    e:'🚗', n:'Autíčko',           p:12, slot:'room', pos:[55,96,6]},
+  {id:'puzzle', e:'🧩', n:'Skládačka',         p:12, slot:'room', pos:[84,94,6]},
+  {id:'plant',  e:'🪴', n:'Kytka v květináči', p:14, slot:'room', pos:[96,62,10]},
+  {id:'frame',  e:'🖼️', n:'Obrázek',           p:15, slot:'room', pos:[16,14,11]},
+  {id:'clock',  e:'🕰️', n:'Hodiny',            p:16, slot:'room', pos:[84,10,9]},
+  {id:'books',  e:'📚', n:'Knížky',            p:16, slot:'room', pos:[78,34,9]},
+  {id:'teddy',  e:'🧸', n:'Plyšák',            p:18, slot:'room', pos:[9,90,9]},
+  {id:'cake',   e:'🎂', n:'Dort',              p:20, slot:'room', pos:[74,90,8]},
+  {id:'mirror', e:'🪞', n:'Zrcátko',           p:20, slot:'room', pos:[28,30,9]},
+  {id:'kite',   e:'🪁', n:'Drak',              p:22, slot:'room', pos:[94,24,9]},
+  {id:'flowers',e:'💐', n:'Kytice',            p:22, slot:'room', pos:[66,46,8]},
+  {id:'bed',    e:'🛏️', n:'Pelíšek',           p:30, slot:'room', pos:[18,70,17]},
+  {id:'drum',   e:'🥁', n:'Bubínek',           p:30, slot:'room', pos:[68,78,9]},
+  {id:'guitar', e:'🎸', n:'Kytara',            p:32, slot:'room', pos:[92,80,11]},
+  {id:'fish',   e:'🐠', n:'Akvárium',          p:35, slot:'room', pos:[38,44,8]},
+  {id:'tv',     e:'📺', n:'Televize',          p:40, slot:'room', pos:[60,40,11]},
+  {id:'sofa',   e:'🛋️', n:'Gauč',              p:45, slot:'room', pos:[80,64,17]},
+  {id:'slide',  e:'🛝', n:'Skluzavka',         p:45, slot:'room', pos:[4,58,13]},
+  {id:'piano',  e:'🎹', n:'Piano',             p:50, slot:'room', pos:[30,58,12]},
+  {id:'tree',   e:'🎄', n:'Stromeček',         p:55, slot:'room', pos:[96,40,14]},
+  {id:'rocket', e:'🚀', n:'Raketa',            p:65, slot:'room', pos:[66,20,9]},
+  {id:'unicorn',e:'🦄', n:'Houpací jednorožec',p:80, slot:'room', pos:[66,62,13]},
+  // ---- vylepšení boudy: slot wall / floor / window / light ----
+  {id:'wpink',  e:'🩷', n:'Růžová stěna',      p:20, slot:'wall',   v:'#ffd6e7'},
+  {id:'wblue',  e:'🩵', n:'Modrá stěna',       p:20, slot:'wall',   v:'#cfe9ff'},
+  {id:'wyellow',e:'💛', n:'Žlutá stěna',       p:20, slot:'wall',   v:'#fff1b8'},
+  {id:'wviolet',e:'💜', n:'Fialová stěna',     p:20, slot:'wall',   v:'#e6dcff'},
+  {id:'fcarpet',e:'🟥', n:'Koberec',           p:25, slot:'floor',  v:'carpet'},
+  {id:'fwood',  e:'🟫', n:'Parkety',           p:25, slot:'floor',  v:'wood'},
+  {id:'wsun',   e:'🌤️', n:'Okno se sluníčkem', p:30, slot:'window', v:'☀️'},
+  {id:'wmoon',  e:'🌙', n:'Okno s měsíčkem',   p:30, slot:'window', v:'🌙'},
+  {id:'lights', e:'✨', n:'Světýlka',          p:25, slot:'light'},
 ];
+const WEAR_SLOTS = ['head','eyes','neck'], HOUSE_SLOTS = ['wall','floor','window','light'];
 const PLACES = [
   ['🏡','Domov'],['🌳','Les'],['🌻','Louka'],['🍄','Hřibová stezka'],['🌉','Most'],['🏞️','Řeka'],['🐟','Rybník'],
   ['🏕️','Tábor'],['🌲','Hluboký les'],['⛰️','Kopec'],['🏔️','Hory'],['❄️','Sněžné pole'],['⛷️','Sjezdovka'],['🌄','Údolí'],
@@ -75,11 +116,10 @@ const mo = new MutationObserver(()=>{ mo.disconnect(); decorate(); mo.observe(do
 // ---------- screens ----------
 document.getElementById('end').insertAdjacentHTML('beforebegin', `
 <section id="shop" class="screen scroll">
-  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Obchůdek</h1><div class="wallet" id="shopWallet"></div></div>
-  <div class="lcard ayrabox"><div class="owl big"></div><div class="room" id="shopRoom"></div></div>
-  <div class="lcard"><h4>Pro Ayru na sebe</h4><div class="items" id="shopWear"></div></div>
-  <div class="lcard"><h4>Do Ayřina pokojíčku</h4><div class="items" id="shopRoomItems"></div></div>
-  <div class="lcard"><h4>🎁 Moje poklady</h4><div class="treasures" id="shopTreasure"></div></div>
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Ayřina bouda</h1><div class="wallet" id="shopWallet"></div></div>
+  <div class="kennel" id="kennel"></div>
+  <div class="tabs" id="shopTabs"><button data-tab="wear" class="on">👒 Na sebe</button><button data-tab="room">🛋️ Do boudy</button><button data-tab="house">🎨 Vylepšení</button><button data-tab="tr">🎁 Poklady</button></div>
+  <div class="lcard"><div class="items" id="shopItems"></div></div>
 </section>
 <section id="journey" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Ayřina cesta</h1></div>
@@ -98,7 +138,7 @@ if (stkPanel) stkPanel.outerHTML = `
   <div class="panel rewpanel">
     <div class="row"><span class="lbl">Moje hvězdičky</span><span class="starsum" id="rewWallet"></span></div>
     <div class="rewbtns">
-      <button class="rewbtn" data-rgo="shop"><span>🛍️</span>Obchůdek</button>
+      <button class="rewbtn" data-rgo="shop"><span>🏠</span>Bouda</button>
       <button class="rewbtn" data-rgo="journey"><span>🗺️</span>Cesta</button>
       <button class="rewbtn" data-rgo="paws"><span>🐾</span>Tlapky</button>
     </div>
@@ -116,35 +156,59 @@ function renderHub(){
     : '<span>Ayra došla až na prázdniny! 🎉</span>';
 }
 
-// ---------- shop ----------
+// ---------- shop + kennel ----------
+let shopTab = 'wear';
+const inTab = it => shopTab==='wear' ? WEAR_SLOTS.includes(it.slot) : shopTab==='room' ? it.slot==='room' : HOUSE_SLOTS.includes(it.slot);
 function itemHTML(it){
-  const have = owned().includes(it.id), on = wear()[it.slot]===it.id;
-  const label = !have ? `⭐ ${it.p}` : it.slot==='room' ? 'máš' : on ? 'nosí' : 'obléct';
+  const have = owned().includes(it.id), on = wear()[it.slot]===it.id, togg = it.slot!=='room';
+  const label = !have ? `⭐ ${it.p}` : !togg ? 'máš' : on ? (WEAR_SLOTS.includes(it.slot)?'nosí':'je tam') : (WEAR_SLOTS.includes(it.slot)?'obléct':'použít');
   return `<button class="item ${have?'have':''} ${on?'on':''} ${!have && wallet()<it.p?'poor':''}" data-it="${it.id}">
     <span class="ie">${it.e}</span><span class="in">${it.n}</span><span class="ip">${label}</span></button>`;
 }
-function renderShop(){
-  $('#shopWallet').textContent = '⭐ ' + wallet();
-  $('#shopWear').innerHTML = SHOP.filter(i=>i.slot!=='room').map(itemHTML).join('');
-  $('#shopRoomItems').innerHTML = SHOP.filter(i=>i.slot==='room').map(itemHTML).join('');
-  const room = SHOP.filter(i=>i.slot==='room' && owned().includes(i.id));
-  $('#shopRoom').innerHTML = room.length ? room.map(i=>`<span>${i.e}</span>`).join('') : '<small>Pokojíček je zatím prázdný</small>';
-  const tr = get('treasures', {});
-  const all = [...TREASURES.common, ...TREASURES.rare, ...TREASURES.gold];
-  $('#shopTreasure').innerHTML = all.map(t=>{
-    const c = tr[t]||0, cls = TREASURES.gold.includes(t)?'gold':TREASURES.rare.includes(t)?'rare':'';
-    return `<span class="tr ${cls} ${c?'':'lock'}">${c?t:'?'}</span>`;
-  }).join('');
+function renderKennel(){
+  const w = wear(), own = owned();
+  const wall = (SHOP.find(i=>i.id===w.wall)||{}).v || '#efe3cf';
+  const floor = (SHOP.find(i=>i.id===w.floor)||{}).v || 'plain';
+  const win = (SHOP.find(i=>i.id===w.window)||{}).v;
+  const items = SHOP.filter(i=>i.slot==='room' && own.includes(i.id));
+  $('#kennel').style.setProperty('--wall', wall);
+  $('#kennel').className = 'kennel floor-'+floor + (w.light ? ' lit' : '');
+  $('#kennel').innerHTML = `
+    <div class="roof"></div><div class="wallz"></div><div class="floorz"></div>
+    ${win ? `<div class="win"><span>${win}</span></div>` : ''}
+    ${w.light ? '<div class="garland">✨ ✨ ✨ ✨ ✨ ✨ ✨</div>' : ''}
+    ${items.map(i=>`<span class="kit" style="left:${i.pos[0]}%;top:${i.pos[1]}%;--s:${i.pos[2]}">${i.e}</span>`).join('')}
+    <div class="owl kayra"></div>
+    ${!items.length && !win && !w.wall ? '<div class="kempty">Ayřina bouda je zatím prázdná. Kup jí něco hezkého! 🛍️</div>' : ''}`;
   decorate();
 }
+function renderShop(){
+  $('#shopWallet').textContent = '⭐ ' + wallet();
+  document.querySelectorAll('#shopTabs button').forEach(b=>b.classList.toggle('on', b.dataset.tab===shopTab));
+  if (shopTab==='tr'){
+    const tr = get('treasures', {});
+    const all = [...TREASURES.common, ...TREASURES.rare, ...TREASURES.gold];
+    $('#shopItems').innerHTML = '<div class="treasures">' + all.map(t=>{
+      const c = tr[t]||0, cls = TREASURES.gold.includes(t)?'gold':TREASURES.rare.includes(t)?'rare':'';
+      return `<span class="tr ${cls} ${c?'':'lock'}">${c?t:'?'}</span>`;
+    }).join('') + '</div>';
+  } else {
+    $('#shopItems').innerHTML = SHOP.filter(inTab).sort((a,b)=>a.p-b.p).map(itemHTML).join('');
+  }
+  renderKennel();
+}
+document.getElementById('shopTabs').addEventListener('click', e=>{
+  const b = e.target.closest('[data-tab]'); if (!b) return; sfx.tap(); shopTab = b.dataset.tab; renderShop();
+});
 document.getElementById('shop').addEventListener('click', e=>{
   const b = e.target.closest('[data-it]'); if (!b) return;
   const it = SHOP.find(i=>i.id===b.dataset.it), own = owned();
   if (!own.includes(it.id)){
     if (wallet() < it.p){ sfx.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); speak(SAY.poor); return; }
     set('wallet', wallet() - it.p); own.push(it.id); set('owned', own);
-    sfx.good(); confetti(30); speak(it.slot==='room' ? SAY.room : pick(SAY.wear));
+    sfx.good(); confetti(30); speak(WEAR_SLOTS.includes(it.slot) ? pick(SAY.wear) : SAY.room);
     if (it.slot!=='room'){ const w = wear(); w[it.slot] = it.id; set('wear', w); }
+    $('#kennel').scrollIntoView({behavior:'smooth', block:'start'});
   } else if (it.slot!=='room'){
     const w = wear(); w[it.slot] = w[it.slot]===it.id ? null : it.id; set('wear', w); sfx.tap();
   }
