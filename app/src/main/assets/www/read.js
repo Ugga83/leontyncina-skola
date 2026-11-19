@@ -204,6 +204,19 @@ function saveProgress(){
   const done = dayCells(day()).filter(c=>!RR.queue.some(q=>q.ci===c.ci && q.ri===c.ri)).map(c=>c.ci+'-'+c.ri);
   A.store.set(progKey(), {done, firstTry: RR.firstTry});
 }
+// pick the number of columns that gives the biggest letters in the space left on the card
+function fitGrid(){
+  const g = $('#rrGrid'), n = g.children.length; if (!n || !g.clientHeight) return;
+  const W = g.clientWidth, H = g.clientHeight; let best = [0, 1];
+  for (let c=2; c<=8; c++){
+    const r = Math.ceil(n/c), f = Math.min(H/r*.62, W/c*.36);
+    if (f > best[0]) best = [f, c];
+  }
+  const c = best[1], r = Math.ceil(n/c);
+  g.style.setProperty('--cols', c); g.style.setProperty('--rows', r);
+  g.style.fontSize = Math.min(best[0], 64) + 'px';
+}
+window.addEventListener('resize', ()=>{ if (isOn('rread')) fitGrid(); });
 function startRead(fresh){
   const cells = dayCells(day());
   const saved = fresh===true ? null : A.store.get(progKey(), null);
@@ -213,11 +226,11 @@ function startRead(fresh){
   RR.total = cells.length; RR.firstTry = saved && doneSet.size ? saved.firstTry : 0; RR.silent = 0;
   A.go('rread');
   if (STT_KIND==='native' && native.setHints){ try{ native.setHints(JSON.stringify([...new Set(cells.map(c=>c.s.toLowerCase()))])); }catch(e){} }
-  $('#rrGrid').innerHTML = gridHTML(day(), 'mini');
-  $('#rrGrid').style.setProperty('--rows', Math.max(...day().cols.map(c=>c.length)));
-  $('#rrGrid').style.setProperty('--cols', day().cols.length);
+  // the paper's columns are not kept: syllables flow left to right in reading order and fill the card
+  $('#rrGrid').innerHTML = cells.map(c=>`<span class="rs" data-c="${c.ci}" data-r="${c.ri}">${c.s}</span>`).join('');
+  fitGrid();
   doneSet.forEach(k=>{ const [ci,ri]=k.split('-'); const el=document.querySelector(`#rrGrid .rs[data-c="${ci}"][data-r="${ri}"]`); if (el) el.classList.add('done'); });
-  applyMode();
+  applyMode(); requestAnimationFrame(fitGrid);
   showCur(); setMic('off');
   speak(RR.manual ? R_MSG.readManual : R_MSG.readStart).then(()=>{ if (isOn('rread')) loop(); });
 }
