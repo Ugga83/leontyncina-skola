@@ -12,6 +12,8 @@ import edge_tts
 
 VOICE = os.environ.get("VOICE", "cs-CZ-VlastaNeural")
 RATE = os.environ.get("RATE", "-8%")
+# spelling tweaks for the voice only (the screen keeps the normal spelling)
+SAY_AS = {"Leontýnko": "Lejontýnko"}  # without it the voice makes a break after "Le"
 WWW = os.path.join(os.path.dirname(__file__), "..", "app", "src", "main", "assets", "www", "voice")
 
 
@@ -35,7 +37,10 @@ async def record(sem, text, key, stats):
         for attempt in range(4):
             try:
                 tmp = path + ".part"
-                await edge_tts.Communicate(text, VOICE, rate=RATE).save(tmp)
+                spoken = text
+                for a, b in SAY_AS.items():
+                    spoken = spoken.replace(a, b)
+                await edge_tts.Communicate(spoken, VOICE, rate=RATE).save(tmp)
                 if os.path.getsize(tmp) > 0:
                     os.replace(tmp, path)
                     stats["new"] += 1

@@ -28,8 +28,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: app/src/main/assets/www/voice/*.mp3
-          key: voice-vlasta-${{ hashFiles('app/src/main/assets/www/voice/phrases.json') }}
-          restore-keys: voice-vlasta-
+          key: voice-v2-${{ hashFiles('app/src/main/assets/www/voice/phrases.json') }}
+          restore-keys: voice-v2-
 
       - name: Namluvit věty českým hlasem (Microsoft Vlasta)
         continue-on-error: true
