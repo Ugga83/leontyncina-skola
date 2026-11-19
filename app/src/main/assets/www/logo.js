@@ -404,6 +404,12 @@ function buildLG(pair){
     if (out.length && out[out.length-1].w===it.w) continue;
     used.add(it.w); out.push(it);
   }
+  // words that went wrong lately come back (up to 3 per round)
+  const weak = A.progress ? A.progress.weak('logo', 8) : [];
+  weak.map(w=>pool.find(p=>p.w===w)).filter(Boolean).slice(0,3).forEach(it=>{
+    if (out.some(x=>x.w===it.w)) return;
+    out[Math.floor(Math.random()*out.length)] = it;
+  });
   return out;
 }
 function startListen(pair){
@@ -430,6 +436,7 @@ $('#lgAns').addEventListener('click', async e=>{
   if (btn.dataset.k===it.k){
     LG.busy=true; $('#lgAns').classList.add('locked'); btn.classList.add('right');
     sfx.good(); confetti(LG.wrong?15:35);
+    if (A.progress) A.progress.track('logo', it.w, !LG.wrong);
     if (!LG.wrong){ LG.stars++; LG.res[LG.idx]=1; } else LG.res[LG.idx]=2;
     $('#lgStars').textContent='✓ '+LG.stars;
     $('#lgWord').innerHTML = mark(it.w, it.k);

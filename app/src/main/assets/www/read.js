@@ -90,7 +90,9 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
 const lessonById = id => R_LESSONS.find(l=>l.id===id);
 let curL = null, curDay = null;
 const isOn = id => document.getElementById(id).classList.contains('active');
-const day = () => curL.days[curDay];
+// curDay -1 = repeating the syllables that went wrong lately (any lesson)
+const REP_DAY = () => { const w = A.progress ? A.progress.weak('read', 20) : []; return {title:'Opakování', date:'', dates:[], cols:[w]}; };
+const day = () => curDay < 0 ? (curL._rep || (curL._rep = REP_DAY())) : curL.days[curDay];
 const dayCells = d => d.cols.flatMap((c,ci)=>c.map((s,ri)=>({s, ci, ri})));
 
 document.querySelectorAll('[data-rl]').forEach(b=>b.addEventListener('click',()=>{ sfx.tap(); openLesson(b.dataset.rl); }));
@@ -108,7 +110,9 @@ function openLesson(id){
 function renderDays(){
   const today = todayISO();
   const done = A.store.get('rdone', {});
-  $('#rlDays').innerHTML = curL.days.map((d,i)=>{
+  const weak = A.progress ? A.progress.weak('read', 20) : [];
+  $('#rlDays').innerHTML = (weak.length ? `<div class="dayrow"><button class="lesson" style="--c:var(--violet);--d:var(--violet-d)" data-day="-1">
+      <span class="le">🔁</span><span class="lt"><b>Opakování</b><small>${weak.length===1?'1 slabika, která minule nešla':weak.length<5?weak.length+' slabiky, které minule nešly':weak.length+' slabik, které minule nešly'}</small></span></button></div>` : '') + curL.days.map((d,i)=>{
     const isToday = d.dates.includes(today), ok = done[curL.id+'_'+i];
     const col = isToday?'orange':'teal';
     return `<div class="dayrow"><button class="lesson ${isToday?'today':''}" style="--c:var(--${col});--d:var(--${col}-d)" data-day="${i}">
@@ -119,7 +123,7 @@ function renderDays(){
 $('#rlPics').addEventListener('click',e=>{ const b=e.target.closest('.rpic'); if(!b) return; sfx.tap(); sayPic(curL.pics[+b.dataset.i]); });
 $('#rlDays').addEventListener('click',e=>{
   const g=e.target.closest('[data-game]'); if (g){ sfx.tap(); curDay=+g.dataset.game; startFind(); return; }
-  const b=e.target.closest('[data-day]'); if (b){ sfx.tap(); curDay=+b.dataset.day; startRead(); }
+  const b=e.target.closest('[data-day]'); if (b){ sfx.tap(); curDay=+b.dataset.day; curL._rep = null; startRead(curDay<0 ? true : undefined); }
 });
 
 // ---------- table of a day ----------
@@ -274,6 +278,7 @@ async function loop(){
 }
 async function success(c){
   RR.queue.shift(); if (c.tries===0) RR.firstTry++;
+  if (A.progress) A.progress.track('read', c.s, c.tries===0);
   saveProgress();
   sfx.good();
   const el = cellEl(c); if (el){ el.classList.remove('cur','bad'); el.classList.add('done'); }
@@ -291,7 +296,7 @@ async function miss(c, heard){
   else { RR.queue.push(RR.queue.shift()); c.tries = 2; $('#rrBubble').textContent='Vrátíme se k ní.'; await speak(R_MSG.later); }
 }
 function finishRead(){
-  const done = A.store.get('rdone', {}); done[curL.id+'_'+curDay] = true; A.store.set('rdone', done);
+  if (curDay >= 0){ const done = A.store.get('rdone', {}); done[curL.id+'_'+curDay] = true; A.store.set('rdone', done); }
   try{ localStorage.removeItem('mat_'+progKey()); }catch(e){}
   setMic('off');
   speak(R_MSG.allDone).then(()=>{

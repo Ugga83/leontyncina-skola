@@ -7,7 +7,9 @@ const SAY = {
   wear:['Haf! Děkuju, to mi sluší!','Haf haf! Moc se mi to líbí!'], room:'Haf! To je pro mě? Děkuju!',
   poor:'Na tohle ještě nemáme dost hvězdiček.', shop:'Vítej v mojí boudě! Co mi koupíš?',
   journey:'Tohle je naše cesta. Na konci jsou prázdniny!', paws:'Za každý den s procvičováním dostaneš tlapku.',
-  week:'Haf haf! Pět tlapek za týden! Tady máš bonus.', gift:'Haf! Máš dárek! Otevři ho.', gold:'Haf haf! Zlatý poklad!', yay:'Paráda!'
+  week:'Haf haf! Pět tlapek za týden! Tady máš bonus.', gift:'Haf! Máš dárek! Otevři ho.', gold:'Haf haf! Zlatý poklad!', yay:'Paráda!',
+  night:'Psst, Ayra už spinká. Ťukni na ni a probudí se.', night2:'Dobrý večer! Ayra je ospalá. Kup jí pelíšek, ať má kde spát.',
+  yum:'Mňam, mňam! Děkuju!', ball:'Haf haf! Hodíš mi ho ještě?', teddy:'Můj plyšáček!', bed:'Jdu si na chvilku lehnout.'
 };
 const $ = s => document.querySelector(s);
 
@@ -161,7 +163,8 @@ if (stkPanel) stkPanel.outerHTML = `
     <div class="stknext" id="rewNext"></div>
   </div>`;
 document.querySelectorAll('[data-rgo]').forEach(b=>b.addEventListener('click',()=>{ sfx.tap(); open(b.dataset.rgo); }));
-function open(id){ A.go(id); if (id==='shop') renderShop(); if (id==='journey') renderJourney(); if (id==='paws') renderPaws(); speak(SAY[id]); }
+function open(id){ A.go(id); if (id==='shop') renderShop(); if (id==='journey') renderJourney(); if (id==='paws') renderPaws();
+  speak(id==='shop' && phase()==='night' ? (owned().includes('bed') ? SAY.night : SAY.night2) : SAY[id]); }
 
 function renderHub(){
   const st = get('stk', {got:0,have:0,cost:5});
@@ -253,18 +256,18 @@ function spot(it, own){
 function kitHTML(it, own){
   if (it.id==='books' && own.includes('bookcase')) return '';          // drawn inside the bookcase
   if (it.wall && it.slot!=='furn')
-    return `<span class="kit wall" style="left:${it.wall[0]}%;top:${it.wall[1]}%;font-size:${it.wall[2]*M*.8}cqw">${it.e}</span>`;
+    return `<span class="kit wall" data-id="${it.id}" style="left:${it.wall[0]}%;top:${it.wall[1]}%;font-size:${it.wall[2]*M*.8}cqw">${it.e}</span>`;
   if (it.slot==='furn' && it.wall){
     const f = FURN[it.svg], w = it.wall[2]*M*.8;
-    return `<svg class="kit furn" viewBox="0 0 ${f.w} ${f.h}" style="left:${it.wall[0]}%;top:${it.wall[1]}%;width:${w}cqw;margin-left:${-w/2}cqw;z-index:5">${f.draw()}</svg>`;
+    return `<svg class="kit furn" data-id="${it.id}" viewBox="0 0 ${f.w} ${f.h}" style="left:${it.wall[0]}%;top:${it.wall[1]}%;width:${w}cqw;margin-left:${-w/2}cqw;z-index:5">${f.draw()}</svg>`;
   }
   const p = spot(it, own);
   if (it.svg){
     const f = FURN[it.svg], w = it.pos[2]*M*kOf(it.pos[1]);
     const full = it.id==='bookcase' && own.includes('books');
-    return `<svg class="kit furn" viewBox="0 0 ${f.w} ${f.h}" style="left:${p.x}%;bottom:${p.bottom}%;width:${w}cqw;margin-left:${-w/2}cqw;z-index:${p.z}">${f.draw(full)}</svg>`;
+    return `<svg class="kit furn" data-id="${it.id}" viewBox="0 0 ${f.w} ${f.h}" style="left:${p.x}%;bottom:${p.bottom}%;width:${w}cqw;margin-left:${-w/2}cqw;z-index:${p.z}">${f.draw(full)}</svg>`;
   }
-  return `<span class="kit floor" style="left:${p.x}%;bottom:${p.bottom}%;font-size:${p.size}cqw;z-index:${p.z}">${it.e}</span>`;
+  return `<span class="kit floor" data-id="${it.id}" style="left:${p.x}%;bottom:${p.bottom}%;font-size:${p.size}cqw;z-index:${p.z}">${it.e}</span>`;
 }
 // things bought before furniture existed get their piece of furniture for free
 if (!get('furnv1', false)){
@@ -272,23 +275,99 @@ if (!get('furnv1', false)){
   SHOP.forEach(i=>{ if (i.on && own.includes(i.id) && !own.includes(i.on)) own.push(i.on); });
   set('owned', own); set('furnv1', true);
 }
+// ---------- Ayra comes alive: day & night, tap her or her things ----------
+function phase(){ const h = new Date().getHours(); return h >= 20 || h < 7 ? 'night' : h >= 17 ? 'eve' : 'day'; }
+const HOME = [50, .7], DOG = {busy:false, run:0, at:HOME};
+const BED_SPOT = () => { const b = SHOP.find(i=>i.id==='bed').pos; return [b[0], b[1] + .01]; };
+function placeDog(at, pose){
+  const el = $('#kdog'); if (!el) return;
+  const p = spot({pos:[at[0], at[1], .7]}, []);
+  DOG.at = at;
+  el.style.left = p.x + '%'; el.style.bottom = (p.bottom + (pose==='sleep' ? .8 : 0)) + '%';
+  el.style.fontSize = p.size + 'cqw'; el.style.zIndex = p.z + 2;
+  el.className = 'kdog' + (pose ? ' ' + pose : '');
+  const z = el.querySelector('.zzz');
+  if (pose==='sleep' && !z) el.insertAdjacentHTML('beforeend', '<span class="zzz">💤</span>');
+  if (pose!=='sleep' && z) z.remove();
+}
+const wait = ms => new Promise(r=>setTimeout(r, ms));
+async function walkTo(at){
+  const el = $('#kdog'), from = DOG.at;
+  if (Math.abs(from[0]-at[0]) < 1 && Math.abs(from[1]-at[1]) < .02) return;
+  placeDog(at, 'walk' + (at[0] < from[0] ? ' left' : ''));
+  await wait(950);
+  if (el.isConnected) el.classList.remove('walk', 'left');
+}
+function hearts(n, emo){
+  const el = $('#kdog'), k = $('#kennel'); if (!el || !k) return;
+  for (let i=0;i<(n||3);i++){
+    const h = document.createElement('span'); h.className = 'kheart'; h.textContent = emo || pick(['💕','❤️','💖']);
+    h.style.left = `calc(${el.style.left} + ${(Math.random()*8-4).toFixed(1)}%)`;
+    h.style.bottom = `calc(${el.style.bottom} + ${el.style.fontSize})`; h.style.animationDelay = (i*.18)+'s';
+    k.appendChild(h); setTimeout(()=>h.remove(), 2000);
+  }
+}
+const near = (id, dx) => { const it = SHOP.find(i=>i.id===id); return [it.pos[0] + (dx||0), Math.max(.2, it.pos[1] - .04)]; };
+const isShop = () => document.getElementById('shop').classList.contains('active');
+async function act(fn){
+  if (DOG.busy) return; DOG.busy = true; const my = ++DOG.run;
+  try{ await fn(()=>my===DOG.run && isShop()); } finally { if (my===DOG.run) DOG.busy = false; }
+}
+async function goHome(alive){
+  if (!alive()) return;
+  if (phase()==='night' && owned().includes('bed')){ await walkTo(BED_SPOT()); if (alive()) placeDog(BED_SPOT(), 'sleep'); }
+  else await walkTo(HOME);
+}
+document.getElementById('kennel').addEventListener('click', e=>{
+  const dog = e.target.closest('#kdog'), kit = e.target.closest('[data-id]');
+  if (dog) return act(async alive=>{
+    const el = $('#kdog');
+    if (el.classList.contains('sleep')){ placeDog(DOG.at, ''); speak('Haf!'); hearts(2); await wait(9000); if (alive()) await goHome(alive); return; }
+    el.classList.add('wag'); speak(pick(A.BARKS)); hearts(3); await wait(900); el.classList.remove('wag');
+  });
+  if (!kit) return;
+  const id = kit.dataset.id;
+  kit.classList.remove('boing'); void kit.getBoundingClientRect(); kit.classList.add('boing'); sfx.tap();
+  if (id==='ball') return act(async alive=>{
+    await walkTo(near('ball', -6)); if (!alive()) return;
+    speak(SAY.ball); hearts(2, '🎾'); await wait(1300); await goHome(alive);
+  });
+  if (id==='bowl' || id==='meat') return act(async alive=>{
+    await walkTo(near(id, 5)); if (!alive()) return;
+    $('#kdog').classList.add('eat'); speak(SAY.yum); hearts(3, '😋'); await wait(1800);
+    if (!alive()) return; $('#kdog').classList.remove('eat'); await goHome(alive);
+  });
+  if (id==='teddy') return act(async alive=>{
+    await walkTo(near('teddy', 7)); if (!alive()) return;
+    speak(SAY.teddy); hearts(4); await wait(1500); await goHome(alive);
+  });
+  if (id==='bed') return act(async alive=>{
+    await walkTo(BED_SPOT()); if (!alive()) return;
+    placeDog(BED_SPOT(), 'sleep'); speak(SAY.bed); await wait(4500);
+    if (!alive() || phase()==='night') return;
+    placeDog(BED_SPOT(), ''); await wait(300); await goHome(alive);
+  });
+});
 function renderKennel(){
   const w = wear(), own = owned();
   const wall = (SHOP.find(i=>i.id===w.wall)||{}).v || '#efe3cf';
   const floor = (SHOP.find(i=>i.id===w.floor)||{}).v || 'plain';
   const win = (SHOP.find(i=>i.id===w.window)||{}).v;
   const items = SHOP.filter(i=>(i.slot==='room' || i.slot==='furn') && own.includes(i.id));
-  const ay = spot({pos:[50,.7,.7]}, own);
+  const ph = phase(), sleeping = ph==='night' && own.includes('bed');
+  const sofa = SHOP.find(i=>i.id==='sofa');
   $('#kennel').style.setProperty('--wall', wall);
-  $('#kennel').className = 'kennel floor-'+floor + (w.light ? ' lit' : '');
+  $('#kennel').className = 'kennel floor-'+floor + (w.light ? ' lit' : '') + ' ' + ph;
   $('#kennel').innerHTML = `
     <div class="roof"></div><div class="wallz"></div><div class="floorz"></div>
-    ${win ? `<div class="win"><span>${win}</span></div>` : ''}
+    ${win ? `<div class="win"><span>${ph==='night' ? '🌙' : win}</span></div>` : ''}
+    ${ph==='night' && own.includes('sofa') ? `<div class="lampglow" style="left:${sofa.pos[0]+8}%"></div>` : ''}
     ${w.light ? '<div class="garland">✨ ✨ ✨ ✨ ✨ ✨ ✨</div>' : ''}
     ${items.map(i=>kitHTML(i, own)).join('')}
-    <div class="kshadow" style="left:${ay.x}%;bottom:${ay.bottom}%;width:${ay.size*.75}cqw;margin-left:${-ay.size*.375}cqw;z-index:${ay.z-1}"></div>
-    <div class="owl kayra full" style="left:${ay.x}%;bottom:${ay.bottom}%;font-size:${ay.size}cqw;z-index:${ay.z}"></div>
+    <div class="kdog" id="kdog"><div class="kshadow"></div><div class="owl kayra full"></div></div>
     ${!items.length && !win && !w.wall ? '<div class="kempty">Ayřina bouda je zatím prázdná. Kup jí něco hezkého! 🛍️</div>' : ''}`;
+  DOG.busy = false; DOG.run++;
+  placeDog(sleeping ? BED_SPOT() : HOME, sleeping ? 'sleep' : '');
   decorate();
 }
 function renderShop(){

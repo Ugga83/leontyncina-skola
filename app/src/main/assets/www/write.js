@@ -1,0 +1,209 @@
+// Leontýnčina škola – Psaní: tracing Czech school cursive letters with a finger
+(() => {
+const A = window.App, {speak, sfx, confetti, pick} = A;
+const $ = s => document.querySelector(s);
+const FONT = 'PlaywriteCZ';
+
+const W_LESSONS = [
+  {id:'vow',  c:'orange', t:'Samohlásky',     items:['a','e','i','o','u']},
+  {id:'mlsp', c:'teal',   t:'Písmena m l s p', items:['m','l','s','p']},
+  {id:'syl',  c:'violet', t:'Slabiky',        items:['ma','me','mi','mo','mu','la','le','li','lo','lu','sa','se','si','so','su','pa','pe','pi','po','pu']},
+  {id:'word', c:'coral',  t:'Slova',          items:['máma','mele','Ema','lama','pila','pes','osel','Pepa','lupa','sele']},
+  {id:'cap',  c:'teal',   t:'Velká písmena',  items:['A','E','I','O','U','M','L','S','P']},
+];
+const NAME = {a:'á', e:'é', i:'í', o:'ó', u:'ú', m:'em', l:'el', s:'es', p:'pé'};
+const ROUND = 6;
+const W_SAY = {
+  pick:'Vyber si, co budeme psát.',
+  start:'Obtáhni prstem šedé písmenko. Jezdi přesně po čáře.',
+  slow:'Jezdi prstem přesně po šedé čáře. Zkus to znovu.',
+  rest:'Ještě obtáhni zbytek.',
+  show:'Dívej se, jak se to píše.',
+  praise:['Krásně!','Paráda, to je hezké!','Výborně!','Haf! To se ti povedlo!','Jako ve škole!'],
+};
+function prompt(x){
+  if (x.length === 1){
+    const n = NAME[x.toLowerCase()] || x;
+    return x === x.toUpperCase() ? `Obtáhni velké písmeno ${n}.` : `Obtáhni písmenko ${n}.`;
+  }
+  return W_LESSONS[2].items.includes(x) ? 'Obtáhni slabiku.' : `Obtáhni slovo ${x}.`;
+}
+// a syllable is spoken on its own (inside a sentence the voice may spell it out)
+const sayItem = (x, queue) => {
+  const p = speak(prompt(x), {queue:!!queue});
+  return W_LESSONS[2].items.includes(x) ? speak(x, {queue:true}) : p;
+};
+
+document.getElementById('end').insertAdjacentHTML('beforebegin', `
+<section id="write" class="screen scroll">
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Psaní</h1></div>
+  <div class="hero"><div class="owl" id="writeOwl"></div><div class="bubble">Vyber si, co budeme psát!</div></div>
+  <div class="lsec"><h3>✏️ Psací písmo</h3><div class="lessons">
+    ${W_LESSONS.map(l=>`<button class="lesson" style="--c:var(--${l.c});--d:var(--${l.c}-d)" data-wl="${l.id}">
+      <span class="le wcur">${l.items.slice(0, l.id==='word'?2:5).join(' ')}</span><span class="lt"><b>${l.t}</b></span></button>`).join('')}
+  </div></div>
+</section>
+<section id="wtrace" class="screen">
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div>
+    <div class="scount" id="wStars">✓ 0</div><button class="round-btn" id="wSay" aria-label="Zopakovat">🔊</button></div>
+  <div class="dots" id="wDots"></div>
+  <div class="gtalk"><div class="owl"></div><div class="bubble" id="wBubble"></div></div>
+  <div class="card wcard" id="wCard"><canvas id="wGuide"></canvas><canvas id="wInk"></canvas><canvas id="wDemo"></canvas></div>
+  <div class="btns" style="padding-bottom:6px">
+    <button class="bigbtn" style="--c:var(--orange);--d:var(--orange-d)" id="wShow">👀 Ukaž</button>
+    <button class="bigbtn" style="--c:var(--violet);--d:var(--violet-d)" id="wClear">🧽 Smazat</button>
+  </div>
+</section>`);
+
+const WS = {lesson:null, items:[], idx:0, stars:0, res:[], miss:0, done:false, fs:0, mask:null, target:null, run:0, restSaid:false};
+const isOn = id => document.getElementById(id).classList.contains('active');
+
+document.querySelectorAll('[data-wl]').forEach(b=>b.addEventListener('click', ()=>{ sfx.tap(); start(b.dataset.wl); }));
+document.querySelector('#hub [data-go="write"]').addEventListener('click', ()=>setTimeout(()=>speak(W_SAY.pick), 60));
+$('#writeOwl').addEventListener('click', ()=>speak(W_SAY.pick));
+
+function start(id){
+  WS.lesson = W_LESSONS.find(l=>l.id===id);
+  const pool = [...WS.lesson.items], out = [];
+  // what went wrong lately comes first
+  (A.progress ? A.progress.weak('write', 10) : []).filter(x=>pool.includes(x)).slice(0, 2).forEach(x=>out.push(x));
+  while (out.length < Math.min(ROUND, pool.length)){ const x = pick(pool); if (!out.includes(x)) out.push(x); }
+  WS.items = out.sort(()=>Math.random()-.5); WS.idx = 0; WS.stars = 0; WS.res = [];
+  A.go('wtrace');
+  document.fonts.load(`100px ${FONT}`).then(()=>{ setup(true); });
+}
+function setup(first){
+  const x = WS.items[WS.idx]; WS.miss = 0; WS.done = false; WS.restSaid = false; WS.run++;
+  $('#wDots').innerHTML = WS.items.map((_,i)=>`<div class="dot ${i===WS.idx?'cur':''} ${WS.res[i]===1?'gold':WS.res[i]===2?'ok':''}"></div>`).join('');
+  $('#wStars').textContent = '✓ ' + WS.stars;
+  const what = x.length===1 ? (x===x.toUpperCase() ? 'velké písmeno' : 'písmenko') : W_LESSONS[2].items.includes(x) ? 'slabiku' : 'slovo';
+  $('#wBubble').innerHTML = `Obtáhni ${what} <b class="wcur">${x}</b>`;
+  draw();
+  if (first){ speak(W_SAY.start); sayItem(x, true); } else sayItem(x);
+}
+
+// ---------- drawing ----------
+function sizeCanvas(c){
+  const r = $('#wCard').getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+  c.style.width = r.width + 'px'; c.style.height = r.height + 'px';
+  return c.getContext('2d');
+}
+function layout(ctx, x){
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  ctx.font = `100px ${FONT}`;
+  const m = ctx.measureText(x);
+  const asc = Math.max(m.actualBoundingBoxAscent, 70), desc = Math.max(m.actualBoundingBoxDescent, 30);
+  const fs = Math.min(100 * W * .86 / m.width, 100 * H * .84 / (asc + desc), H * .62);
+  const base = H * .5 + (asc - desc) / 100 * fs / 2;
+  return {fs, base, cx: W / 2};
+}
+function glyph(ctx, x, L){ ctx.font = `${L.fs}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; }
+function draw(){
+  const x = WS.items[WS.idx], g = sizeCanvas($('#wGuide')); sizeCanvas($('#wInk')); sizeCanvas($('#wDemo'));
+  const L = layout(g, x); WS.fs = L.fs; WS.L = L;
+  const W = g.canvas.width, H = g.canvas.height;
+  // school lines: baseline, x-height and a faint top line
+  g.font = `${L.fs}px ${FONT}`;
+  const xh = g.measureText('m').actualBoundingBoxAscent, top = g.measureText('l').actualBoundingBoxAscent;
+  g.lineWidth = Math.max(1, L.fs * .008);
+  [[L.base, '#c9d2ee', []], [L.base - xh, '#dfe5f6', [L.fs*.04, L.fs*.04]], [L.base - top, '#eef1fa', []]].forEach(([y, c, d])=>{
+    g.strokeStyle = c; g.setLineDash(d); g.beginPath(); g.moveTo(W*.04, y); g.lineTo(W*.96, y); g.stroke();
+  });
+  g.setLineDash([]);
+  // wide light "road" and the grey letter in the middle of it
+  glyph(g, x, L); g.lineJoin = g.lineCap = 'round';
+  g.strokeStyle = '#eef2fd'; g.lineWidth = L.fs * .14; g.strokeText(x, L.cx, L.base);
+  g.strokeStyle = '#b7c0e3'; g.lineWidth = L.fs * .035; g.strokeText(x, L.cx, L.base);
+  g.fillStyle = '#b7c0e3'; g.fillText(x, L.cx, L.base);
+  // start dot = left-most point of the letter
+  // masks for checking: road (where ink may go) and target (what must be covered)
+  const off = document.createElement('canvas'); off.width = W; off.height = H;
+  const o = off.getContext('2d'); glyph(o, x, L); o.lineJoin = o.lineCap = 'round';
+  o.strokeStyle = '#000'; o.lineWidth = L.fs * .2; o.strokeText(x, L.cx, L.base); o.fillText(x, L.cx, L.base);
+  WS.mask = o.getImageData(0, 0, W, H).data;
+  o.clearRect(0, 0, W, H); o.lineWidth = L.fs * .03; o.strokeText(x, L.cx, L.base); o.fillText(x, L.cx, L.base);
+  WS.target = o.getImageData(0, 0, W, H).data;
+}
+window.addEventListener('resize', ()=>{ if (isOn('wtrace') && WS.items.length) draw(); });
+
+// ---------- finger ----------
+const ink = $('#wInk');
+let drawing = false, last = null, checkT = null;
+function pos(e){ const r = ink.getBoundingClientRect(); return [(e.clientX - r.left) * ink.width / r.width, (e.clientY - r.top) * ink.height / r.height]; }
+ink.addEventListener('pointerdown', e=>{
+  if (WS.done) return; e.preventDefault(); ink.setPointerCapture(e.pointerId);
+  drawing = true; last = pos(e); clearTimeout(checkT); dot(last);
+});
+ink.addEventListener('pointermove', e=>{
+  if (!drawing) return; const p = pos(e), c = ink.getContext('2d');
+  c.strokeStyle = '#2f6fd8'; c.lineWidth = WS.fs * .075; c.lineCap = c.lineJoin = 'round';
+  c.beginPath(); c.moveTo(last[0], last[1]); c.lineTo(p[0], p[1]); c.stroke(); last = p;
+});
+['pointerup','pointercancel'].forEach(ev=>ink.addEventListener(ev, ()=>{
+  if (!drawing) return; drawing = false; clearTimeout(checkT); checkT = setTimeout(check, 450);
+}));
+function dot(p){ const c = ink.getContext('2d'); c.fillStyle = '#2f6fd8'; c.beginPath(); c.arc(p[0], p[1], WS.fs*.0375, 0, 7); c.fill(); }
+
+function measure(){
+  const c = ink.getContext('2d'), W = ink.width, H = ink.height, d = c.getImageData(0, 0, W, H).data;
+  const step = Math.max(2, Math.round(WS.fs / 60));
+  let tN = 0, tHit = 0, iN = 0, iOut = 0;
+  for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step){
+    const i = (y * W + x) * 4 + 3;
+    if (WS.target[i] > 100){ tN++; if (d[i] > 0) tHit++; }
+    if (d[i] > 0){ iN++; if (WS.mask[i] < 50) iOut++; }
+  }
+  WS.inkN = iN; WS.tN = tN;
+  return {cover: tN ? tHit / tN : 0, out: iN ? iOut / iN : 0};
+}
+async function check(){
+  if (WS.done || !isOn('wtrace')) return;
+  const {cover, out} = measure(), my = WS.run;
+  if (out > .35 && (cover > .3 || WS.inkN > WS.tN * .6)){                       // scribbled outside the letter
+    WS.miss++; sfx.bad(); $('#wBubble').textContent = 'Jezdi přesně po šedé čáře.';
+    speak(W_SAY.slow); clearInk(); return;
+  }
+  if (cover >= .78){
+    WS.done = true; const first = WS.miss === 0;
+    if (A.progress) A.progress.track('write', WS.items[WS.idx], first);
+    if (first){ WS.stars++; WS.res[WS.idx] = 1; } else WS.res[WS.idx] = 2;
+    recolor(); sfx.good(); confetti(first ? 35 : 15);
+    const p = pick(W_SAY.praise); $('#wBubble').textContent = p; $('#wStars').textContent = '✓ ' + WS.stars;
+    await speak(p); await new Promise(r=>setTimeout(r, 700));
+    if (my !== WS.run || !isOn('wtrace')) return;
+    WS.idx++;
+    if (WS.idx >= WS.items.length) return A.finishRound(WS.stars, ()=>start(WS.lesson.id), 'write', WS.items.length);
+    setup();
+    return;
+  }
+  if (cover > .35 && !WS.restSaid){ WS.restSaid = true; $('#wBubble').textContent = 'Ještě obtáhni zbytek.'; speak(W_SAY.rest); }
+}
+function recolor(){                                    // the finished letter turns green
+  const c = ink.getContext('2d'); c.globalCompositeOperation = 'source-in';
+  c.fillStyle = '#20b37a'; c.fillRect(0, 0, ink.width, ink.height); c.globalCompositeOperation = 'source-over';
+}
+function clearInk(){ const c = ink.getContext('2d'); c.clearRect(0, 0, ink.width, ink.height); WS.restSaid = false; }
+$('#wClear').addEventListener('click', ()=>{ sfx.tap(); if (!WS.done) clearInk(); });
+$('#wSay').addEventListener('click', ()=>{ sfx.tap(); sayItem(WS.items[WS.idx]); });
+
+// "show me": the letter is written left to right
+$('#wShow').addEventListener('click', ()=>{
+  sfx.tap(); speak(W_SAY.show);
+  const x = WS.items[WS.idx], c = $('#wDemo').getContext('2d'), L = WS.L, W = c.canvas.width, H = c.canvas.height;
+  c.font = `${L.fs}px ${FONT}`; const w = c.measureText(x).width, x0 = L.cx - w/2 - L.fs*.05;
+  const t0 = performance.now(), dur = 900 + 450 * x.length, my = ++WS.demo;
+  (function frame(t){
+    if (my !== WS.demo) return;
+    const k = Math.min(1, (t - t0) / dur);
+    c.clearRect(0, 0, W, H); c.save(); c.beginPath(); c.rect(0, 0, x0 + (w + L.fs*.1) * k, H); c.clip();
+    glyph(c, x, L); c.lineJoin = c.lineCap = 'round'; c.strokeStyle = c.fillStyle = '#ff8a3c'; c.lineWidth = L.fs * .045;
+    c.strokeText(x, L.cx, L.base); c.fillText(x, L.cx, L.base); c.restore();
+    if (k < 1) requestAnimationFrame(frame); else setTimeout(()=>{ if (my === WS.demo) c.clearRect(0, 0, W, H); }, 900);
+  })(t0);
+});
+WS.demo = 0;
+A.onLeave(()=>{ WS.run++; WS.demo++; });
+
+A.phraseSources.push(()=>[...W_LESSONS.flatMap(l=>l.items.map(prompt)), W_SAY.pick, W_SAY.start, W_SAY.slow, W_SAY.rest, W_SAY.show, ...W_SAY.praise]);
+})();

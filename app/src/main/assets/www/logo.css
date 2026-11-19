@@ -239,3 +239,81 @@
 .rgrid.mini{display:grid;grid-template-columns:repeat(var(--cols,4),1fr);grid-template-rows:repeat(var(--rows,8),1fr);
   gap:4px;overflow:hidden;padding:4px}
 .rgrid.mini .rs{font-size:1em;display:flex;align-items:center;justify-content:center;min-height:0;padding:0;border-radius:12px;background:#f6f8ff}
+
+/* ---------- Psaní (tracing) ---------- */
+@font-face{font-family:'PlaywriteCZ';src:url(fonts/playwrite-cz.woff2) format('woff2');font-display:block}
+.wcur{font-family:'PlaywriteCZ',cursive;font-weight:400}
+.lesson .le.wcur{font-size:clamp(22px,6vw,32px);min-width:4.2em;text-align:center;letter-spacing:.02em}
+.wcard{position:relative;flex:1;min-height:0;padding:0;overflow:hidden;touch-action:none}
+.wcard canvas{position:absolute;left:0;top:0}
+#wInk{z-index:2;touch-action:none}#wDemo{z-index:3;pointer-events:none}
+#wBubble .wcur{font-size:1.3em}
+
+/* ---------- výzva dne ---------- */
+.challenge{border:0;font:inherit;cursor:pointer;width:100%;max-width:720px;display:flex;align-items:center;gap:12px;
+  background:#fff;border-radius:20px;padding:10px 14px;box-shadow:0 5px 0 #f0b44a,0 0 0 3px #ffd36b inset;color:var(--ink);text-align:left}
+.challenge .ci{font-size:34px}.challenge .ct{flex:1;display:flex;flex-direction:column;line-height:1.15}
+.challenge .ct small{font-size:13px;font-weight:800;color:#b07a00;text-transform:uppercase;letter-spacing:.04em}
+.challenge .ct b{font-size:clamp(16px,4.4vw,20px);font-weight:900}
+.challenge .cb{font-weight:900;font-size:18px;color:#b07a00;white-space:nowrap}
+.challenge.done{box-shadow:0 5px 0 #9fdcbf,0 0 0 3px #bfe9d0 inset}.challenge.done .cb{color:#1f8a46}
+#hub h1{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#hub h1.holding{animation:pulse 2s}
+
+/* ---------- pro rodiče ---------- */
+.psum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.psum b{display:block;font-size:clamp(24px,7vw,34px);font-weight:900;color:var(--ink)}
+.psum span{font-size:13px;font-weight:700;color:var(--ink-soft)}
+.lcard h4 small{font-weight:700;color:var(--ink-soft);font-size:13px}
+.pchart{display:flex;align-items:flex-end;gap:2px;height:150px;padding-top:6px}
+.pcol{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0}
+.pbar{width:72%;background:#5b8def;border-radius:4px 4px 0 0;min-height:0}
+.pv{font-size:12px;font-weight:800;color:var(--ink-soft);min-height:15px}
+.pd{font-size:11px;font-weight:700;color:var(--ink-soft);text-align:center;line-height:1.1;border-top:1px solid #d9dfee;width:100%;padding-top:3px}
+.ptiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ptile{background:#f3f6ff;border-radius:14px;padding:8px 10px;display:flex;flex-direction:column}
+.ptile span{font-weight:800;font-size:15px}.ptile b{font-size:26px;font-weight:900}.ptile small{color:var(--ink-soft);font-weight:700}
+.prow{margin:6px 0}.prow b{display:block;margin-bottom:4px}
+.pchip{display:inline-flex;gap:4px;align-items:center;background:#fff1f1;border-radius:10px;padding:3px 8px;margin:0 4px 4px 0;font-weight:800}
+.pchip i{font-style:normal;color:#c0392b;font-size:12px}
+.pnone{font-weight:700;color:var(--ink-soft)}
+.pclear{border:0;font:inherit;font-weight:800;background:#eef1fb;border-radius:12px;padding:8px 12px;margin-top:8px;cursor:pointer;color:var(--ink)}
+
+/* ---------- living Ayra in the kennel ---------- */
+.kennel .kdog{position:absolute;width:0;height:1em;transition:left .9s ease-in-out,bottom .9s ease-in-out,font-size .9s ease-in-out;cursor:pointer}
+.kennel .kdog .kayra.full{position:absolute;left:-.5em;bottom:0;top:auto;width:1em;height:1em;margin:0;transform:none;font-size:1em}
+.kennel .kdog .kshadow{position:absolute;left:-.38em;width:.76em;bottom:-.06em;height:.12em;margin:0;border-radius:50%;background:#0000002a}
+.kennel .kdog.walk .kayra{background-image:url(ayra_walk.png);animation:trot .3s infinite alternate}
+.kennel .kdog.walk.left .kayra{transform:scaleX(-1)}
+.kennel .kdog.walk .acc,.kennel .kdog.sleep .acc{display:none}
+.kennel .kdog.sleep .kayra{background-image:url(ayra_sleep.png);width:1.3em;left:-.65em;height:.97em}
+.kennel .kdog.sleep .kshadow{width:1.1em;left:-.55em}
+.kennel .kdog.wag .kayra{animation:wag .22s 4 alternate;transform-origin:50% 100%}
+.kennel .kdog.eat .kayra{animation:chomp .3s infinite alternate;transform-origin:50% 100%}
+.kennel .zzz{position:absolute;left:.2em;bottom:.8em;font-size:.32em;animation:zzz 2.4s infinite}
+.kennel .kheart{position:absolute;font-size:5cqw;z-index:200;pointer-events:none;animation:heartUp 1.6s ease-out both}
+.kennel .kit{cursor:pointer}
+.kennel .kit.boing{animation:boing .5s}
+@keyframes trot{from{transform:translateY(0)}to{transform:translateY(-6%)}}
+.kennel .kdog.walk.left .kayra{animation:trotL .3s infinite alternate}
+@keyframes trotL{from{transform:scaleX(-1) translateY(0)}to{transform:scaleX(-1) translateY(-6%)}}
+@keyframes wag{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+@keyframes chomp{from{transform:scaleY(1)}to{transform:scaleY(.92) translateY(2%)}}
+@keyframes zzz{0%{opacity:0;transform:translate(0,0) scale(.7)}30%{opacity:1}100%{opacity:0;transform:translate(.6em,-1em) scale(1.1)}}
+@keyframes heartUp{0%{opacity:0;transform:translate(-50%,0) scale(.5)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-14cqw) scale(1.2)}}
+@keyframes boing{30%{transform:translateY(-12%)}60%{transform:translateY(0)}80%{transform:translateY(-4%)}}
+.kennel .kit.wall.boing{animation:boingW .5s}
+@keyframes boingW{30%{transform:translate(-50%,-62%)}60%{transform:translate(-50%,-50%)}}
+
+/* ---------- day / evening / night ---------- */
+.kennel::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:150;transition:background .6s}
+.kennel.eve::after{background:#ff8a3c1c}
+.kennel.night::after{background:#0b1a4a6b}
+.kennel.eve .win{background:linear-gradient(#ff9d5c,#ffd59a)}
+.kennel.night .win{background:radial-gradient(circle at 70% 30%,#2c3f7c,#121c45)}
+.kennel.night .win span{text-shadow:0 0 12px #fff6}
+.kennel.night .win::after{content:"✦  ·  ✧ ·";position:absolute;left:10%;top:62%;color:#fff;font-size:2.4cqw;letter-spacing:.4em}
+.kennel.night .garland{z-index:160;text-shadow:0 0 8px #ffe066,0 0 16px #ffd23f}
+.kennel .lampglow{position:absolute;top:22%;width:26cqw;height:26cqw;margin-left:-13cqw;border-radius:50%;z-index:160;pointer-events:none;
+  background:radial-gradient(circle,#fff3b0aa 0,#ffe48a55 30%,transparent 65%);mix-blend-mode:screen}
+.kennel.night .zzz{z-index:170}
