@@ -23,7 +23,7 @@ const L = {
   'Ž':{grp:'round', voiced:true,  aff:false, emo:'🪲', name:'brouček', who:'Brouček letí',   snd:'žžž',   pair:'Z',
      words:[['žába','🐸'],['žirafa','🦒'],['ježek','🦔'],['lžíce','🥄'],['žížala','🪱'],['nůžky','✂️']],
      syl:['ža','že','ži','žo','žu']},
-  'Č':{grp:'round', voiced:false, aff:true,  emo:'🐱', name:'kočička', who:'Voláme kočičku',  snd:'čičí, čičí', pair:'C',
+  'Č':{grp:'round', voiced:false, aff:true,  emo:'🐱', name:'kočička', who:'Voláme kočičku',  snd:'č, č, č', pair:'C',
      words:[['čokoláda','🍫'],['čaj','🍵'],['kočka','🐱'],['klíč','🔑'],['míč','⚽'],['čert','😈']],
      syl:['ča','če','či','čo','ču']},
 };
@@ -115,7 +115,9 @@ function sideSVG(grp, voiced){
 }
 
 // ---------- model sounds ----------
-// Parent's own recording (saved on the phone) if there is one, otherwise the voice says syllables + a word.
+// Parent's own recording (saved on the phone) if there is one, otherwise the bundled sound
+// (sounds/*.mp3: the isolated sound cut from the Czech voice and lengthened; see tools/README).
+const FILES = {S:'s.mp3', Z:'z.mp3', C:'c.mp3', 'Š':'sh.mp3', 'Ž':'zh.mp3', 'Č':'ch.mp3'};
 let curAudio = null;
 function stopModel(){ if (curAudio){ try{ curAudio.pause(); }catch(e){} curAudio = null; } }
 function ownModel(k){ return A.store.get('model_'+k, null); }
@@ -125,9 +127,7 @@ function playModel(k){
     let done=false; const fin=()=>{ if(!done){ done=true; res(); } };
     if (!A.S.sound) return fin();
     stopModel(); hush();
-    const own = ownModel(k);
-    if (!own) return speak(modelText(k)).then(fin);
-    const a = new Audio(own); curAudio = a;
+    const a = new Audio(ownModel(k) || ('sounds/'+FILES[k])); curAudio = a;
     a.onended = fin; a.onerror = ()=>speak(modelText(k)).then(fin);
     const p = a.play(); if (p && p.catch) p.catch(a.onerror);
     setTimeout(fin, 7000);
@@ -261,7 +261,7 @@ function openSound(k){
   $('#sndSyl').innerHTML = d.syl.map(s=>`<button class="chip">${s}</button>`).join('');
   $('#sndWords').innerHTML = d.words.map(([w,e])=>`<button class="word" data-w="${w}"><span class="e">${e}</span><span class="w">${mark(w,k)}</span></button>`).join('');
   stopMirror(); resetRec(); ownUI();
-  speak(`Písmenko ${spokenLetter(k)}. ${d.who}.`).then(()=>{ if (cur===k && isOn('sound')) playModel(k); });
+  speak(`${d.who}.`).then(()=>{ if (cur===k && isOn('sound')) playModel(k); });
 }
 function spokenLetter(k){ return {S:'es',Z:'zet',C:'cé','Š':'eš','Ž':'žet','Č':'čé'}[k]; }
 function mark(w,k){ const lc=k.toLowerCase(); return w.split('').map(ch=>ch===lc?`<b>${ch}</b>`:ch).join(''); }
@@ -498,7 +498,7 @@ A.phraseSources.push(()=>{
     'Zkus to taky! Můžeš se podívat do zrcátka.', 'Připravit, pozor, teď!', 'Poslouchej ještě jednou!'];
   Object.keys(L).forEach(k=>{
     const d=L[k];
-    out.push(`Písmenko ${spokenLetter(k)}. ${d.who}.`, modelText(k));
+    out.push(`${d.who}.`, modelText(k));
     steps(k).forEach(s=>out.push(s.t));
     d.syl.forEach(x=>out.push(x));
     d.words.forEach(([w])=>{
