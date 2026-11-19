@@ -624,6 +624,7 @@ function finishRound(score, again, backTo, of){
   S.stars = add;
   S.total += add; store.set('total', S.total);
   const won = addStars(add), st = store.get('stk');
+  const extra = App.rewards ? App.rewards.afterRound(add) : '';
   show('end');
   sfx.win(); confetti(80);
   const titles = earned===3 ? END_TITLES[0] : earned===2 ? END_TITLES[1] : END_TITLES[2];
@@ -632,11 +633,12 @@ function finishRound(score, again, backTo, of){
     '⭐'.repeat(add);
   speak(titles);
   speak(starsSay(add, 0), {queue:true});
-  if (won.length){
-    $('#newStk').innerHTML = `Nová nálepka do sbírky!<span>${won.join(' ')}</span>`;
-    speak(NEW_STICKER, {queue:true});
+  const P = App.rewards ? App.rewards.PLACES : null;
+  if (won.length && P){
+    const i = st.got-1;
+    $('#newStk').innerHTML = `Ayra došla na zastávku ${P[i][0]} ${P[i][1]} a potkala kamaráda!<span>${won.join(' ')}</span>` + extra;
   } else {
-    $('#newStk').textContent = st.got<STICKERS.length ? `Do další nálepky chybí ${st.cost-st.have} ⭐` : 'Máš všechny nálepky! 🎉';
+    $('#newStk').innerHTML = (st.got<STICKERS.length && P ? `<div class="rewline">🗺️ Do další zastávky ${P[st.got][0]} chybí ${st.cost-st.have} ⭐</div>` : '') + extra;
   }
 }
 
@@ -657,15 +659,17 @@ function renderHome(){
   document.querySelectorAll('#rangeSeg button').forEach(b=>b.classList.toggle('on', +b.dataset.max===S.max));
   document.querySelectorAll('#soundSeg button').forEach(b=>b.classList.toggle('on', +b.dataset.snd===S.sound));
   document.querySelectorAll('#picsSeg button').forEach(b=>b.classList.toggle('on', +b.dataset.pics===S.pics));
-  $('#starSum').textContent = '⭐ '+S.total;
+  if ($('#starSum')) $('#starSum').textContent = '⭐ '+S.total;
+  if (App.rewards) App.rewards.renderHub();
   const st = store.get('stk', {got:0,have:0,cost:5}), got = st.got;
+  if (!$('#stickers')) return;
   $('#stickers').innerHTML = STICKERS.map((s,i)=> i<got?`<div class="stk">${s}</div>`:`<div class="stk lock">?</div>`).join('');
   $('#stkNext').innerHTML = got < STICKERS.length
     ? `<div class="stkbar"><div style="width:${Math.round(100*Math.min(1,st.have/st.cost))}%"></div></div><span>Další nálepka: ${st.have} / ${st.cost} ⭐</span>`
     : '<span>Máš celou sbírku! 🎉</span>';
 }
 function goHome(){ go('home'); }
-const PARENT = {read:'hub', rlesson:'read', rread:'rlesson', rfind:'rlesson', home:'hub', logopedie:'hub', logo:'logopedie', game:'home', sound:'logo', lgame:'logo', warm:'logopedie'};
+const PARENT = {shop:'hub', journey:'hub', paws:'hub', read:'hub', rlesson:'read', rread:'rlesson', rfind:'rlesson', home:'hub', logopedie:'hub', logo:'logopedie', game:'home', sound:'logo', lgame:'logo', warm:'logopedie'};
 const leaveHooks = [];
 function go(id){
   counting++; hush(); leaveHooks.forEach(f=>{try{f(id)}catch(e){}});
@@ -742,7 +746,7 @@ const phraseSources = [()=>{
 // every sentence the app can say, for pre-recording the voice (tools/gen_voice.py)
 window.__allPhrases = ()=>[...new Set(phraseSources.flatMap(f=>f()).map(t=>t.trim()))].sort();
 window.__vkey = vkey;
-window.App = {speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, leaveHooks, phraseSources,
+window.App = {STICKERS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, leaveHooks, phraseSources,
   onLeave:f=>leaveHooks.push(f)};
 
 // sticker state {got, have, cost, earned, first}; first run: keep every sticker already earned (old rule: one per 10 stars)
@@ -764,5 +768,6 @@ if (native) setTimeout(()=>speak(GREETING), 600);
 </script>
 <script src="logo.js"></script>
 <script src="read.js"></script>
+<script src="rewards.js"></script>
 </body>
 </html>
