@@ -37,14 +37,26 @@ class Listener implements RecognitionListener {
         } catch (Exception ignored) { }
     }
 
+    private final CloudSpeech cloud = new CloudSpeech(BuildConfig.SPEECH_KEY);
+
     Listener(Activity act, WebView web) { this.act = act; this.web = web; }
 
-    boolean available() { return SpeechRecognizer.isRecognitionAvailable(act); }
+    boolean available() { return cloud.enabled() || SpeechRecognizer.isRecognitionAvailable(act); }
 
     void listen(String newId) {
         if (act.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             pendingId = newId;
             act.requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_MIC);
+            return;
+        }
+        if (cloud.enabled()) {          // Google Cloud: much better for single syllables
+            id = newId;
+            final String sid = newId;
+            cloud.listen(hints, new CloudSpeech.Callback() {
+                @Override public void ready() { send(sid, "ready", "null"); }
+                @Override public void result(ArrayList<String> texts) { send(sid, "res", new JSONArray(texts).toString()); }
+                @Override public void error(int code) { send(sid, "err", String.valueOf(code)); }
+            });
             return;
         }
         try {
@@ -75,6 +87,7 @@ class Listener implements RecognitionListener {
     }
 
     void stop() {
+        cloud.cancel();
         if (rec != null) try { rec.cancel(); } catch (Exception ignored) { }
     }
 

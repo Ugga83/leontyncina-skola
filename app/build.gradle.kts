@@ -12,6 +12,12 @@ android {
         targetSdk = 35
         versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
         versionName = "1.0." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
+        // Google Cloud Speech-to-Text key for reading practice (GitHub secret SPEECH_API_KEY; empty = on-device recognizer)
+        buildConfigField("String", "SPEECH_KEY", "\"" + (System.getenv("SPEECH_API_KEY") ?: "") + "\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     // Shared signing key committed in the repo so that every build can be installed
