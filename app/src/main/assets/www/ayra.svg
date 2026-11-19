@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!-- Ayra, a fluffy white Samoyed -->
+  <defs>
+    <radialGradient id="fur" cx="50%" cy="40%" r="60%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef1f6"/>
+    </radialGradient>
+  </defs>
+  <!-- ears -->
+  <path d="M22,44 L30,8 L52,32 Z" fill="#fff" stroke="#cfd6e4" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M98,44 L90,8 L68,32 Z" fill="#fff" stroke="#cfd6e4" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M30,38 L32,18 L44,32 Z" fill="#ffc9d6"/>
+  <path d="M90,38 L88,18 L76,32 Z" fill="#ffc9d6"/>
+  <!-- fluffy head (cloud of circles) -->
+  <g fill="url(#fur)" stroke="#cfd6e4" stroke-width="2.5">
+    <circle cx="60" cy="62" r="40"/>
+    <circle cx="26" cy="70" r="16"/>
+    <circle cx="94" cy="70" r="16"/>
+    <circle cx="36" cy="92" r="16"/>
+    <circle cx="84" cy="92" r="16"/>
+    <circle cx="60" cy="100" r="16"/>
+  </g>
+  <g fill="url(#fur)">
+    <circle cx="60" cy="64" r="38"/>
+    <circle cx="36" cy="88" r="13"/><circle cx="84" cy="88" r="13"/><circle cx="60" cy="96" r="13"/>
+    <circle cx="30" cy="70" r="12"/><circle cx="90" cy="70" r="12"/>
+  </g>
+  <!-- fluff tufts on forehead -->
+  <path d="M50,30 q5,-8 10,0 q5,-8 10,0" fill="none" stroke="#dfe4ee" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- cheeks -->
+  <ellipse cx="38" cy="78" rx="7" ry="4.5" fill="#ffd3de" opacity=".8"/>
+  <ellipse cx="82" cy="78" rx="7" ry="4.5" fill="#ffd3de" opacity=".8"/>
+  <!-- eyes -->
+  <ellipse cx="44" cy="62" rx="6" ry="7" fill="#2b2d4a"/>
+  <ellipse cx="76" cy="62" rx="6" ry="7" fill="#2b2d4a"/>
+  <circle cx="46" cy="59" r="2.2" fill="#fff"/>
+  <circle cx="78" cy="59" r="2.2" fill="#fff"/>
+  <!-- muzzle -->
+  <ellipse cx="60" cy="80" rx="16" ry="12" fill="#fff"/>
+  <!-- nose -->
+  <path d="M53,72 Q60,68 67,72 Q66,78 60,80 Q54,78 53,72 Z" fill="#2b2d4a"/>
+  <ellipse cx="58" cy="72.5" rx="2.5" ry="1.4" fill="#6b6f90"/>
+  <!-- smile + tongue -->
+  <path d="M60,80 Q60,86 53,87 M60,80 Q60,86 67,87" fill="none" stroke="#2b2d4a" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M55,87.5 Q60,98 65,87.5 Z" fill="#ff7b93" stroke="#e05575" stroke-width="1.2"/>
+</svg>

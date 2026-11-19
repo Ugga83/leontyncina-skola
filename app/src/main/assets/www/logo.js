@@ -142,7 +142,7 @@ const LESSONS = [
 const html = `
 <section id="logopedie" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Logopedie</h1></div>
-  <div class="hero"><div class="owl" id="lessOwl">🦉</div><div class="bubble" id="lessBubble">Vyber si lekci!</div></div>
+  <div class="hero"><div class="owl" id="lessOwl"></div><div class="bubble" id="lessBubble">Vyber si lekci!</div></div>
   <div class="lsec"><h3>📚 Lekce</h3><div class="lessons">
     ${LESSONS.map((l,i)=>`<button class="lesson" style="--c:var(--${l.c});--d:var(--${l.c}-d)" data-lesson="${l.screen}">
       <span class="ln">${i+1}</span><span class="le">${l.emo}</span><span class="lt"><b>${l.title}</b><small>${l.sub}</small></span></button>`).join('')}
@@ -156,7 +156,7 @@ const html = `
 
 <section id="logo" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Sykavky</h1></div>
-  <div class="hero"><div class="owl" id="logoOwl">🦉</div><div class="bubble" id="logoBubble">Budeme trénovat pusinku!</div></div>
+  <div class="hero"><div class="owl" id="logoOwl"></div><div class="bubble" id="logoBubble">Budeme trénovat pusinku!</div></div>
   <div class="lsec"><h3>😁 Úsměv</h3><div class="ltiles">
     ${['S','Z','C'].map(k=>`<button class="ltile smile" data-l="${k}"><span class="L">${k}</span><span class="A">${L[k].emo}</span></button>`).join('')}
   </div></div>
@@ -187,7 +187,7 @@ const html = `
   </div>
   <div class="lcard parent">
     <h4>👩 Pro rodiče: vlastní ukázka</h4>
-    <div class="ptext">Nesedí vám ukázka? Nahrajte, jak hlásku vyslovuje paní logopedka nebo vy. Sovička pak bude pouštět vaši nahrávku.</div>
+    <div class="ptext">Nesedí vám ukázka? Nahrajte, jak hlásku vyslovuje paní logopedka nebo vy. Ayra pak bude pouštět vaši nahrávku.</div>
     <div class="btnrow"><button class="pill" id="ownRec">🎙️ Nahrát ukázku</button><button class="pill" id="ownDel">↩️ Vrátit původní</button></div>
     <div class="ptext" id="ownState"></div>
   </div>
@@ -199,7 +199,7 @@ const html = `
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div>
     <div class="scount" id="lgStars">⭐ 0</div><button class="round-btn" id="lgSay" aria-label="Zopakovat">🔊</button></div>
   <div class="dots" id="lgDots"></div>
-  <div class="gtalk"><div class="owl">🦉</div><div class="bubble" id="lgBubble"></div></div>
+  <div class="gtalk"><div class="owl"></div><div class="bubble" id="lgBubble"></div></div>
   <div class="card"><div class="lpic" id="lgPic"></div><div class="reveal" id="lgWord"></div></div>
   <div class="answers" id="lgAns"></div>
 </section>

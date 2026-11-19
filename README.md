@@ -1,4 +1,4 @@
-# Leontýnčina škola 🦉
+# Leontýnčina škola 🐶
 
 Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čtení.
 
@@ -7,10 +7,10 @@ Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čte
 - 🍎 **Sčítání** a 🎈 **Odčítání** – s obrázky, které se dají spočítat
 - 🎲 **Všechno dohromady** – míchané příklady
 - přepínač **do 5 / do 10**
-- **schování obrázků** (🙈) – počítá se jen s čísly; když si neví rady, Sovička obrázky ukáže a spočítá je
-- Na obrazovce Sovička oslovuje **Leontýnku**; nahlas jméno neříká (hlas ho neumí vyslovit plynule).
-- Sovička vše **čte nahlas česky** (zadání, pochvalu i správné řešení)
-- klepnutím na skupinku obrázků je Sovička nahlas **spočítá**; po dvou chybách počítá sama a napoví
+- **schování obrázků** (🙈) – počítá se jen s čísly; když si neví rady, Ayra obrázky ukáže a spočítá je
+- Na obrazovce Ayra oslovuje **Leontýnku**; nahlas jméno neříká (hlas ho neumí vyslovit plynule).
+- Ayra vše **čte nahlas česky** (zadání, pochvalu i správné řešení)
+- klepnutím na skupinku obrázků je Ayra nahlas **spočítá**; po dvou chybách počítá sama a napoví
 - hvězdičky za správné odpovědi napoprvé a **sbírka nálepek** (nová za každých 10 ⭐)
 
 **Logopedie (C S Z / Č Š Ž)**
@@ -24,7 +24,7 @@ Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čte
 **Čtení (úkoly ze školy)**
 - slabiky s obrázky, tabulky slabik po dnech jako na papíru (klepnutím se slabika přečte)
 - úkoly rozdělené po dnech (dnešní den zvýrazněný, přečtený den ✅)
-- „Čti se Sovičkou“: aplikace označí slabiku a mikrofonem poslouchá; správně → další, špatně → zkusit znovu / nápověda, nepřečtené se vrací na konec; ✓ = ruční potvrzení
+- „Čti se Ayrou“: aplikace označí slabiku a mikrofonem poslouchá; správně → další, špatně → zkusit znovu / nápověda, nepřečtené se vrací na konec; ✓ = ruční potvrzení
 - hra „Najdi slabiku“
 - nový úkol se přidá do pole `R_LESSONS` v `read.js`
 
@@ -38,7 +38,7 @@ APK se sestaví po každé změně (kontrola), ale nová verze se vydá jen ruč
 ### Aktualizace
 Aplikace při každém spuštění sama zjistí, jestli je na GitHubu (Releases) novější verze, a nabídne ji stáhnout a nainstalovat. Poprvé Android požádá o povolení „Instalovat z tohoto zdroje“. Hvězdičky a nálepky zůstanou. Aplikace stahuje z veřejného repozitáře https://github.com/Ugga83/leontyncina-skola (Releases).
 
-### Když Sovička nemluví
+### Když Ayra nemluví
 Aplikace používá hlas zabudovaný v Androidu. Pokud chybí čeština:
 **Nastavení → Usnadnění (nebo Systém → Jazyky) → Převod textu na řeč** → modul Google → nainstalovat hlasová data **Čeština**.
 

@@ -47,7 +47,7 @@ const todayISO = ()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d
 document.getElementById('end').insertAdjacentHTML('beforebegin', `
 <section id="read" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Čtení</h1></div>
-  <div class="hero"><div class="owl" id="readOwl">🦉</div><div class="bubble" id="readBubble">Vyber si úkol!</div></div>
+  <div class="hero"><div class="owl" id="readOwl"></div><div class="bubble" id="readBubble">Vyber si úkol!</div></div>
   <div class="lsec"><h3>📚 Úkoly ze školy</h3><div class="lessons">
     ${R_LESSONS.map(l=>`<button class="lesson" style="--c:var(--${l.c});--d:var(--${l.c}-d)" data-rl="${l.id}">
       <span class="le">${l.emo}</span><span class="lt"><b>${l.title}</b><small>${l.sub}</small></span></button>`).join('')}
@@ -66,7 +66,7 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button>
     <button class="mictoggle" id="rrMode"></button><div style="flex:1"></div>
     <div class="scount" id="rrCount"></div></div>
-  <div class="gtalk"><div class="owl">🦉</div><div class="bubble" id="rrBubble"></div></div>
+  <div class="gtalk"><div class="owl"></div><div class="bubble" id="rrBubble"></div></div>
   <div class="card rrcard">
     <div class="rsyl" id="rrSyl"></div>
     <div class="mic" id="rrMic">🎤</div>
@@ -84,7 +84,7 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div>
     <div class="scount" id="rfStars">⭐ 0</div><button class="round-btn" id="rfSay" aria-label="Zopakovat">🔊</button></div>
   <div class="dots" id="rfDots"></div>
-  <div class="gtalk"><div class="owl">🦉</div><div class="bubble" id="rfBubble"></div></div>
+  <div class="gtalk"><div class="owl"></div><div class="bubble" id="rfBubble"></div></div>
   <div class="answers rfans" id="rfAns"></div>
   <div class="btns" style="padding-bottom:6px"><button class="bigbtn" style="--c:var(--orange);--d:var(--orange-d)" id="rfAgain">🔊 Znovu</button></div>
 </section>`);
