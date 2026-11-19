@@ -21,6 +21,11 @@ Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čte
 - rozcvička pusinky (úsměv–pusinka, jazýček výtah, koník…)
 - nic se nikam neodesílá; jde o pomůcku k domácímu cvičení, přednost mají pokyny logopedky
 
+**Čtení (úkoly ze školy)**
+- slabiky s obrázky, tabulky slabik po dnech jako na papíru (klepnutím se slabika přečte)
+- „Číst po jedné“ (čte sama, 👂 = nápověda) a hra „Najdi slabiku“
+- nový úkol se přidá do pole `R_LESSONS` v `read.js`
+
 ## Jak aplikaci dostat do telefonu
 1. Na GitHubu otevři v tomto repozitáři **Releases** (vpravo) a v telefonu stáhni nejnovější `leontyncina-skola.apk`.
 2. Otevři stažený soubor a povol instalaci z „neznámých zdrojů“ (telefon se zeptá).
