@@ -23,7 +23,9 @@ Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čte
 
 **Čtení (úkoly ze školy)**
 - slabiky s obrázky, tabulky slabik po dnech jako na papíru (klepnutím se slabika přečte)
-- „Číst po jedné“ (čte sama, 👂 = nápověda) a hra „Najdi slabiku“
+- úkoly rozdělené po dnech (dnešní den zvýrazněný, přečtený den ✅)
+- „Čti se Sovičkou“: aplikace označí slabiku a mikrofonem poslouchá; správně → další, špatně → zkusit znovu / nápověda, nepřečtené se vrací na konec; ✓ = ruční potvrzení
+- hra „Najdi slabiku“
 - nový úkol se přidá do pole `R_LESSONS` v `read.js`
 
 ## Jak aplikaci dostat do telefonu
@@ -31,7 +33,7 @@ Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čte
 2. Otevři stažený soubor a povol instalaci z „neznámých zdrojů“ (telefon se zeptá).
 3. Spusť aplikaci **Leontýnčina škola**.
 
-APK se sestaví automaticky (GitHub Actions) po každé změně v repozitáři.
+APK se sestaví po každé změně (kontrola), ale nová verze se vydá jen ručně: Actions → Sestavit APK → Run workflow, nebo commit se slovem [vydat].
 
 ### Aktualizace
 Aplikace při každém spuštění sama zjistí, jestli je na GitHubu (Releases) novější verze, a nabídne ji stáhnout a nainstalovat. Poprvé Android požádá o povolení „Instalovat z tohoto zdroje“. Hvězdičky a nálepky zůstanou. Aplikace stahuje z veřejného repozitáře https://github.com/Ugga83/leontyncina-skola (Releases).

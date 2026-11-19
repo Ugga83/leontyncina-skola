@@ -4,23 +4,24 @@
 const A = window.App; if (!A) return;
 const {speak, hush, sfx, confetti, pick} = A;
 const $ = s => document.querySelector(s);
+const native = window.AndroidTTS || null;
 
 // ---------- data: one lesson = one school worksheet. Add new ones at the top. ----------
 const R_LESSONS = [
   {id:'p1', title:'Slabiky s P', sub:'úkol 18.–22. 11.', emo:'🦜', c:'violet',
    pics:[['PA','pa','🦜','papoušek'],['PE','pe','👛','peněženka'],['PI','pi','🪚','pila'],['PO','po','👮','policista'],['PU','pu','🧩','puzzle']],
    days:[
-     {title:'Středa 18. 11.', cols:[
+     {title:'Středa', date:'18. 11.', dates:['2026-11-18'], cols:[
        ['Ma','Mi','Mo','Mu','Me','La','Li','Lu','Le','Lo'],
        ['Sa','Se','So','Su','Si','Pi','Po','Pi','Pu','Pa'],
        ['me','lo','su','pa','mi','lu','se','po','ma','pe']]},
-     {title:'Čtvrtek 19. 11.', pic:'🧦', cols:[
+     {title:'Čtvrtek', date:'19. 11.', dates:['2026-11-19'], pic:'🧦', cols:[
        ['me','le','se','pe','mi','li','si','pi'],
        ['ma','la','sa','pa','mu','lu','su','pu'],
        ['mo','lo','so','po'],
        ['ME','LA','SO','PI'],
        ['LI','PU','MO','PE']]},
-     {title:'Pátek 20. 11. – Neděle 22. 11.', cols:[
+     {title:'Pátek – Neděle', date:'20.–22. 11.', dates:['2026-11-20','2026-11-21','2026-11-22'], cols:[
        ['Po','Li','Ma','So','Pe','Lu','Mi','Sa','Pu','Lo'],
        ['me','si','po','la','mu','se','pi','le','mo','su'],
        ['PA','SE','MI','LA','PO','SI','LE','MU','PE','LO'],
@@ -33,10 +34,13 @@ const say = syl => syl.toLowerCase();
 const picSay = p => `${say(p[1])}. ${p[3]}.`;
 const R_PRAISE = ['Výborně!','Správně!','Super!','Paráda!'];
 const R_MSG = {
-  pick:'Vyber si úkol.', day:'Klepni na slabiku a uslyšíš ji.',
-  readHelp:'Přečti slabiku nahlas. Když si nevíš rady, klepni na ucho.',
-  findHelp:'Poslouchej a najdi slabiku.', again:'Zkus to znovu.', done:'Hotovo! Dnešní čtení máš za sebou.'
+  pick:'Vyber si úkol.', pickDay:'Vyber si den.', day:'Klepni na slabiku a uslyšíš ji.',
+  readStart:'Čti slabiky nahlas. Já poslouchám.', again:'Zkus to znovu.', listen:'Poslouchej.',
+  later:'Tuhle si přečteme později.', silent:'Neslyšela jsem tě. Řekni to nahlas.',
+  allDone:'Všechny slabiky máš přečtené!', noMic:'Mikrofon nefunguje. Čti nahlas a potvrď tlačítkem.',
+  findHelp:'Poslouchej a najdi slabiku.'
 };
+const todayISO = ()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 
 // ---------- screens ----------
 document.getElementById('end').insertAdjacentHTML('beforebegin', `
@@ -53,17 +57,30 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
 <section id="rlesson" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh" id="rlTitle"></h1></div>
   <div class="lcard"><h4>Slabiky s obrázky</h4><div class="rpics" id="rlPics"></div></div>
-  <div id="rlDays"></div>
+  <div class="lsec"><h3>📅 Dny</h3><div class="lessons" id="rlDays"></div></div>
+</section>
+
+<section id="rday" class="screen scroll">
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh" id="rdTitle"></h1></div>
+  <div class="btnrow" style="width:100%;max-width:820px;margin:0">
+    <button class="pill go" id="rdRead">🎤 Čti se Sovičkou</button><button class="pill" id="rdFind">👂 Najdi slabiku</button></div>
+  <div class="lcard"><h4 id="rdHint">Klepni na slabiku a uslyšíš ji</h4><div class="rgrid" id="rdGrid"></div></div>
 </section>
 
 <section id="rread" class="screen">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div>
     <div class="scount" id="rrCount"></div></div>
   <div class="gtalk"><div class="owl">🦉</div><div class="bubble" id="rrBubble"></div></div>
-  <div class="card"><div class="rsyl" id="rrSyl"></div></div>
+  <div class="card rrcard">
+    <div class="rsyl" id="rrSyl"></div>
+    <div class="mic" id="rrMic">🎤</div>
+    <div class="heard" id="rrHeard"></div>
+    <div class="rgrid mini" id="rrGrid"></div>
+  </div>
   <div class="btns" style="padding-bottom:6px">
-    <button class="bigbtn" style="--c:var(--orange);--d:var(--orange-d)" id="rrHelp">👂 Poslechnout</button>
-    <button class="bigbtn" style="--c:var(--teal);--d:var(--teal-d)" id="rrOk">✓ Přečetla jsem</button>
+    <button class="bigbtn" style="--c:var(--orange);--d:var(--orange-d)" id="rrHelp">👂 Nápověda</button>
+    <button class="bigbtn" style="--c:var(--violet);--d:var(--violet-d)" id="rrMicBtn">🎤 Znovu</button>
+    <button class="bigbtn small" style="--c:var(--teal);--d:var(--teal-d)" id="rrOk" title="Pro rodiče: potvrdit ručně">✓</button>
   </div>
 </section>
 
@@ -78,66 +95,185 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
 const lessonById = id => R_LESSONS.find(l=>l.id===id);
 let curL = null, curDay = null;
 const isOn = id => document.getElementById(id).classList.contains('active');
+const day = () => curL.days[curDay];
+const dayCells = d => d.cols.flatMap((c,ci)=>c.map((s,ri)=>({s, ci, ri})));
 
 document.querySelectorAll('[data-rl]').forEach(b=>b.addEventListener('click',()=>{ sfx.tap(); openLesson(b.dataset.rl); }));
 $('#readOwl').addEventListener('click',()=>{ $('#readBubble').textContent='Vyber si úkol!'; speak(R_MSG.pick); });
 document.querySelector('#hub [data-go="read"]').addEventListener('click',()=>setTimeout(()=>speak(R_MSG.pick),60));
 
+// ---------- lesson: pictures + list of days ----------
 function openLesson(id){
   curL = lessonById(id); A.go('rlesson');
   $('#rlTitle').textContent = curL.title;
   $('#rlPics').innerHTML = curL.pics.map((p,i)=>`<button class="rpic" data-i="${i}"><span class="e">${p[2]}</span><b>${p[0]}</b><span>${p[1]}</span></button>`).join('');
-  $('#rlDays').innerHTML = curL.days.map((d,i)=>`
-    <div class="lcard">
-      <h4>${d.title} ${d.pic||''}</h4>
-      <div class="rgrid">${d.cols.map(c=>`<div class="rcol">${c.map(s=>`<button class="rs">${s}</button>`).join('')}</div>`).join('')}</div>
-      <div class="btnrow"><button class="pill go" data-read="${i}">📖 Číst po jedné</button><button class="pill" data-find="${i}">👂 Najdi slabiku</button></div>
-    </div>`).join('');
-  speak(R_MSG.day);
+  const today = todayISO();
+  const done = A.store.get('rdone', {});
+  $('#rlDays').innerHTML = curL.days.map((d,i)=>{
+    const isToday = d.dates.includes(today), ok = done[curL.id+'_'+i];
+    return `<button class="lesson ${isToday?'today':''}" style="--c:var(--${isToday?'orange':'teal'});--d:var(--${isToday?'orange':'teal'}-d)" data-day="${i}">
+      <span class="le">${ok?'✅':(d.pic||'📖')}</span><span class="lt"><b>${d.title}</b><small>${d.date}${isToday?' · dnes':''}</small></span></button>`;
+  }).join('');
+  speak(R_MSG.pickDay);
 }
 $('#rlPics').addEventListener('click',e=>{ const b=e.target.closest('.rpic'); if(!b) return; sfx.tap(); speak(picSay(curL.pics[+b.dataset.i])); });
-$('#rlDays').addEventListener('click',e=>{
-  const s=e.target.closest('.rs'); if (s){ sfx.tap(); s.classList.remove('hit'); void s.offsetWidth; s.classList.add('hit'); speak(say(s.textContent)); return; }
-  const r=e.target.closest('[data-read]'); if (r){ sfx.tap(); startRead(+r.dataset.read); return; }
-  const f=e.target.closest('[data-find]'); if (f){ sfx.tap(); startFind(+f.dataset.find); }
-});
+$('#rlDays').addEventListener('click',e=>{ const b=e.target.closest('[data-day]'); if(!b) return; sfx.tap(); openDay(+b.dataset.day); });
 
-// ---------- read one by one ----------
-const RR = {list:[], idx:0, clean:0, helped:false, busy:false};
-function startRead(dayIdx){
-  curDay = dayIdx; RR.list = curL.days[dayIdx].cols.flat(); RR.idx = 0; RR.clean = 0;
-  A.go('rread'); showRead(true);
+// ---------- one day: table ----------
+function gridHTML(d, cls){ return d.cols.map((c,ci)=>`<div class="rcol">${c.map((s,ri)=>`<button class="rs ${cls||''}" data-c="${ci}" data-r="${ri}">${s}</button>`).join('')}</div>`).join(''); }
+function openDay(i){
+  curDay = i; A.go('rday');
+  const d = day();
+  $('#rdTitle').textContent = `${d.title} ${d.date}`;
+  $('#rdGrid').innerHTML = gridHTML(d);
+  speak(R_MSG.day);
 }
-function showRead(first){
-  RR.helped = false; RR.busy = false;
-  const el = $('#rrSyl'); el.textContent = RR.list[RR.idx];
-  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
-  $('#rrCount').textContent = `${RR.idx+1} / ${RR.list.length}`;
+$('#rdGrid').addEventListener('click',e=>{
+  const s=e.target.closest('.rs'); if (!s) return;
+  sfx.tap(); s.classList.remove('hit'); void s.offsetWidth; s.classList.add('hit'); speak(say(s.textContent));
+});
+$('#rdRead').addEventListener('click',()=>{ sfx.tap(); startRead(); });
+$('#rdFind').addEventListener('click',()=>{ sfx.tap(); startFind(); });
+
+// ---------- speech recognition ----------
+const STT_KIND = (native && native.listen) ? 'native' : ((window.SpeechRecognition||window.webkitSpeechRecognition) ? 'web' : null);
+let sttSeq = 0; const sttWait = {};
+window.__stt = (id, type, data)=>{
+  const w = sttWait[id]; if (!w) return;
+  if (type==='ready') return w.ready && w.ready();
+  if (type==='end') return;
+  delete sttWait[id];
+  w.done(type==='res' ? {ok:true, results:data||[]} : {ok:false, code:+data});
+};
+function sttAvailable(){
+  if (STT_KIND==='native'){ try{ return native.sttAvailable(); }catch(e){ return false; } }
+  return STT_KIND==='web';
+}
+let webRec = null;
+function listenOnce(onReady){
+  return new Promise(done=>{
+    const id = String(++sttSeq);
+    const t = setTimeout(()=>{ if (sttWait[id]){ delete sttWait[id]; stopListen(); done({ok:false, code:6}); } }, 12000);
+    sttWait[id] = {ready:onReady, done:r=>{ clearTimeout(t); done(r); }};
+    if (STT_KIND==='native'){ try{ native.listen(id); }catch(e){ window.__stt(id,'err',5); } return; }
+    try{
+      const R = new (window.SpeechRecognition||window.webkitSpeechRecognition)();
+      R.lang='cs-CZ'; R.maxAlternatives=10; R.interimResults=false;
+      let got=null;
+      R.onstart = ()=>window.__stt(id,'ready');
+      R.onresult = e=>{ got=[]; for (const alt of e.results[0]) got.push(alt.transcript); };
+      R.onerror = e=>window.__stt(id,'err', e.error==='not-allowed'?9:7);
+      R.onend = ()=>{ if (got) window.__stt(id,'res',got); else window.__stt(id,'err',7); };
+      R.start(); webRec = R;
+    }catch(e){ window.__stt(id,'err',5); }
+  });
+}
+function stopListen(){
+  Object.keys(sttWait).forEach(k=>delete sttWait[k]);
+  try{ if (STT_KIND==='native') native.stopListen(); else if (webRec) webRec.abort(); }catch(e){}
+}
+// lenient match: ignore case, accents (length marks), i/y; accept when a heard word starts with the syllable
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/y/g,'i').replace(/[^a-z ]/g,' ');
+function matches(target, results){
+  const t = norm(target).trim();
+  return results.some(r=>{
+    const words = norm(r).split(/\s+/).filter(Boolean);
+    const joined = words.join('');
+    return joined===t || joined.startsWith(t) || words.some(w=>w===t);
+  });
+}
+
+// ---------- read with the microphone ----------
+const RR = {queue:[], total:0, firstTry:0, silent:0, run:0, manual:false};
+function startRead(){
+  const cells = dayCells(day());
+  RR.queue = cells.map(c=>({...c, tries:0})); RR.total = cells.length; RR.firstTry = 0; RR.silent = 0; RR.manual = !sttAvailable();
+  A.go('rread');
+  $('#rrGrid').innerHTML = gridHTML(day(), 'mini');
+  $('#rrMicBtn').style.display = RR.manual ? 'none' : '';
+  showCur(); setMic('off');
+  speak(RR.manual ? R_MSG.noMic : R_MSG.readStart).then(()=>{ if (isOn('rread')) loop(); });
+}
+function cellEl(c){ return document.querySelector(`#rrGrid .rs[data-c="${c.ci}"][data-r="${c.ri}"]`); }
+function showCur(){
+  const c = RR.queue[0]; if (!c) return;
+  document.querySelectorAll('#rrGrid .rs').forEach(x=>x.classList.remove('cur'));
+  const el = cellEl(c); if (el){ el.classList.add('cur'); }
+  const big = $('#rrSyl'); big.textContent = c.s; big.classList.remove('pop','good'); void big.offsetWidth; big.classList.add('pop');
+  $('#rrCount').textContent = `✅ ${RR.total-RR.queue.length} / ${RR.total}`;
+  $('#rrHeard').textContent = '';
   $('#rrBubble').textContent = 'Přečti slabiku nahlas.';
-  if (first) speak(R_MSG.readHelp);
 }
-$('#rrHelp').addEventListener('click',()=>{ RR.helped = true; speak(say(RR.list[RR.idx])); });
-$('#rrOk').addEventListener('click', async ()=>{
-  if (RR.busy) return; RR.busy = true;
-  sfx.good(); if (!RR.helped) RR.clean++;
-  const s = RR.list[RR.idx];
-  $('#rrBubble').textContent = '👍 ' + s;
-  await speak(say(s));
-  if (!isOn('rread')){ RR.busy = false; return; }
-  RR.idx++;
-  if (RR.idx >= RR.list.length){
-    const stars = Math.max(1, Math.round(10 * RR.clean / RR.list.length));
-    return A.finishRound(stars, ()=>startRead(curDay), 'rlesson', 10);
+function setMic(state){ const m=$('#rrMic'); m.className='mic '+(state||''); m.textContent = state==='busy'?'⏳':'🎤'; }
+async function loop(){
+  const my = ++RR.run;
+  while (RR.queue.length && my===RR.run && isOn('rread')){
+    showCur();
+    const c = RR.queue[0];
+    if (RR.manual){ setMic('off'); return; }        // waits for the ✓ button
+    setMic('busy');
+    const r = await listenOnce(()=>{ if (my===RR.run) setMic('on'); });
+    if (my!==RR.run || !isOn('rread')) return;
+    setMic('off');
+    if (!r.ok){
+      if (r.code===9 || r.code===5){ RR.manual = true; $('#rrMicBtn').style.display='none'; await speak(R_MSG.noMic); continue; }
+      RR.silent++;
+      $('#rrBubble').textContent = 'Neslyšela jsem tě.';
+      if (RR.silent >= 2){ RR.silent = 0; await speak(R_MSG.silent); $('#rrBubble').textContent='Klepni na 🎤 Znovu a čti.'; return; }
+      continue;
+    }
+    RR.silent = 0;
+    if (matches(c.s, r.results)) await success(c);
+    else await miss(c, r.results);
   }
-  showRead();
+  if (my===RR.run && isOn('rread') && !RR.queue.length) finishRead();
+}
+async function success(c){
+  RR.queue.shift(); if (c.tries===0) RR.firstTry++;
+  sfx.good();
+  const el = cellEl(c); if (el){ el.classList.remove('cur','bad'); el.classList.add('done'); }
+  $('#rrSyl').classList.add('good');
+  const p = pick(R_PRAISE); $('#rrBubble').textContent = `${p} ${c.s}`;
+  $('#rrCount').textContent = `✅ ${RR.total-RR.queue.length} / ${RR.total}`;
+  if (Math.random()<.35) await speak(p); else await new Promise(r=>setTimeout(r,500));
+}
+async function miss(c, heard){
+  c.tries++; sfx.bad();
+  const el = cellEl(c); if (el) el.classList.add('bad');
+  $('#rrHeard').textContent = heard.length ? `slyšela jsem: ${heard[0]}` : '';
+  if (c.tries === 1){ $('#rrBubble').textContent='Zkus to znovu!'; await speak(R_MSG.again); }
+  else if (c.tries === 2){ $('#rrBubble').textContent='Poslouchej: '+c.s; await speak(R_MSG.listen); await speak(say(c.s), {queue:true}); }
+  else { RR.queue.push(RR.queue.shift()); c.tries = 2; $('#rrBubble').textContent='Vrátíme se k ní.'; await speak(R_MSG.later); }
+}
+function finishRead(){
+  const done = A.store.get('rdone', {}); done[curL.id+'_'+curDay] = true; A.store.set('rdone', done);
+  setMic('off');
+  speak(R_MSG.allDone).then(()=>{
+    if (!isOn('rread')) return;
+    const stars = Math.max(1, Math.round(10 * RR.firstTry / RR.total));
+    A.finishRound(stars, startRead, 'rday', 10);
+  });
+}
+$('#rrHelp').addEventListener('click',()=>{
+  const c=RR.queue[0]; if (!c) return; RR.run++; stopListen(); setMic('off'); c.tries=Math.max(c.tries,1);
+  speak(say(c.s)).then(()=>{ if (isOn('rread') && !RR.manual) loop(); });
+});
+$('#rrMicBtn').addEventListener('click',()=>{ sfx.tap(); RR.run++; stopListen(); hush(); loop(); });
+let okBusy = false;
+$('#rrOk').addEventListener('click', async ()=>{   // manual confirm (no microphone / parent)
+  const c = RR.queue[0]; if (!c || okBusy) return; okBusy = true;
+  RR.run++; stopListen(); setMic('off');
+  await success(c); okBusy = false;
+  if (!isOn('rread')) return;
+  if (!RR.queue.length) return finishRead();
+  if (RR.manual) showCur(); else loop();
 });
 
 // ---------- find the syllable (listen & pick) ----------
-const RF = {items:[], idx:0, stars:0, wrong:0, res:[], busy:false, opts:[]};
+const RF = {items:[], idx:0, stars:0, wrong:0, res:[], busy:false};
 let rfRun = 0;
-function startFind(dayIdx){
-  curDay = dayIdx;
-  const pool = [...new Set(curL.days[dayIdx].cols.flat())];
+function startFind(){
+  const pool = [...new Set(day().cols.flat())];
   RF.items = []; let last='';
   while (RF.items.length < 10){ const s = pick(pool); if (s.toLowerCase()===last) continue; RF.items.push(s); last=s.toLowerCase(); }
   RF.idx = 0; RF.stars = 0; RF.res = [];
@@ -146,10 +282,10 @@ function startFind(dayIdx){
 function findSay(s){ return `Najdi slabiku ${say(s)}.`; }
 function showFind(first){
   const s = RF.items[RF.idx]; RF.wrong = 0; RF.busy = false;
-  const pool = [...new Set(curL.days[curDay].cols.flat())].filter(x=>x.toLowerCase()!==s.toLowerCase());
+  const pool = [...new Set(day().cols.flat())].filter(x=>x.toLowerCase()!==s.toLowerCase());
   const opts = [s];
   while (opts.length < 4 && pool.length){ const x = pool.splice(Math.floor(Math.random()*pool.length),1)[0]; if (!opts.some(o=>o.toLowerCase()===x.toLowerCase())) opts.push(x); }
-  opts.sort(()=>Math.random()-.5); RF.opts = opts;
+  opts.sort(()=>Math.random()-.5);
   $('#rfDots').innerHTML = RF.items.map((_,i)=>`<div class="dot ${i===RF.idx?'cur':''} ${RF.res[i]===1?'gold':RF.res[i]===2?'ok':''}"></div>`).join('');
   $('#rfStars').textContent = '⭐ ' + RF.stars;
   $('#rfBubble').textContent = 'Kterou slabiku slyšíš?';
@@ -172,7 +308,7 @@ $('#rfAns').addEventListener('click', async e=>{
     await new Promise(r=>setTimeout(r,700));
     if (my!==rfRun || !isOn('rfind')) return;
     RF.idx++;
-    if (RF.idx >= RF.items.length) return A.finishRound(RF.stars, ()=>startFind(curDay), 'rlesson');
+    if (RF.idx >= RF.items.length) return A.finishRound(RF.stars, startFind, 'rday');
     showFind();
   } else {
     RF.wrong++; b.classList.add('wrong'); sfx.bad();
@@ -180,7 +316,10 @@ $('#rfAns').addEventListener('click', async e=>{
     speak(R_MSG.again); speak(findSay(s), {queue:true});
   }
 });
-A.onLeave(()=>{ rfRun++; });
+A.onLeave(()=>{ rfRun++; RR.run++; stopListen(); });
+
+// for automated tests
+window.__readTest = {matches};
 
 // ---------- every sentence this module can say (voice pre-recording) ----------
 A.phraseSources.push(()=>{

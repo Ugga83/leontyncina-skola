@@ -39,6 +39,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
     private String pendingId;
     private PermissionRequest pendingPerm;
     private Updater updater;
+    private Listener listener;
     private static final int REQ_MEDIA = 42;
 
     @Override
@@ -67,6 +68,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
 
         tts = new TextToSpeech(this, this);
 
+        listener = new Listener(this, web);
         updater = new Updater(this);
         web.postDelayed(() -> updater.check(false), 3000);
     }
@@ -126,6 +128,10 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode == Listener.REQ_MIC) {
+            listener.onPermission(results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED);
+            return;
+        }
         if (requestCode != REQ_MEDIA || pendingPerm == null) return;
         boolean ok = results.length > 0;
         for (int r : results) ok &= r == PackageManager.PERMISSION_GRANTED;
@@ -197,6 +203,22 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         }
 
         @JavascriptInterface
+        public boolean sttAvailable() {
+            return listener.available();
+        }
+
+        @JavascriptInterface
+        public void listen(String id) {
+            if (ttsStatus == 1) tts.stop();
+            runOnUiThread(() -> listener.listen(id));
+        }
+
+        @JavascriptInterface
+        public void stopListen() {
+            runOnUiThread(() -> listener.stop());
+        }
+
+        @JavascriptInterface
         public String appVersion() {
             return updater.localVersionName();
         }
@@ -235,6 +257,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
     protected void onPause() {
         super.onPause();
         if (tts != null && ttsStatus == 1) tts.stop();
+        if (listener != null) listener.stop();
         web.onPause();
     }
 
@@ -248,6 +271,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
     @Override
     protected void onDestroy() {
         if (tts != null) tts.shutdown();
+        if (listener != null) listener.destroy();
         web.destroy();
         super.onDestroy();
     }

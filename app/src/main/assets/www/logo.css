@@ -112,3 +112,17 @@
 .rsyl.pop{animation:pop .45s}
 .ans.rsylb{width:clamp(120px,40vw,180px);height:clamp(90px,24vw,120px);font-size:clamp(46px,13vw,64px)}
 .rfans{flex:1;align-content:center}
+.lesson.today{outline:4px solid #fff;outline-offset:-4px}
+.rrcard{justify-content:flex-start;gap:6px;padding-top:10px;overflow:hidden}
+.rrcard .rsyl{font-size:clamp(90px,28vw,160px)}
+.rsyl.good{color:var(--good)}
+.mic{font-size:34px;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:#eef1fb;transition:background .2s}
+.mic.on{background:#ffdede;animation:pulse 1s infinite;box-shadow:0 0 0 6px #ff6b6b33}
+.mic.busy{opacity:.6}
+.heard{min-height:1.3em;font-size:16px;font-weight:700;color:var(--ink-soft)}
+.rgrid.mini{width:100%;flex:1;min-height:0;overflow-y:auto;align-content:flex-start}
+.rgrid.mini .rs{font-size:clamp(15px,4.2vw,20px);padding:1px 0;pointer-events:none}
+.rs.cur{background:#fff1b8 !important;outline:3px solid var(--orange);transform:scale(1.08)}
+.rs.done{background:#d6f7df !important;color:#1f8a46}
+.rs.bad{color:var(--bad)}
+.bigbtn.small{padding:14px 18px}

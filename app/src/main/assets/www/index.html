@@ -403,22 +403,18 @@ function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.t
 function genTask(type, max){
   let a,b;
   if (type==='add'){
-    const zero = Math.random()<.12;
-    do{
-      a = rnd(zero?0:1, max-1); b = rnd(zero?0:1, max-a);
-    } while (a+b===0 || a+b>max);
+    // no zero anywhere (operands or result)
+    a = rnd(1, max-1); b = rnd(1, max-a);
     if (Math.random()<.5) [a,b]=[b,a];
     return {type,a,b,answer:a+b};
   }
   if (type==='sub'){
-    a = rnd(1,max);
-    b = Math.random()<.12 ? (Math.random()<.5?0:a) : rnd(1,Math.max(1,a-(a>1?1:0)));
-    if (b>a) b=a;
+    a = rnd(2,max); b = rnd(1,a-1);
     return {type,a,b,answer:a-b};
   }
   // cmp
-  a = rnd(Math.random()<.1?0:1, max);
-  if (Math.random()<.25) b = a; else { do { b = rnd(Math.random()<.1?0:1, max); } while (b===a); }
+  a = rnd(1, max);
+  if (Math.random()<.25) b = a; else { do { b = rnd(1, max); } while (b===a); }
   return {type,a,b,answer: a>b?'>':a<b?'<':'='};
 }
 function buildRound(mode){
@@ -491,7 +487,7 @@ function renderTask(queue){
     ans.innerHTML = [['<','menší'],['=','rovná se'],['>','větší']]
       .map(([s,l])=>`<button class="ans sign" data-v="${s}">${s==='<'?'&lt;':s==='>'?'&gt;':s}<small>${l}</small></button>`).join('');
   } else {
-    let h=''; for(let i=0;i<=S.max;i++) h+=`<button class="ans" data-v="${i}">${i}</button>`;
+    let h=''; for(let i=1;i<=S.max;i++) h+=`<button class="ans" data-v="${i}">${i}</button>`;
     ans.innerHTML = h;
   }
   // tap a group to count it aloud
@@ -707,9 +703,9 @@ const phraseSources = [()=>{
   PRAISE.forEach(p=>out.push(p, nameVariant(p)));
   for (let n=1;n<=10;n++) out.push(W(n));
   for (let n=0;n<=10;n++) out.push(starsSay(n,10), starsSay(n,0));
-  for (let a=0;a<=10;a++) for (let b=0;b<=10;b++){
-    if (a+b>=1 && a+b<=10){ const t={type:'add',a,b,answer:a+b}; out.push(prompt(t), solution(t)); }
-    if (a>=1 && b<=a){ const t={type:'sub',a,b,answer:a-b}; out.push(prompt(t), solution(t)); }
+  for (let a=1;a<=10;a++) for (let b=1;b<=10;b++){
+    if (a+b<=10){ const t={type:'add',a,b,answer:a+b}; out.push(prompt(t), solution(t)); }
+    if (b<a){ const t={type:'sub',a,b,answer:a-b}; out.push(prompt(t), solution(t)); }
     const t={type:'cmp',a,b,answer:a>b?'>':a<b?'<':'='}; out.push(prompt(t), solution(t));
   }
   return out;

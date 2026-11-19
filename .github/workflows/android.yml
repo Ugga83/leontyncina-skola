@@ -49,7 +49,9 @@ jobs:
           name: leontyncina-skola-apk
           path: out/leontyncina-skola.apk
 
+      # Vydává se jen ručně (Actions → Sestavit APK → Run workflow) nebo commitem se slovem [vydat]
       - name: Zveřejnit ke stažení (Releases)
+        if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[vydat]')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
