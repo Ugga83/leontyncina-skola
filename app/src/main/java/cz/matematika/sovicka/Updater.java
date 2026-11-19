@@ -86,8 +86,7 @@ class Updater {
                 }
                 final String url = apkUrl;
                 boolean newer = url != null && remote > localVersion();
-                boolean skipped = tag.equals(prefs().getString("skipTag", ""));
-                if (newer && (manual || !skipped)) {
+                if (newer) {
                     act.runOnUiThread(() -> ask(tag, url));
                 } else if (manual) {
                     toast("Máš nejnovější verzi (" + localVersionName() + ").");
@@ -116,7 +115,7 @@ class Updater {
                         + " je připravená. Chceš ji teď stáhnout a nainstalovat?\n\n"
                         + "Hvězdičky a nálepky zůstanou.")
                 .setPositiveButton("Aktualizovat", (d, w) -> download(url))
-                .setNegativeButton("Později", (d, w) -> prefs().edit().putString("skipTag", tag).apply())
+                .setNegativeButton("Později", null)
                 .show();
     }
 

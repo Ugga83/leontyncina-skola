@@ -29,7 +29,7 @@ Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čte
 APK se sestaví automaticky (GitHub Actions) po každé změně v repozitáři.
 
 ### Aktualizace
-Aplikace při spuštění sama zjistí, jestli je na GitHubu (Releases) novější verze, a nabídne ji stáhnout a nainstalovat. Ručně: úvodní obrazovka → **🔄 Aktualizace**. Poprvé Android požádá o povolení „Instalovat z tohoto zdroje“. Hvězdičky a nálepky zůstanou. Aplikace stahuje z veřejného repozitáře https://github.com/Ugga83/leontyncina-skola (Releases).
+Aplikace při každém spuštění sama zjistí, jestli je na GitHubu (Releases) novější verze, a nabídne ji stáhnout a nainstalovat. Poprvé Android požádá o povolení „Instalovat z tohoto zdroje“. Hvězdičky a nálepky zůstanou. Aplikace stahuje z veřejného repozitáře https://github.com/Ugga83/leontyncina-skola (Releases).
 
 ### Když Sovička nemluví
 Aplikace používá hlas zabudovaný v Androidu. Pokud chybí čeština:

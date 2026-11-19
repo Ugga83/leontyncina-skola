@@ -201,7 +201,6 @@ h1.subh{flex:1;font-size:clamp(26px,7vw,38px);text-align:left}
     </div>
     <div class="row" id="updRow" style="margin-top:10px;display:none">
       <span class="lbl">Verze <span id="appVer"></span></span>
-      <button class="pill" id="btnUpd" style="flex:0 0 auto;font-size:18px;padding:8px 14px">🔄 Aktualizace</button>
     </div>
   </div>
   <div class="panel">
@@ -699,7 +698,6 @@ $('#answers').addEventListener('click', e=>{ const b=e.target.closest('.ans'); i
 window.appBack = back;
 if (native && native.appVersion){
   try{ $('#appVer').textContent = native.appVersion(); $('#updRow').style.display='flex'; }catch(e){}
-  $('#btnUpd').addEventListener('click',()=>{ sfx.tap(); try{ native.checkUpdate(); }catch(e){} });
 }
 
 // shared API for the other modules (logo.js, later reading)
