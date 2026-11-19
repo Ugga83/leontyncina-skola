@@ -29,8 +29,12 @@ import java.net.URL;
  */
 class Updater {
 
-    private static final String LATEST =
-            "https://api.github.com/repos/Ugga83/Matematika-/releases/latest";
+    // The numeric repository id survives renaming the repository on GitHub;
+    // the name-based URL is only a fallback.
+    private static final String[] LATEST = {
+            "https://api.github.com/repositories/1464087746/releases/latest",
+            "https://api.github.com/repos/Ugga83/Matematika-/releases/latest",
+    };
 
     private final Activity act;
     private volatile boolean busy;
@@ -63,7 +67,12 @@ class Updater {
         busy = true;
         new Thread(() -> {
             try {
-                JSONObject rel = new JSONObject(httpGetString(LATEST));
+                JSONObject rel = null;
+                Exception last = null;
+                for (String u : LATEST) {
+                    try { rel = new JSONObject(httpGetString(u)); break; } catch (Exception e) { last = e; }
+                }
+                if (rel == null) throw last;
                 final String tag = rel.getString("tag_name");
                 long remote = parseBuild(tag);
                 String apkUrl = null;

@@ -147,9 +147,27 @@ function playModel(k){
 }
 
 // ---------- screens ----------
+// Lessons: add new ones here (screen = id of the lesson's screen)
+const LESSONS = [
+  {screen:'logo', emo:'🐍', title:'C S Z · Č Š Ž', sub:'sykavky: úsměv a čumáček', c:'teal'},
+];
 const html = `
-<section id="logo" class="screen scroll">
+<section id="logopedie" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Logopedie</h1></div>
+  <div class="hero"><div class="owl" id="lessOwl">🦉</div><div class="bubble" id="lessBubble">Vyber si lekci!</div></div>
+  <div class="lsec"><h3>📚 Lekce</h3><div class="lessons">
+    ${LESSONS.map((l,i)=>`<button class="lesson" style="--c:var(--${l.c});--d:var(--${l.c}-d)" data-lesson="${l.screen}">
+      <span class="ln">${i+1}</span><span class="le">${l.emo}</span><span class="lt"><b>${l.title}</b><small>${l.sub}</small></span></button>`).join('')}
+    <div class="lesson soon"><span class="le">✨</span><span class="lt"><b>Další lekce</b><small>brzy přibudou</small></span></div>
+  </div></div>
+  <div class="lsec"><h3>🤸 Na rozehřátí</h3><div class="gamebtns">
+    <button class="gbtn wide" style="--c:var(--orange);--d:var(--orange-d)" id="btnWarm">🤸 Rozcvička pusinky</button>
+  </div></div>
+  <div class="note"><b>Pro rodiče:</b> pomůcka k domácímu procvičování, nenahrazuje logopedku. Pokud paní logopedka učí jinou polohu jazyka nebo jiné obrázky, řiďte se jí. Cvičte krátce (5–10 minut), hlavně s chválou. Nejdřív zvuk samotný, pak slabiky, pak slova.</div>
+</section>
+
+<section id="logo" class="screen scroll">
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Sykavky</h1></div>
   <div class="hero"><div class="owl" id="logoOwl">🦉</div><div class="bubble" id="logoBubble">Budeme trénovat pusinku!</div></div>
   <div class="lsec"><h3>😁 Úsměv</h3><div class="ltiles">
     ${['S','Z','C'].map(k=>`<button class="ltile smile" data-l="${k}"><span class="L">${k}</span><span class="A">${L[k].emo}</span></button>`).join('')}
@@ -158,11 +176,9 @@ const html = `
     ${['Š','Ž','Č'].map(k=>`<button class="ltile round" data-l="${k}"><span class="L">${k}</span><span class="A">${L[k].emo}</span></button>`).join('')}
   </div></div>
   <div class="lsec"><h3>🎮 Hry</h3><div class="gamebtns">
-    <button class="gbtn wide" style="--c:var(--orange);--d:var(--orange-d)" id="btnWarm">🤸 Rozcvička pusinky</button>
     ${PAIRS.map(([a,b])=>`<button class="gbtn" style="--c:var(--violet);--d:var(--violet-d)" data-pair="${a}${b}">👂 ${a} nebo ${b}?</button>`).join('')}
     <button class="gbtn" style="--c:var(--violet);--d:var(--violet-d)" data-pair="mix">👂 Všechno</button>
   </div></div>
-  <div class="note"><b>Pro rodiče:</b> pomůcka k domácímu procvičování, nenahrazuje logopedku. Pokud paní logopedka učí jinou polohu jazyka nebo jiné obrázky, řiďte se jí. Cvičte krátce (5–10 minut), hlavně s chválou. Nejdřív zvuk samotný, pak slabiky, pak slova.</div>
 </section>
 
 <section id="sound" class="screen scroll">
@@ -205,6 +221,16 @@ const html = `
 const end = document.getElementById('end');
 end.insertAdjacentHTML('beforebegin', html);
 
+// ---------- lessons ----------
+document.querySelectorAll('[data-lesson]').forEach(b=>b.addEventListener('click',()=>{
+  sfx.tap(); A.go(b.dataset.lesson);
+  if (b.dataset.lesson==='logo') speak(`Lekce sykavky. Vyber si písmenko, ${VOC}.`);
+}));
+$('#lessOwl').addEventListener('click',()=>{
+  const t = pick([`Vyber si lekci, ${VOC}.`, 'Než začneme, můžeme si udělat rozcvičku pusinky.', 'Každý den kousek, a půjde to samo!']);
+  $('#lessBubble').textContent=t; speak(t);
+});
+
 // ---------- menu ----------
 document.querySelectorAll('.ltile').forEach(b=>b.addEventListener('click',()=>{ sfx.tap(); openSound(b.dataset.l); }));
 document.querySelectorAll('[data-pair]').forEach(b=>b.addEventListener('click',()=>{ sfx.tap(); startListen(b.dataset.pair); }));
@@ -212,12 +238,12 @@ $('#btnWarm').addEventListener('click',()=>{ sfx.tap(); startWarm(); });
 $('#logoOwl').addEventListener('click',()=>{
   const t = pick([`Vyber si písmenko, ${VOC}. Ukážu ti, kam dát jazýček.`,
     'U písmenek S, Z a C se usmíváme. U Š, Ž a Č děláme čumáček a prstík dáme pod bradu.',
-    `Než začneme, uděláme rozcvičku pusinky?`]);
+    'Když se ti nedaří, zkus nejdřív rozcvičku pusinky.']);
   $('#logoBubble').textContent=t; speak(t);
 });
 // greet on entering
-document.querySelector('#hub [data-go="logo"]').addEventListener('click',()=>{
-  setTimeout(()=>speak(`Ahoj ${VOC}! Vyber si písmenko, které budeme trénovat.`), 60);
+document.querySelector('#hub [data-go="logopedie"]').addEventListener('click',()=>{
+  setTimeout(()=>speak(`Ahoj ${VOC}! Vyber si lekci.`), 60);
 });
 
 // ---------- sound detail ----------
@@ -430,6 +456,6 @@ $('#wGo').addEventListener('click',()=>{ sfx.tap(); runWarm(); });
 $('#wNext').addEventListener('click',()=>{
   wRun++; sfx.tap();
   if (wIdx<WARM.length-1){ wIdx++; renderWarm(); }
-  else A.finishRound(3, startWarm, 'logo', 0);
+  else A.finishRound(3, startWarm, 'logopedie', 0);
 });
 })();

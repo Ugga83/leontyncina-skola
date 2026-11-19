@@ -17,6 +17,7 @@ Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čte
 - ke každé hlásce obrázek úst zepředu i z boku (kde je jazyk, kudy jde vzduch); u Č Š Ž podle logopedky špička jazyka dolů a prst pod bradou, na který jazyk míří, postup krok za krokem čtený nahlas a ukázka zvuku
 - 🪞 zrcátko (přední kamera vedle obrázku úst) a 🔴 nahrávání – Leontýnka si poslechne, jak to řekla
 - slabiky a slova s obrázky, poslechová hra „S nebo Š?“, „Z nebo Ž?“, „C nebo Č?“
+- logopedie je rozdělená do lekcí (zatím Lekce 1: sykavky); nová lekce se přidá do pole `LESSONS` v `logo.js`
 - rozcvička pusinky (úsměv–pusinka, jazýček výtah, koník…)
 - nic se nikam neodesílá; jde o pomůcku k domácímu cvičení, přednost mají pokyny logopedky
 
