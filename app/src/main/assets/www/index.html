@@ -85,6 +85,7 @@ h1.subh{flex:1;font-size:clamp(26px,7vw,38px);text-align:left}
 .stickers{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .stk{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:28px;background:#fff7d6;box-shadow:inset 0 -3px 0 #0000000f}
 .stk.lock{background:#eef0f6;filter:grayscale(1);opacity:.45;font-size:20px;color:#999}
+.endcard .score{font-size:18px;font-weight:800;color:var(--ink-soft);letter-spacing:0;margin-bottom:4px;word-break:normal}
 .stknext{display:flex;align-items:center;gap:10px;margin-top:8px;font-weight:800;font-size:15px;color:var(--ink-soft)}
 .stkbar{flex:1;height:14px;border-radius:8px;background:#eef0f6;overflow:hidden;box-shadow:inset 0 2px 0 #0000000d}
 .stkbar div{height:100%;background:linear-gradient(90deg,#ffd447,#ffad3b);border-radius:8px}
@@ -243,7 +244,7 @@ h1.subh{flex:1;font-size:clamp(26px,7vw,38px);text-align:left}
   <div class="top">
     <button class="round-btn" id="btnHome" aria-label="Domů">🏠</button>
     <div style="flex:1"></div>
-    <div class="scount" id="scount">⭐ 0</div>
+    <div class="scount" id="scount">✓ 0</div>
     <button class="round-btn" id="btnPics" aria-label="Obrázky">🍎</button>
     <button class="round-btn" id="btnSay" aria-label="Zopakovat">🔊</button>
   </div>
@@ -277,7 +278,9 @@ const WORDS = ['nula','jedna','dva','tři','čtyři','pět','šest','sedm','osm'
 const EMOJI = ['🍎','🍓','⭐','🐞','🐟','🎈','🌸','🐥','🍪','🦋','🍐','🐸','🧁','🚗'];
 const STICKERS = ['🐶','🐱','🐰','🐻','🐼','🐨','🦊','🐯','🦁','🐸','🐧','🐢','🐝','🦋','🐞','🐬','🐳','🦀','🐙','🦉','🦜','🦩','🐿️','🦔','🦒','🐘','🦓','🦖','🦄','🌈'];
 // every next sticker costs more stars: 10, 15, 20, 25 ... (all 30 = 2475 stars, a few months of practice)
-const stickerCost = i => 10 + 5*i;
+// a round gives 1–3 stars, at most DAY_CAP stars a day; stickers cost 5, 7, 9, 11 … (all 30 = 1020 stars ≈ 2–3 months)
+const stickerCost = i => 5 + 2*i;
+const DAY_CAP = 15;
 function stickerProgress(total){
   let got = 0, used = 0;
   while (got < STICKERS.length && total - used >= stickerCost(got)){ used += stickerCost(got); got++; }
@@ -476,7 +479,7 @@ function renderTask(queue){
   $('#dots').innerHTML = S.tasks.map((_,i)=>{
     const r=S.results[i]; return `<div class="dot ${i===S.idx?'cur':''} ${r===1?'gold':r===2?'ok':''}"></div>`;
   }).join('');
-  $('#scount').textContent = '⭐ '+S.stars;
+  $('#scount').textContent = '✓ '+S.stars;
   $('#gameBubble').textContent = bubbleText(t);
 
   if (t.type==='add'){
@@ -547,7 +550,7 @@ async function answer(btn){
     btn.classList.add('right');
     const slot=$('#slot'); slot.textContent = v; slot.classList.add('filled');
     sfx.good(); confetti(S.wrong===0?40:18);
-    if (S.wrong===0){ S.stars++; S.results[S.idx]=1; const sc=$('#scount'); sc.textContent='⭐ '+S.stars; sc.classList.remove('pop'); void sc.offsetWidth; sc.classList.add('pop'); }
+    if (S.wrong===0){ S.stars++; S.results[S.idx]=1; const sc=$('#scount'); sc.textContent='✓ '+S.stars; sc.classList.remove('pop'); void sc.offsetWidth; sc.classList.add('pop'); }
     else S.results[S.idx]=2;
     const p = withName(pick(PRAISE), .08);
     $('#gameBubble').textContent = p+' '+solutionShort(t);
@@ -596,22 +599,32 @@ function start(mode){
 const HINT_HIDDEN = 'Nevadí. Ukážu ti obrázky a spočítáme to spolu.', HINT_SHOWN = 'Nevadí. Spočítáme to spolu.';
 const END_TITLES = [`Úžasné, ${VOC}!`, 'Hurá, skvělá práce!', 'Dobrá práce!'];
 const NEW_STICKER = 'A máš novou nálepku do sbírky!';
+const DAY_DONE = 'Dnešní hvězdičky už máš všechny. Další budou zítra!';
 const starsSay = (n, of)=> `Získala jsi ${starsPhrase(n)}${of?' z deseti':''}.`;
 function finish(){ finishRound(S.stars, ()=>start(S.mode), 'home'); }
 let againFn = null;
-function finishRound(stars, again, backTo, of){
+const todayKey = ()=>{ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); };
+// score = correct answers out of 10 (or 0 for the warm-up) -> 1..3 round stars, limited per day
+function finishRound(score, again, backTo, of){
   if (of===undefined) of = 10;
-  S.stars = stars; againFn = again; S.endBack = backTo;
+  againFn = again; S.endBack = backTo;
+  const ratio = of ? score/of : 0, earned = !of ? 1 : ratio>=0.9 ? 3 : ratio>=0.6 ? 2 : 1;
+  if (store.get('dayKey','') !== todayKey()){ store.set('dayKey', todayKey()); store.set('dayStars', 0); }
+  const dayStars = store.get('dayStars', 0);
+  const add = Math.max(0, Math.min(earned, DAY_CAP - dayStars));
+  store.set('dayStars', dayStars + add);
+  S.stars = add;
   const before = stickerProgress(S.total).got;
-  S.total += S.stars; store.set('total', S.total);
+  S.total += add; store.set('total', S.total);
   const prog = stickerProgress(S.total), after = prog.got;
   show('end');
   sfx.win(); confetti(80);
-  const titles = S.stars>=9 ? END_TITLES[0] : S.stars>=6 ? END_TITLES[1] : END_TITLES[2];
+  const titles = earned===3 ? END_TITLES[0] : earned===2 ? END_TITLES[1] : END_TITLES[2];
   $('#endTitle').textContent = titles;
-  $('#endStars').textContent = S.stars ? '⭐'.repeat(S.stars) : '💪';
+  $('#endStars').innerHTML = (of ? `<div class="score">správně napoprvé ${score} z ${of}</div>` : '') +
+    (add ? '⭐'.repeat(add) : `<div class="score">Dnešní hvězdičky už máš všechny. Další budou zítra! 🌙</div>`);
   speak(titles);
-  speak(starsSay(S.stars, of), {queue:true});
+  if (add) speak(starsSay(add, 0), {queue:true}); else speak(DAY_DONE, {queue:true});
   if (after>before){
     const s = STICKERS[after-1];
     $('#newStk').innerHTML = `Nová nálepka do sbírky!<span>${s}</span>`;
@@ -707,7 +720,7 @@ window.appBack = back;
 
 // shared API for the other modules (logo.js, later reading)
 const phraseSources = [()=>{
-  const out = [GREETING, READ_SOON, 'Jdeme počítat!', 'Zvuk zapnutý.', 'Počítáme do pět.', 'Počítáme do deset.',
+  const out = [GREETING, READ_SOON, DAY_DONE, 'Jdeme počítat!', 'Zvuk zapnutý.', 'Počítáme do pět.', 'Počítáme do deset.',
     'To není ono. Zkus to znovu!', HINT_HIDDEN, HINT_SHOWN, NEW_STICKER,
     ...END_TITLES, ...HUB_OWL, ...HOME_OWL, ...PICS_SAY, ...Object.values(MODE_SAY)];
   PRAISE.forEach(p=>out.push(p, nameVariant(p)));
@@ -727,11 +740,11 @@ window.App = {speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishR
   onLeave:f=>leaveHooks.push(f)};
 
 // one-time migration from "a sticker every 10 stars": keep every sticker already earned
-if (!store.get('stkv2', 0)){
-  const oldGot = Math.min(Math.floor(S.total/10), 16), rem = S.total % 10;
-  let need = rem; for (let i=0;i<oldGot;i++) need += stickerCost(i);
-  if (need > S.total){ S.total = need; store.set('total', S.total); }
-  store.set('stkv2', 1);
+if (!store.get('stkv3', 0)){
+  const oldGot = Math.min(Math.floor(S.total/10), 16);
+  let need = 0; for (let i=0;i<oldGot;i++) need += stickerCost(i);
+  S.total = need; store.set('total', S.total);      // exactly the stickers she already had, new scale from here
+  store.set('stkv3', 1);
 }
 renderHome();
 // warn if the device has no Czech voice

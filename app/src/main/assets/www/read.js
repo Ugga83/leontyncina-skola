@@ -82,7 +82,7 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
 
 <section id="rfind" class="screen">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div>
-    <div class="scount" id="rfStars">⭐ 0</div><button class="round-btn" id="rfSay" aria-label="Zopakovat">🔊</button></div>
+    <div class="scount" id="rfStars">✓ 0</div><button class="round-btn" id="rfSay" aria-label="Zopakovat">🔊</button></div>
   <div class="dots" id="rfDots"></div>
   <div class="gtalk"><div class="owl"></div><div class="bubble" id="rfBubble"></div></div>
   <div class="answers rfans" id="rfAns"></div>
@@ -104,16 +104,19 @@ function openLesson(id){
   curL = lessonById(id); A.go('rlesson');
   $('#rlTitle').textContent = curL.title;
   $('#rlPics').innerHTML = curL.pics.map((p,i)=>`<button class="rpic" data-i="${i}"><span class="e">${p[2]}</span><b>${p[0]}</b><span>${p[1]}</span></button>`).join('');
+  renderDays();
+  speak(R_MSG.pickDay);
+}
+function renderDays(){
   const today = todayISO();
   const done = A.store.get('rdone', {});
   $('#rlDays').innerHTML = curL.days.map((d,i)=>{
     const isToday = d.dates.includes(today), ok = done[curL.id+'_'+i];
     const col = isToday?'orange':'teal';
     return `<div class="dayrow"><button class="lesson ${isToday?'today':''}" style="--c:var(--${col});--d:var(--${col}-d)" data-day="${i}">
-      <span class="le">${ok?'✅':(d.pic||'📖')}</span><span class="lt"><b>${d.title}</b><small>${d.date}${isToday?' · dnes':''} · čti</small></span></button>
+      <span class="le">${ok?'✅':(d.pic||'📖')}</span><span class="lt"><b>${d.title}</b><small>${d.date}${isToday?' · dnes':''} · ${A.store.get('rprog_'+curL.id+'_'+i,null)?'pokračuj':'čti'}</small></span></button>
       <button class="lesson game" style="--c:var(--violet);--d:var(--violet-d)" data-game="${i}" aria-label="Hra Najdi slabiku"><span class="le">🎮</span></button></div>`;
   }).join('');
-  speak(R_MSG.pickDay);
 }
 $('#rlPics').addEventListener('click',e=>{ const b=e.target.closest('.rpic'); if(!b) return; sfx.tap(); sayPic(curL.pics[+b.dataset.i]); });
 $('#rlDays').addEventListener('click',e=>{
@@ -197,12 +200,23 @@ function applyMode(){
   $('#rrOk').textContent = RR.manual ? '✓ Přečetla jsem' : '✓';
   $('#rrMic').style.visibility = RR.manual ? 'hidden' : '';
 }
-function startRead(){
+// progress of an unfinished day is kept, so leaving by accident does not start it over
+const progKey = ()=> 'rprog_'+curL.id+'_'+curDay;
+function saveProgress(){
+  const done = dayCells(day()).filter(c=>!RR.queue.some(q=>q.ci===c.ci && q.ri===c.ri)).map(c=>c.ci+'-'+c.ri);
+  A.store.set(progKey(), {done, firstTry: RR.firstTry});
+}
+function startRead(fresh){
   const cells = dayCells(day());
-  RR.queue = cells.map(c=>({...c, tries:0})); RR.total = cells.length; RR.firstTry = 0; RR.silent = 0;
+  const saved = fresh===true ? null : A.store.get(progKey(), null);
+  const doneSet = new Set(saved ? saved.done : []);
+  RR.queue = cells.filter(c=>!doneSet.has(c.ci+'-'+c.ri)).map(c=>({...c, tries:0}));
+  if (!RR.queue.length){ RR.queue = cells.map(c=>({...c, tries:0})); doneSet.clear(); }
+  RR.total = cells.length; RR.firstTry = saved && doneSet.size ? saved.firstTry : 0; RR.silent = 0;
   A.go('rread');
   if (STT_KIND==='native' && native.setHints){ try{ native.setHints(JSON.stringify([...new Set(cells.map(c=>c.s.toLowerCase()))])); }catch(e){} }
   $('#rrGrid').innerHTML = gridHTML(day(), 'mini');
+  doneSet.forEach(k=>{ const [ci,ri]=k.split('-'); const el=document.querySelector(`#rrGrid .rs[data-c="${ci}"][data-r="${ri}"]`); if (el) el.classList.add('done'); });
   applyMode();
   showCur(); setMic('off');
   speak(RR.manual ? R_MSG.readManual : R_MSG.readStart).then(()=>{ if (isOn('rread')) loop(); });
@@ -247,6 +261,7 @@ async function loop(){
 }
 async function success(c){
   RR.queue.shift(); if (c.tries===0) RR.firstTry++;
+  saveProgress();
   sfx.good();
   const el = cellEl(c); if (el){ el.classList.remove('cur','bad'); el.classList.add('done'); }
   $('#rrSyl').classList.add('good');
@@ -264,11 +279,11 @@ async function miss(c, heard){
 }
 function finishRead(){
   const done = A.store.get('rdone', {}); done[curL.id+'_'+curDay] = true; A.store.set('rdone', done);
+  try{ localStorage.removeItem('mat_'+progKey()); }catch(e){}
   setMic('off');
   speak(R_MSG.allDone).then(()=>{
     if (!isOn('rread')) return;
-    const stars = Math.max(1, Math.round(10 * RR.firstTry / RR.total));
-    A.finishRound(stars, startRead, 'rlesson', 10);
+    A.finishRound(RR.firstTry, ()=>startRead(true), 'rlesson', RR.total);
   });
 }
 $('#rrHelp').addEventListener('click',()=>{
@@ -310,7 +325,7 @@ function showFind(first){
   while (opts.length < 4 && pool.length){ const x = pool.splice(Math.floor(Math.random()*pool.length),1)[0]; if (!opts.some(o=>o.toLowerCase()===x.toLowerCase())) opts.push(x); }
   opts.sort(()=>Math.random()-.5);
   $('#rfDots').innerHTML = RF.items.map((_,i)=>`<div class="dot ${i===RF.idx?'cur':''} ${RF.res[i]===1?'gold':RF.res[i]===2?'ok':''}"></div>`).join('');
-  $('#rfStars').textContent = '⭐ ' + RF.stars;
+  $('#rfStars').textContent = '✓ ' + RF.stars;
   $('#rfBubble').textContent = 'Kterou slabiku slyšíš?';
   $('#rfAns').classList.remove('locked');
   $('#rfAns').innerHTML = opts.map(o=>`<button class="ans rsylb" data-v="${o}">${o}</button>`).join('');
@@ -326,7 +341,7 @@ $('#rfAns').addEventListener('click', async e=>{
     RF.busy = true; $('#rfAns').classList.add('locked'); b.classList.add('right');
     sfx.good(); confetti(RF.wrong?12:30);
     if (!RF.wrong){ RF.stars++; RF.res[RF.idx]=1; } else RF.res[RF.idx]=2;
-    $('#rfStars').textContent = '⭐ ' + RF.stars;
+    $('#rfStars').textContent = '✓ ' + RF.stars;
     const p = pick(R_PRAISE); $('#rfBubble').textContent = p + ' ' + s;
     speak(p); await speak(say(s), {queue:true});
     await new Promise(r=>setTimeout(r,700));
@@ -340,7 +355,7 @@ $('#rfAns').addEventListener('click', async e=>{
     speak(R_MSG.again); sayFind(s, true);
   }
 });
-A.onLeave(()=>{ rfRun++; RR.run++; stopListen(); });
+A.onLeave(id=>{ rfRun++; RR.run++; stopListen(); if (id==='rlesson' && curL) setTimeout(renderDays, 0); });
 
 // for automated tests
 window.__readTest = {matches};

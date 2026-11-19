@@ -197,7 +197,7 @@ const html = `
 
 <section id="lgame" class="screen">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div>
-    <div class="scount" id="lgStars">⭐ 0</div><button class="round-btn" id="lgSay" aria-label="Zopakovat">🔊</button></div>
+    <div class="scount" id="lgStars">✓ 0</div><button class="round-btn" id="lgSay" aria-label="Zopakovat">🔊</button></div>
   <div class="dots" id="lgDots"></div>
   <div class="gtalk"><div class="owl"></div><div class="bubble" id="lgBubble"></div></div>
   <div class="card"><div class="lpic" id="lgPic"></div><div class="reveal" id="lgWord"></div></div>
@@ -415,7 +415,7 @@ function lgPrompt(it){ const [a,b]=it.pr; return `Poslouchej: ${it.w}. Je tam ${
 function renderLG(first){
   const it = LG.items[LG.idx]; LG.wrong=0; LG.busy=false;
   $('#lgDots').innerHTML = LG.items.map((_,i)=>`<div class="dot ${i===LG.idx?'cur':''} ${LG.res[i]===1?'gold':LG.res[i]===2?'ok':''}"></div>`).join('');
-  $('#lgStars').textContent='⭐ '+LG.stars;
+  $('#lgStars').textContent='✓ '+LG.stars;
   $('#lgPic').textContent = it.e;
   $('#lgWord').innerHTML = '&nbsp;';
   const [a,b] = it.pr;
@@ -431,7 +431,7 @@ $('#lgAns').addEventListener('click', async e=>{
     LG.busy=true; $('#lgAns').classList.add('locked'); btn.classList.add('right');
     sfx.good(); confetti(LG.wrong?15:35);
     if (!LG.wrong){ LG.stars++; LG.res[LG.idx]=1; } else LG.res[LG.idx]=2;
-    $('#lgStars').textContent='⭐ '+LG.stars;
+    $('#lgStars').textContent='✓ '+LG.stars;
     $('#lgWord').innerHTML = mark(it.w, it.k);
     const praise = pick(LG_PRAISE);
     $('#lgBubble').textContent = `${praise} ${L[it.k].emo} ${it.k}`;
