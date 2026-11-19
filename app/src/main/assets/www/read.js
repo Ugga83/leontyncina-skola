@@ -73,7 +73,6 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
     <div class="rgrid mini" id="rrGrid"></div>
   </div>
   <div class="btns" style="padding-bottom:6px">
-    <button class="bigbtn" style="--c:var(--orange);--d:var(--orange-d)" id="rrHelp">👂 Nápověda</button>
     <button class="bigbtn" style="--c:var(--violet);--d:var(--violet-d)" id="rrMicBtn">🎤 Znovu</button>
     <button class="bigbtn small" style="--c:var(--teal);--d:var(--teal-d)" id="rrOk" title="Pro rodiče: potvrdit ručně">✓</button>
   </div>
@@ -285,10 +284,6 @@ function finishRead(){
     A.finishRound(RR.firstTry, ()=>startRead(true), 'rlesson', RR.total);
   });
 }
-$('#rrHelp').addEventListener('click',()=>{
-  const c=RR.queue[0]; if (!c) return; RR.run++; stopListen(); setMic('off'); c.tries=Math.max(c.tries,1);
-  speak(say(c.s)).then(()=>{ if (isOn('rread') && !RR.manual) loop(); });
-});
 $('#rrMode').addEventListener('click',()=>{
   sfx.tap(); micWanted = micWanted ? 0 : 1; A.store.set('rmic', micWanted);
   RR.run++; stopListen(); hush(); setMic('off'); applyMode();
