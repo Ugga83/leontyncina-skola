@@ -1,27 +1,18 @@
 #!/usr/bin/env python3
-"""Pre-records every sentence of the app with a Czech neural voice.
+"""Pre-records every sentence of the app with a Czech Google voice.
 
 Reads  app/src/main/assets/www/voice/phrases.json  (made by tools/collect_phrases.js)
 Writes app/src/main/assets/www/voice/<key>.mp3 and voice/index.js (list of available keys).
-Existing mp3 files are kept, so only new sentences are recorded.
-Usage: pip install edge-tts && python tools/gen_voice.py
+Existing mp3 files are kept, so only new sentences are recorded (stays well inside the free tier).
+Syllables come from voice/fixed/ (made by tools/google_syllables.py with an exact pronunciation).
+
+Usage:  GOOGLE_TTS_KEY=... python tools/gen_voice.py      (the key is never stored in the repo)
 """
-import asyncio, json, os, re, shutil, sys
+import base64, json, os, shutil, sys, time, urllib.error, urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
-import edge_tts
-
-VOICE = os.environ.get("VOICE", "cs-CZ-VlastaNeural")
-RATE = os.environ.get("RATE", "-8%")
-# The voice cannot say "Leontýnko" smoothly, so the name is left out of the audio
-# (the screen still shows it): "Ahoj Leontýnko!" -> "Ahoj!", "Leontýnko, ty jsi..." -> "Ty jsi..."
-NAME = "Leontýnko"
-
-
-def spoken_text(text):
-    t = re.sub(r"^" + NAME + r", (\w)", lambda m: m.group(1).upper(), text)
-    t = re.sub(r",? " + NAME + r"(?=[!.?,])", "", t)
-    return t
-
+VOICE = os.environ.get("VOICE", "cs-CZ-Chirp3-HD-Sulafat")
+KEY = os.environ["GOOGLE_TTS_KEY"]
 WWW = os.path.join(os.path.dirname(__file__), "..", "app", "src", "main", "assets", "www", "voice")
 
 
@@ -33,41 +24,49 @@ def fnv(text):
     return f"{h:08x}"
 
 
-async def record(sem, text, key, stats):
+def synth(text, out):
+    body = {"input": {"text": text}, "voice": {"languageCode": "cs-CZ", "name": VOICE},
+            "audioConfig": {"audioEncoding": "MP3", "sampleRateHertz": 24000}}
+    req = urllib.request.Request("https://texttospeech.googleapis.com/v1/text:synthesize",
+                                 data=json.dumps(body).encode(),
+                                 headers={"Content-Type": "application/json", "X-Goog-Api-Key": KEY})
+    data = json.load(urllib.request.urlopen(req, timeout=60))
+    with open(out, "wb") as f:
+        f.write(base64.b64decode(data["audioContent"]))
+
+
+def record(p):
+    text, key = p["t"], p["k"]
     path = os.path.join(WWW, key + ".mp3")
     fixed = os.path.join(WWW, "fixed", key + ".mp3")
-    if os.path.exists(fixed):  # hand-made recording (e.g. syllables the voice would spell out)
+    if os.path.exists(fixed):          # hand-made (syllables with exact pronunciation)
         shutil.copyfile(fixed, path)
-        return
+        return "fixed"
     if os.path.exists(path) and os.path.getsize(path) > 0:
-        return
-    async with sem:
-        for attempt in range(4):
-            try:
-                tmp = path + ".part"
-                spoken = spoken_text(text)
-                await edge_tts.Communicate(spoken, VOICE, rate=RATE).save(tmp)
-                if os.path.getsize(tmp) > 0:
-                    os.replace(tmp, path)
-                    stats["new"] += 1
-                    return
-            except Exception as e:  # network hiccup: retry
-                print("retry", key, e, file=sys.stderr)
-            await asyncio.sleep(2 + attempt * 3)
-        stats["fail"] += 1
+        return "kept"
+    for attempt in range(5):
+        try:
+            synth(text, path + ".part")
+            os.replace(path + ".part", path)
+            return "new"
+        except urllib.error.HTTPError as e:
+            print("retry", key, e.code, e.read()[:200], file=sys.stderr)
+        except Exception as e:  # network hiccup
+            print("retry", key, e, file=sys.stderr)
+        time.sleep(2 + attempt * 3)
+    return "fail"
 
 
-async def main():
+def main():
     phrases = json.load(open(os.path.join(WWW, "phrases.json"), encoding="utf-8"))
     for p in phrases:
         assert fnv(p["t"]) == p["k"], p
-    stats = {"new": 0, "fail": 0}
-    sem = asyncio.Semaphore(6)
-    await asyncio.gather(*(record(sem, p["t"], p["k"], stats) for p in phrases))
+    with ThreadPoolExecutor(4) as ex:
+        res = list(ex.map(record, phrases))
     keys = sorted(p["k"] for p in phrases if os.path.exists(os.path.join(WWW, p["k"] + ".mp3")))
     with open(os.path.join(WWW, "index.js"), "w") as f:
         f.write("window.VOICE_INDEX=" + json.dumps(keys) + ";\n")
-    print(f"{len(keys)}/{len(phrases)} sentences recorded ({stats['new']} new, {stats['fail']} failed)")
+    print({k: res.count(k) for k in set(res)}, f"{len(keys)}/{len(phrases)} available")
 
 
-asyncio.run(main())
+main()

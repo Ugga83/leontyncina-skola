@@ -20,23 +20,6 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Obnovit namluvené věty z mezipaměti
-        uses: actions/cache@v4
-        with:
-          path: app/src/main/assets/www/voice/*.mp3
-          key: voice-v3-${{ hashFiles('app/src/main/assets/www/voice/phrases.json') }}
-          restore-keys: voice-v3-
-
-      - name: Namluvit věty českým hlasem (Microsoft Vlasta)
-        continue-on-error: true
-        run: |
-          pip install --quiet edge-tts
-          python tools/gen_voice.py
-
       - name: Sestavit APK
         run: |
           chmod +x gradlew

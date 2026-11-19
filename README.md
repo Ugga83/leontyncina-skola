@@ -43,8 +43,9 @@ Aplikace používá hlas zabudovaný v Androidu. Pokud chybí čeština:
 **Nastavení → Usnadnění (nebo Systém → Jazyky) → Převod textu na řeč** → modul Google → nainstalovat hlasová data **Čeština**.
 
 ## Hlas
-Sovička mluví českým neuronovým hlasem Microsoft „Vlasta“. Všechny věty se namluví předem při sestavení na GitHubu (`tools/gen_voice.py`, knihovna edge-tts) a přibalí se do aplikace jako mp3. Slabiky jsou namluvené zvlášť hlasem Google Wavenet s předepsanou výslovností (`tools/google_syllables.py`, klíč z proměnné GOOGLE_TTS_KEY se do repozitáře neukládá). Když nějaká věta chybí, použije se hlas telefonu.
-Po změně textů spusť `node tools/collect_phrases.js` (aktualizuje `voice/phrases.json`).
+Věty mluví český hlas **Google Chirp 3 HD „Sulafat“**, slabiky hlas Google Wavenet s přesně předepsanou výslovností (IPA).
+Všechny zvuky jsou předem namluvené a uložené v aplikaci (`app/src/main/assets/www/voice/`), takže aplikace Google nevolá a nic se neplatí.
+Po změně textů: `node tools/collect_phrases.js`, pak `GOOGLE_TTS_KEY=... python tools/gen_voice.py` (namluví jen nové věty; slabiky `tools/google_syllables.py`). Klíč se do repozitáře neukládá.
 
 ## Pro vývoj
 - hra je v `app/src/main/assets/www/` (`index.html` = rozcestník a matematika, `logo.js`/`logo.css` = logopedie) (lze otevřít i v prohlížeči na počítači)

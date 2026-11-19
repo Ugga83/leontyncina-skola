@@ -135,3 +135,5 @@
 .mictoggle{border:0;font:inherit;font-weight:900;font-size:16px;border-radius:16px;padding:10px 12px;background:#ffdede;color:#b33;cursor:pointer;box-shadow:0 4px 0 #00000022}
 .mictoggle.off{background:#fff;color:var(--ink-soft)}
 .bigbtn:not(.small)#rrOk{font-size:22px}
+
+#sndL{cursor:pointer}

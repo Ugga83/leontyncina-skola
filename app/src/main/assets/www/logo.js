@@ -290,6 +290,7 @@ async function walkSteps(){
   speak('Zkus to taky! Můžeš se podívat do zrcátka.');
 }
 $('#sndShow').addEventListener('click',()=>{ sfx.tap(); walkSteps(); });
+$('#sndL').addEventListener('click',()=>{ showing++; hush(); playModel(cur); });
 $('#sndModel').addEventListener('click',()=>{ showing++; hush(); playModel(cur); });
 $('#sndPlay').addEventListener('click',()=>{ showing++; hush(); playModel(cur); });
 $('#sndSteps').addEventListener('click',e=>{
