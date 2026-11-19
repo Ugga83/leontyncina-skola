@@ -20,6 +20,18 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      # version number grows only with a release: last released version + 1 (other builds keep the last number)
+      - name: Číslo verze
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IS_RELEASE: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[vydat]') }}
+        run: |
+          LAST=$(curl -s -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/latest" \
+            | python3 -c "import json,sys; t=json.load(sys.stdin).get('tag_name') or 'v1.0.0'; print(int(t.split('.')[-1]))")
+          if [ "$IS_RELEASE" = "true" ]; then N=$((LAST+1)); else N=$LAST; fi
+          echo "APP_BUILD=$N" >> "$GITHUB_ENV"
+          echo "Verze 1.0.$N (vydání: $IS_RELEASE)"
+
       - name: Sestavit APK
         env:
           SPEECH_API_KEY: ${{ secrets.SPEECH_API_KEY }}
@@ -39,8 +51,8 @@ jobs:
         if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[vydat]')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: Leontýnčina škola 1.0.${{ github.run_number }}
+          tag_name: v1.0.${{ env.APP_BUILD }}
+          name: Leontýnčina škola 1.0.${{ env.APP_BUILD }}
           target_commitish: ${{ github.sha }}
           body: |
             Stáhni soubor **leontyncina-skola.apk** přímo v telefonu a nainstaluj ho.

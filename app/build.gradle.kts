@@ -10,8 +10,10 @@ android {
         applicationId = "cz.matematika.sovicka"
         minSdk = 26
         targetSdk = 35
-        versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
-        versionName = "1.0." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
+        // APP_BUILD = release number (set by the workflow, grows only when a version is released)
+        val build = System.getenv("APP_BUILD") ?: System.getenv("GITHUB_RUN_NUMBER") ?: "1"
+        versionCode = build.toInt()
+        versionName = "1.0.$build"
         // Google Cloud Speech-to-Text key for reading practice (GitHub secret SPEECH_API_KEY; empty = on-device recognizer)
         buildConfigField("String", "SPEECH_KEY", "\"" + (System.getenv("SPEECH_API_KEY") ?: "") + "\"")
     }
