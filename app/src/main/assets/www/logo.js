@@ -152,7 +152,7 @@ const html = `
   <div class="lsec"><h3>🤸 Na rozehřátí</h3><div class="gamebtns">
     <button class="gbtn wide" style="--c:var(--orange);--d:var(--orange-d)" id="btnWarm">🤸 Rozcvička pusinky</button>
   </div></div>
-  <div class="note"><b>Pro rodiče:</b> pomůcka k domácímu procvičování, nenahrazuje logopedku. Pokud paní logopedka učí jinou polohu jazyka nebo jiné obrázky, řiďte se jí. Cvičte krátce (5–10 minut), hlavně s chválou. Nejdřív zvuk samotný, pak slabiky, pak slova.<br><small>Zvukové ukázky hlásek: Peter Isotalo, Wikimedia Commons, licence CC BY-SA 3.0.</small></div>
+  <div class="note"><b>Pro rodiče:</b> pomůcka k domácímu procvičování, nenahrazuje logopedku. Pokud paní logopedka učí jinou polohu jazyka nebo jiné obrázky, řiďte se jí. Cvičte krátce (5–10 minut), hlavně s chválou. Nejdřív zvuk samotný, pak slabiky, pak slova.<br><small>Zvukové ukázky hlásek: Wikimedia Commons (Peter Isotalo a další), licence CC BY-SA 3.0.</small></div>
 </section>
 
 <section id="logo" class="screen scroll">

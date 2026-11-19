@@ -20,6 +20,28 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Stáhnout nahrávky hlásek (Wikimedia Commons, CC BY-SA 3.0)
+        continue-on-error: true
+        run: |
+          D=app/src/main/assets/www/sounds
+          mkdir -p $D
+          get() {
+            [ -f "$D/$1" ] && head -c 4 "$D/$1" | grep -q OggS && return 0
+            for i in 1 2 3; do
+              curl -sSL -A "SchoolApp-build/1.0 (children's educational app)" -o "$D/$1" "$2" || true
+              head -c 4 "$D/$1" | grep -q OggS && { echo "OK $1"; return 0; }
+              rm -f "$D/$1"; sleep 20
+            done
+            echo "::warning::Nahrávku $1 se nepodařilo stáhnout"
+          }
+          get s.ogg  https://upload.wikimedia.org/wikipedia/commons/a/ac/Voiceless_alveolar_sibilant.ogg
+          get z.ogg  https://upload.wikimedia.org/wikipedia/commons/c/c0/Voiced_alveolar_sibilant.ogg
+          get c.ogg  https://upload.wikimedia.org/wikipedia/commons/9/9d/Voiceless_alveolar_sibilant_affricate.oga
+          get sh.ogg https://upload.wikimedia.org/wikipedia/commons/c/cc/Voiceless_palato-alveolar_sibilant.ogg
+          get zh.ogg https://upload.wikimedia.org/wikipedia/commons/3/30/Voiced_palato-alveolar_sibilant.ogg
+          get ch.ogg https://upload.wikimedia.org/wikipedia/commons/9/97/Voiceless_palato-alveolar_affricate.ogg
+          ls -la $D
+
       - name: Sestavit APK
         run: |
           chmod +x gradlew

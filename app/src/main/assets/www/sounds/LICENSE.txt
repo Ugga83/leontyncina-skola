@@ -1,0 +1,10 @@
+Zvukové ukázky hlásek (s.ogg, z.ogg, c.ogg, sh.ogg, zh.ogg, ch.ogg)
+Zdroj: Wikimedia Commons, IPA nahrávky (Peter Isotalo a další autoři)
+Licence: CC BY-SA 3.0 – https://creativecommons.org/licenses/by-sa/3.0/
+  s.ogg  – File:Voiceless alveolar sibilant.ogg
+  z.ogg  – File:Voiced alveolar sibilant.ogg
+  c.ogg  – File:Voiceless alveolar sibilant affricate.oga
+  sh.ogg – File:Voiceless palato-alveolar sibilant.ogg
+  zh.ogg – File:Voiced palato-alveolar sibilant.ogg
+  ch.ogg – File:Voiceless palato-alveolar affricate.ogg
+Pokud se soubor nestáhne, aplikace místo něj přečte slabiky hlasem telefonu.
