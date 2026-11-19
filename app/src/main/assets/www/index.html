@@ -277,16 +277,29 @@ const ROUND = 10;
 const WORDS = ['nula','jedna','dva','tři','čtyři','pět','šest','sedm','osm','devět','deset'];
 const EMOJI = ['🍎','🍓','⭐','🐞','🐟','🎈','🌸','🐥','🍪','🦋','🍐','🐸','🧁','🚗'];
 const STICKERS = ['🐶','🐱','🐰','🐻','🐼','🐨','🦊','🐯','🦁','🐸','🐧','🐢','🐝','🦋','🐞','🐬','🐳','🦀','🐙','🦉','🦜','🦩','🐿️','🦔','🦒','🐘','🦓','🦖','🦄','🌈'];
-// every next sticker costs more stars: 10, 15, 20, 25 ... (all 30 = 2475 stars, a few months of practice)
-// a round gives 1–3 stars, at most DAY_CAP stars a day; stickers cost 5, 7, 9, 11 … (all 30 = 1020 stars ≈ 2–3 months)
-const stickerCost = i => 5 + 2*i;
-const DAY_CAP = 15;
-function stickerProgress(total){
-  let got = 0, used = 0;
-  while (got < STICKERS.length && total - used >= stickerCost(got)){ used += stickerCost(got); got++; }
-  const need = got < STICKERS.length ? stickerCost(got) - (total - used) : 0;
-  const cost = got < STICKERS.length ? stickerCost(got) : 1;
-  return {got, need, cost, have: cost - need};
+// Sticker pacing: a round gives 1–3 stars, no daily limit. The price of each next sticker is set so that the
+// whole collection lasts until the end of June: price = (her average stars per day) × (days left) ÷ (stickers left),
+// kept between 5 and 80. Plays a lot -> stickers get dearer, plays little -> cheaper.
+const DAY_MS = 86400000;
+const dayNo = d => Math.floor((d||new Date()).getTime()/DAY_MS - new Date().getTimezoneOffset()/1440);
+function seasonEnd(){ const n=new Date(); let y=n.getFullYear(); if (n.getMonth()>5) y++; return new Date(y,5,30); }
+function nextStickerCost(){
+  const st = store.get('stk', null), left = STICKERS.length - st.got;
+  if (left <= 0) return 1;
+  const days = Math.max(1, dayNo() - st.first + 1);
+  const avg = (st.earned + 6*7) / (days + 7);            // average stars/day, starting from a guess of 6/day
+  const daysLeft = Math.max(0, dayNo(seasonEnd()) - dayNo());
+  return Math.max(5, Math.min(80, Math.round(avg * daysLeft / left)));
+}
+function addStars(n){                                     // returns the stickers newly earned
+  const st = store.get('stk'); const won = [];
+  st.earned += n; st.have += n;
+  while (st.got < STICKERS.length && st.have >= st.cost){
+    st.have -= st.cost; st.got++; won.push(STICKERS[st.got-1]);
+    store.set('stk', st); st.cost = nextStickerCost();
+  }
+  store.set('stk', st);
+  return won;
 }
 
 const PRAISE = ['Výborně!','Super!','Správně!','Skvělé!','Jsi šikulka!','Paráda!','Bezva!','Jsi jednička!'];
@@ -599,38 +612,31 @@ function start(mode){
 const HINT_HIDDEN = 'Nevadí. Ukážu ti obrázky a spočítáme to spolu.', HINT_SHOWN = 'Nevadí. Spočítáme to spolu.';
 const END_TITLES = [`Úžasné, ${VOC}!`, 'Hurá, skvělá práce!', 'Dobrá práce!'];
 const NEW_STICKER = 'A máš novou nálepku do sbírky!';
-const DAY_DONE = 'Dnešní hvězdičky už máš všechny. Další budou zítra!';
 const starsSay = (n, of)=> `Získala jsi ${starsPhrase(n)}${of?' z deseti':''}.`;
 function finish(){ finishRound(S.stars, ()=>start(S.mode), 'home'); }
 let againFn = null;
-const todayKey = ()=>{ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); };
-// score = correct answers out of 10 (or 0 for the warm-up) -> 1..3 round stars, limited per day
+// score = correct answers out of `of` (of=0: warm-up) -> 1..3 round stars
 function finishRound(score, again, backTo, of){
   if (of===undefined) of = 10;
   againFn = again; S.endBack = backTo;
   const ratio = of ? score/of : 0, earned = !of ? 1 : ratio>=0.9 ? 3 : ratio>=0.6 ? 2 : 1;
-  if (store.get('dayKey','') !== todayKey()){ store.set('dayKey', todayKey()); store.set('dayStars', 0); }
-  const dayStars = store.get('dayStars', 0);
-  const add = Math.max(0, Math.min(earned, DAY_CAP - dayStars));
-  store.set('dayStars', dayStars + add);
+  const add = earned;
   S.stars = add;
-  const before = stickerProgress(S.total).got;
   S.total += add; store.set('total', S.total);
-  const prog = stickerProgress(S.total), after = prog.got;
+  const won = addStars(add), st = store.get('stk');
   show('end');
   sfx.win(); confetti(80);
   const titles = earned===3 ? END_TITLES[0] : earned===2 ? END_TITLES[1] : END_TITLES[2];
   $('#endTitle').textContent = titles;
   $('#endStars').innerHTML = (of ? `<div class="score">správně napoprvé ${score} z ${of}</div>` : '') +
-    (add ? '⭐'.repeat(add) : `<div class="score">Dnešní hvězdičky už máš všechny. Další budou zítra! 🌙</div>`);
+    '⭐'.repeat(add);
   speak(titles);
-  if (add) speak(starsSay(add, 0), {queue:true}); else speak(DAY_DONE, {queue:true});
-  if (after>before){
-    const s = STICKERS[after-1];
-    $('#newStk').innerHTML = `Nová nálepka do sbírky!<span>${s}</span>`;
+  speak(starsSay(add, 0), {queue:true});
+  if (won.length){
+    $('#newStk').innerHTML = `Nová nálepka do sbírky!<span>${won.join(' ')}</span>`;
     speak(NEW_STICKER, {queue:true});
   } else {
-    $('#newStk').textContent = after<STICKERS.length ? `Do další nálepky chybí ${prog.need} ⭐` : 'Máš všechny nálepky! 🎉';
+    $('#newStk').textContent = st.got<STICKERS.length ? `Do další nálepky chybí ${st.cost-st.have} ⭐` : 'Máš všechny nálepky! 🎉';
   }
 }
 
@@ -652,10 +658,10 @@ function renderHome(){
   document.querySelectorAll('#soundSeg button').forEach(b=>b.classList.toggle('on', +b.dataset.snd===S.sound));
   document.querySelectorAll('#picsSeg button').forEach(b=>b.classList.toggle('on', +b.dataset.pics===S.pics));
   $('#starSum').textContent = '⭐ '+S.total;
-  const pr = stickerProgress(S.total), got = pr.got;
+  const st = store.get('stk', {got:0,have:0,cost:5}), got = st.got;
   $('#stickers').innerHTML = STICKERS.map((s,i)=> i<got?`<div class="stk">${s}</div>`:`<div class="stk lock">?</div>`).join('');
   $('#stkNext').innerHTML = got < STICKERS.length
-    ? `<div class="stkbar"><div style="width:${Math.round(100*pr.have/pr.cost)}%"></div></div><span>Další nálepka: ${pr.have} / ${pr.cost} ⭐</span>`
+    ? `<div class="stkbar"><div style="width:${Math.round(100*Math.min(1,st.have/st.cost))}%"></div></div><span>Další nálepka: ${st.have} / ${st.cost} ⭐</span>`
     : '<span>Máš celou sbírku! 🎉</span>';
 }
 function goHome(){ go('home'); }
@@ -720,7 +726,7 @@ window.appBack = back;
 
 // shared API for the other modules (logo.js, later reading)
 const phraseSources = [()=>{
-  const out = [GREETING, READ_SOON, DAY_DONE, 'Jdeme počítat!', 'Zvuk zapnutý.', 'Počítáme do pět.', 'Počítáme do deset.',
+  const out = [GREETING, READ_SOON, 'Jdeme počítat!', 'Zvuk zapnutý.', 'Počítáme do pět.', 'Počítáme do deset.',
     'To není ono. Zkus to znovu!', HINT_HIDDEN, HINT_SHOWN, NEW_STICKER,
     ...END_TITLES, ...HUB_OWL, ...HOME_OWL, ...PICS_SAY, ...Object.values(MODE_SAY)];
   PRAISE.forEach(p=>out.push(p, nameVariant(p)));
@@ -739,12 +745,11 @@ window.__vkey = vkey;
 window.App = {speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, leaveHooks, phraseSources,
   onLeave:f=>leaveHooks.push(f)};
 
-// one-time migration from "a sticker every 10 stars": keep every sticker already earned
-if (!store.get('stkv3', 0)){
-  const oldGot = Math.min(Math.floor(S.total/10), 16);
-  let need = 0; for (let i=0;i<oldGot;i++) need += stickerCost(i);
-  S.total = need; store.set('total', S.total);      // exactly the stickers she already had, new scale from here
-  store.set('stkv3', 1);
+// sticker state {got, have, cost, earned, first}; first run: keep every sticker already earned (old rule: one per 10 stars)
+if (!store.get('stk', null)){
+  const got = Math.min(Math.floor(S.total/10), STICKERS.length);
+  store.set('stk', {got, have: 0, cost: 5, earned: 0, first: dayNo()});
+  const st = store.get('stk'); st.cost = nextStickerCost(); store.set('stk', st);
 }
 renderHome();
 // warn if the device has no Czech voice
