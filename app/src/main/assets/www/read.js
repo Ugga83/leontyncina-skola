@@ -35,8 +35,8 @@ const picWord = p => `${p[3]}.`;
 const sayPic = p => { speak(say(p[1])); return speak(picWord(p), {queue:true}); };
 const R_PRAISE = ['Výborně!','Správně!','Super!','Paráda!'];
 const R_MSG = {
-  pick:'Vyber si úkol.', pickDay:'Vyber si den.', day:'Klepni na slabiku a uslyšíš ji.',
-  readStart:'Čti slabiky nahlas. Já poslouchám.', again:'Zkus to znovu.', listen:'Poslouchej.',
+  pick:'Vyber si úkol.', pickDay:'Vyber si den.',
+  readStart:'Čti slabiky nahlas. Já poslouchám.', readManual:'Čti slabiky nahlas. Po každé klepni na fajfku.', again:'Zkus to znovu.', listen:'Poslouchej.',
   later:'Tuhle si přečteme později.', silent:'Neslyšela jsem tě. Řekni to nahlas.',
   allDone:'Všechny slabiky máš přečtené!', noMic:'Mikrofon nefunguje. Čti nahlas a potvrď tlačítkem.',
   findHelp:'Poslouchej a najdi slabiku.', find:'Najdi slabiku.'
@@ -61,15 +61,10 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
   <div class="lsec"><h3>📅 Dny</h3><div class="lessons" id="rlDays"></div></div>
 </section>
 
-<section id="rday" class="screen scroll">
-  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh" id="rdTitle"></h1></div>
-  <div class="btnrow" style="width:100%;max-width:820px;margin:0">
-    <button class="pill go" id="rdRead">🎤 Čti se Sovičkou</button><button class="pill" id="rdFind">👂 Najdi slabiku</button></div>
-  <div class="lcard"><h4 id="rdHint">Klepni na slabiku a uslyšíš ji</h4><div class="rgrid" id="rdGrid"></div></div>
-</section>
 
 <section id="rread" class="screen">
-  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div>
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button>
+    <button class="mictoggle" id="rrMode"></button><div style="flex:1"></div>
     <div class="scount" id="rrCount"></div></div>
   <div class="gtalk"><div class="owl">🦉</div><div class="bubble" id="rrBubble"></div></div>
   <div class="card rrcard">
@@ -112,29 +107,21 @@ function openLesson(id){
   const done = A.store.get('rdone', {});
   $('#rlDays').innerHTML = curL.days.map((d,i)=>{
     const isToday = d.dates.includes(today), ok = done[curL.id+'_'+i];
-    return `<button class="lesson ${isToday?'today':''}" style="--c:var(--${isToday?'orange':'teal'});--d:var(--${isToday?'orange':'teal'}-d)" data-day="${i}">
-      <span class="le">${ok?'✅':(d.pic||'📖')}</span><span class="lt"><b>${d.title}</b><small>${d.date}${isToday?' · dnes':''}</small></span></button>`;
+    const col = isToday?'orange':'teal';
+    return `<div class="dayrow"><button class="lesson ${isToday?'today':''}" style="--c:var(--${col});--d:var(--${col}-d)" data-day="${i}">
+      <span class="le">${ok?'✅':(d.pic||'📖')}</span><span class="lt"><b>${d.title}</b><small>${d.date}${isToday?' · dnes':''} · čti</small></span></button>
+      <button class="lesson game" style="--c:var(--violet);--d:var(--violet-d)" data-game="${i}" aria-label="Hra Najdi slabiku"><span class="le">🎮</span></button></div>`;
   }).join('');
   speak(R_MSG.pickDay);
 }
 $('#rlPics').addEventListener('click',e=>{ const b=e.target.closest('.rpic'); if(!b) return; sfx.tap(); sayPic(curL.pics[+b.dataset.i]); });
-$('#rlDays').addEventListener('click',e=>{ const b=e.target.closest('[data-day]'); if(!b) return; sfx.tap(); openDay(+b.dataset.day); });
-
-// ---------- one day: table ----------
-function gridHTML(d, cls){ return d.cols.map((c,ci)=>`<div class="rcol">${c.map((s,ri)=>`<button class="rs ${cls||''}" data-c="${ci}" data-r="${ri}">${s}</button>`).join('')}</div>`).join(''); }
-function openDay(i){
-  curDay = i; A.go('rday');
-  const d = day();
-  $('#rdTitle').textContent = `${d.title} ${d.date}`;
-  $('#rdGrid').innerHTML = gridHTML(d);
-  speak(R_MSG.day);
-}
-$('#rdGrid').addEventListener('click',e=>{
-  const s=e.target.closest('.rs'); if (!s) return;
-  sfx.tap(); s.classList.remove('hit'); void s.offsetWidth; s.classList.add('hit'); speak(say(s.textContent));
+$('#rlDays').addEventListener('click',e=>{
+  const g=e.target.closest('[data-game]'); if (g){ sfx.tap(); curDay=+g.dataset.game; startFind(); return; }
+  const b=e.target.closest('[data-day]'); if (b){ sfx.tap(); curDay=+b.dataset.day; startRead(); }
 });
-$('#rdRead').addEventListener('click',()=>{ sfx.tap(); startRead(); });
-$('#rdFind').addEventListener('click',()=>{ sfx.tap(); startFind(); });
+
+// ---------- table of a day ----------
+function gridHTML(d, cls){ return d.cols.map((c,ci)=>`<div class="rcol">${c.map((s,ri)=>`<button class="rs ${cls||''}" data-c="${ci}" data-r="${ri}">${s}</button>`).join('')}</div>`).join(''); }
 
 // ---------- speech recognition ----------
 const STT_KIND = (native && native.listen) ? 'native' : ((window.SpeechRecognition||window.webkitSpeechRecognition) ? 'web' : null);
@@ -193,15 +180,27 @@ function matches(target, results){
 
 // ---------- read with the microphone ----------
 const RR = {queue:[], total:0, firstTry:0, silent:0, run:0, manual:false};
+let micWanted = A.store.get('rmic', 1);
+function applyMode(){
+  RR.manual = !micWanted || !sttAvailable();
+  const b = $('#rrMode');
+  b.textContent = RR.manual ? '🔇 bez poslechu' : '🎤 poslouchám';
+  b.classList.toggle('off', RR.manual);
+  b.style.display = sttAvailable() ? '' : 'none';
+  $('#rrMicBtn').style.display = RR.manual ? 'none' : '';
+  $('#rrOk').classList.toggle('small', !RR.manual);
+  $('#rrOk').textContent = RR.manual ? '✓ Přečetla jsem' : '✓';
+  $('#rrMic').style.visibility = RR.manual ? 'hidden' : '';
+}
 function startRead(){
   const cells = dayCells(day());
-  RR.queue = cells.map(c=>({...c, tries:0})); RR.total = cells.length; RR.firstTry = 0; RR.silent = 0; RR.manual = !sttAvailable();
+  RR.queue = cells.map(c=>({...c, tries:0})); RR.total = cells.length; RR.firstTry = 0; RR.silent = 0;
   A.go('rread');
   if (STT_KIND==='native' && native.setHints){ try{ native.setHints(JSON.stringify([...new Set(cells.map(c=>c.s.toLowerCase()))])); }catch(e){} }
   $('#rrGrid').innerHTML = gridHTML(day(), 'mini');
-  $('#rrMicBtn').style.display = RR.manual ? 'none' : '';
+  applyMode();
   showCur(); setMic('off');
-  speak(RR.manual ? R_MSG.noMic : R_MSG.readStart).then(()=>{ if (isOn('rread')) loop(); });
+  speak(RR.manual ? R_MSG.readManual : R_MSG.readStart).then(()=>{ if (isOn('rread')) loop(); });
 }
 function cellEl(c){ return document.querySelector(`#rrGrid .rs[data-c="${c.ci}"][data-r="${c.ri}"]`); }
 function showCur(){
@@ -226,7 +225,7 @@ async function loop(){
     if (my!==RR.run || !isOn('rread')) return;
     setMic('off');
     if (!r.ok){
-      if (r.code===9 || r.code===5){ RR.manual = true; $('#rrMicBtn').style.display='none'; await speak(R_MSG.noMic); continue; }
+      if (r.code===9 || r.code===5){ micWanted = 0; applyMode(); await speak(R_MSG.noMic); continue; }
       RR.silent++;
       $('#rrBubble').textContent = 'Neslyšela jsem tě.';
       if (RR.silent >= 2){ RR.silent = 0; await speak(R_MSG.silent); $('#rrBubble').textContent='Klepni na 🎤 Znovu a čti.'; return; }
@@ -261,12 +260,17 @@ function finishRead(){
   speak(R_MSG.allDone).then(()=>{
     if (!isOn('rread')) return;
     const stars = Math.max(1, Math.round(10 * RR.firstTry / RR.total));
-    A.finishRound(stars, startRead, 'rday', 10);
+    A.finishRound(stars, startRead, 'rlesson', 10);
   });
 }
 $('#rrHelp').addEventListener('click',()=>{
   const c=RR.queue[0]; if (!c) return; RR.run++; stopListen(); setMic('off'); c.tries=Math.max(c.tries,1);
   speak(say(c.s)).then(()=>{ if (isOn('rread') && !RR.manual) loop(); });
+});
+$('#rrMode').addEventListener('click',()=>{
+  sfx.tap(); micWanted = micWanted ? 0 : 1; A.store.set('rmic', micWanted);
+  RR.run++; stopListen(); hush(); setMic('off'); applyMode();
+  if (!RR.manual) loop(); else showCur();
 });
 $('#rrMicBtn').addEventListener('click',()=>{ sfx.tap(); RR.run++; stopListen(); hush(); loop(); });
 let okBusy = false;
@@ -319,7 +323,7 @@ $('#rfAns').addEventListener('click', async e=>{
     await new Promise(r=>setTimeout(r,700));
     if (my!==rfRun || !isOn('rfind')) return;
     RF.idx++;
-    if (RF.idx >= RF.items.length) return A.finishRound(RF.stars, startFind, 'rday');
+    if (RF.idx >= RF.items.length) return A.finishRound(RF.stars, startFind, 'rlesson');
     showFind();
   } else {
     RF.wrong++; b.classList.add('wrong'); sfx.bad();

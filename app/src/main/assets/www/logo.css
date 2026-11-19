@@ -128,3 +128,10 @@
 .bigbtn.small{padding:14px 18px}
 
 #rrOk.hint{animation:pulse 1s infinite;box-shadow:0 7px 0 var(--d),0 0 0 6px #2fc7a055}
+
+.dayrow{display:flex;gap:10px}
+.dayrow .lesson:first-child{flex:1}
+.lesson.game{flex:0 0 auto;padding:12px 18px}
+.mictoggle{border:0;font:inherit;font-weight:900;font-size:16px;border-radius:16px;padding:10px 12px;background:#ffdede;color:#b33;cursor:pointer;box-shadow:0 4px 0 #00000022}
+.mictoggle.off{background:#fff;color:var(--ink-soft)}
+.bigbtn:not(.small)#rrOk{font-size:22px}
