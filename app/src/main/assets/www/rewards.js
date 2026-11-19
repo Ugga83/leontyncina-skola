@@ -178,7 +178,7 @@ function renderKennel(){
     ${win ? `<div class="win"><span>${win}</span></div>` : ''}
     ${w.light ? '<div class="garland">✨ ✨ ✨ ✨ ✨ ✨ ✨</div>' : ''}
     ${items.map(i=>`<span class="kit" style="left:${i.pos[0]}%;top:${i.pos[1]}%;--s:${i.pos[2]}">${i.e}</span>`).join('')}
-    <div class="owl kayra"></div>
+    <div class="owl kayra full"></div>
     ${!items.length && !win && !w.wall ? '<div class="kempty">Ayřina bouda je zatím prázdná. Kup jí něco hezkého! 🛍️</div>' : ''}`;
   decorate();
 }
