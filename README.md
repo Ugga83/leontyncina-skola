@@ -35,6 +35,10 @@ Aplikace při spuštění sama zjistí, jestli je na GitHubu (Releases) novějš
 Aplikace používá hlas zabudovaný v Androidu. Pokud chybí čeština:
 **Nastavení → Usnadnění (nebo Systém → Jazyky) → Převod textu na řeč** → modul Google → nainstalovat hlasová data **Čeština**.
 
+## Hlas
+Sovička mluví českým neuronovým hlasem Microsoft „Vlasta“. Všechny věty se namluví předem při sestavení na GitHubu (`tools/gen_voice.py`, knihovna edge-tts) a přibalí se do aplikace jako mp3. Když nějaká věta chybí, použije se hlas telefonu.
+Po změně textů spusť `node tools/collect_phrases.js` (aktualizuje `voice/phrases.json`).
+
 ## Pro vývoj
 - hra je v `app/src/main/assets/www/` (`index.html` = rozcestník a matematika, `logo.js`/`logo.css` = logopedie) (lze otevřít i v prohlížeči na počítači)
 - Android obal (WebView + čeština přes TextToSpeech): `app/src/main/java/cz/matematika/sovicka/MainActivity.java`

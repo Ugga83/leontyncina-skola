@@ -114,23 +114,22 @@ function sideSVG(grp, voiced){
 </svg>`;
 }
 
-// ---------- model sounds (real recordings) ----------
-// Priority: parent's own recording (saved on the phone) > bundled recording > voice reading syllables.
-const FILES = {S:'s.ogg', Z:'z.ogg', C:'c.ogg', 'Š':'sh.ogg', 'Ž':'zh.ogg', 'Č':'ch.ogg'};
+// ---------- model sounds ----------
+// Parent's own recording (saved on the phone) if there is one, otherwise the voice says syllables + a word.
 let curAudio = null;
 function stopModel(){ if (curAudio){ try{ curAudio.pause(); }catch(e){} curAudio = null; } }
 function ownModel(k){ return A.store.get('model_'+k, null); }
+function modelText(k){ const d=L[k]; return `${d.syl[0]}, ${d.syl[2]}, ${d.syl[4]}. ${d.words[0][0]}.`; }
 function playModel(k){
   return new Promise(res=>{
     let done=false; const fin=()=>{ if(!done){ done=true; res(); } };
     if (!A.S.sound) return fin();
     stopModel(); hush();
-    const a = new Audio(ownModel(k) || ('sounds/'+FILES[k]));
-    curAudio = a;
-    let failed = false;
-    const fallback = ()=>{ if (failed) return; failed = true; speak(L[k].syl.slice(0,3).join('. ')+'.').then(fin); };
-    a.onended = fin; a.onerror = fallback;
-    const p = a.play(); if (p && p.catch) p.catch(fallback);
+    const own = ownModel(k);
+    if (!own) return speak(modelText(k)).then(fin);
+    const a = new Audio(own); curAudio = a;
+    a.onended = fin; a.onerror = ()=>speak(modelText(k)).then(fin);
+    const p = a.play(); if (p && p.catch) p.catch(a.onerror);
     setTimeout(fin, 7000);
   });
 }
@@ -152,7 +151,7 @@ const html = `
   <div class="lsec"><h3>🤸 Na rozehřátí</h3><div class="gamebtns">
     <button class="gbtn wide" style="--c:var(--orange);--d:var(--orange-d)" id="btnWarm">🤸 Rozcvička pusinky</button>
   </div></div>
-  <div class="note"><b>Pro rodiče:</b> pomůcka k domácímu procvičování, nenahrazuje logopedku. Pokud paní logopedka učí jinou polohu jazyka nebo jiné obrázky, řiďte se jí. Cvičte krátce (5–10 minut), hlavně s chválou. Nejdřív zvuk samotný, pak slabiky, pak slova.<br><small>Zvukové ukázky hlásek: Wikimedia Commons (Peter Isotalo a další), licence CC BY-SA 3.0.</small></div>
+  <div class="note"><b>Pro rodiče:</b> pomůcka k domácímu procvičování, nenahrazuje logopedku. Pokud paní logopedka učí jinou polohu jazyka nebo jiné obrázky, řiďte se jí. Cvičte krátce (5–10 minut), hlavně s chválou. Nejdřív zvuk samotný, pak slabiky, pak slova.</div>
 </section>
 
 <section id="logo" class="screen scroll">
@@ -219,26 +218,32 @@ end.insertAdjacentHTML('beforebegin', html);
 // ---------- lessons ----------
 document.querySelectorAll('[data-lesson]').forEach(b=>b.addEventListener('click',()=>{
   sfx.tap(); A.go(b.dataset.lesson);
-  if (b.dataset.lesson==='logo') speak(`Lekce sykavky. Vyber si písmenko, ${VOC}.`);
+  if (b.dataset.lesson==='logo') speak('Lekce sykavky. Vyber si písmenko.');
 }));
 $('#lessOwl').addEventListener('click',()=>{
-  const t = pick([`Vyber si lekci, ${VOC}.`, 'Než začneme, můžeme si udělat rozcvičku pusinky.', 'Každý den kousek, a půjde to samo!']);
+  const t = pick(LESS_OWL);
   $('#lessBubble').textContent=t; speak(t);
 });
+
+const LESS_OWL = ['Vyber si lekci.', 'Než začneme, můžeme si udělat rozcvičku pusinky.', 'Každý den kousek, a půjde to samo!'];
+const LOGO_OWL = ['Vyber si písmenko. Ukážu ti, kam dát jazýček.',
+  'U písmenek S, Z a C se usmíváme. U Š, Ž a Č děláme čumáček a prstík dáme pod bradu.',
+  'Když se ti nedaří, zkus nejdřív rozcvičku pusinky.'];
+const LG_PRAISE = ['Ano!','Výborně!','Správně!','Super!'];
+const WARM_PRAISE = ['Výborně!','Šikovná!','Paráda!'];
+const MIRROR = {smile:'Podívej se do zrcátka. Usměj se a dej zoubky k sobě.', round:'Podívej se do zrcátka. Udělej čumáček, zoubky dej k sobě a prstík pod bradu.'};
 
 // ---------- menu ----------
 document.querySelectorAll('.ltile').forEach(b=>b.addEventListener('click',()=>{ sfx.tap(); openSound(b.dataset.l); }));
 document.querySelectorAll('[data-pair]').forEach(b=>b.addEventListener('click',()=>{ sfx.tap(); startListen(b.dataset.pair); }));
 $('#btnWarm').addEventListener('click',()=>{ sfx.tap(); startWarm(); });
 $('#logoOwl').addEventListener('click',()=>{
-  const t = pick([`Vyber si písmenko, ${VOC}. Ukážu ti, kam dát jazýček.`,
-    'U písmenek S, Z a C se usmíváme. U Š, Ž a Č děláme čumáček a prstík dáme pod bradu.',
-    'Když se ti nedaří, zkus nejdřív rozcvičku pusinky.']);
+  const t = pick(LOGO_OWL);
   $('#logoBubble').textContent=t; speak(t);
 });
 // greet on entering
 document.querySelector('#hub [data-go="logopedie"]').addEventListener('click',()=>{
-  setTimeout(()=>speak(`Ahoj ${VOC}! Vyber si lekci.`), 60);
+  setTimeout(()=>speak('Vyber si lekci.'), 60);
 });
 
 // ---------- sound detail ----------
@@ -282,14 +287,14 @@ async function walkSteps(){
   await new Promise(r=>setTimeout(r,400));
   if (my!==showing || !isOn('sound')) return;
   highlight(null);
-  speak(`Zkus to taky, ${VOC}! Můžeš se podívat do zrcátka.`);
+  speak('Zkus to taky! Můžeš se podívat do zrcátka.');
 }
 $('#sndShow').addEventListener('click',()=>{ sfx.tap(); walkSteps(); });
 $('#sndModel').addEventListener('click',()=>{ showing++; hush(); playModel(cur); });
 $('#sndPlay').addEventListener('click',()=>{ showing++; hush(); playModel(cur); });
 $('#sndSteps').addEventListener('click',e=>{
   const li = e.target.closest('li'); if(!li) return;
-  showing++; highlight(li.dataset.p); speak(li.textContent.replace(/^\S+\s*/,''));
+  showing++; highlight(li.dataset.p); const st=steps(cur)[+li.dataset.i]; if(st) speak(st.t);
 });
 $('#sndSyl').addEventListener('click',e=>{ const c=e.target.closest('.chip'); if(c){ showing++; sfx.tap(); speak(c.textContent); }});
 $('#sndWords').addEventListener('click',e=>{
@@ -306,7 +311,7 @@ async function startMirror(){
     camStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}, audio:false});
     $('#mirrorVid').srcObject = camStream;
     $('#mirror').classList.add('on'); $('#sndMirror').textContent='🪞 Zavřít zrcátko';
-    speak(L[cur].grp==='smile' ? 'Podívej se do zrcátka. Usměj se a dej zoubky k sobě.' : 'Podívej se do zrcátka. Udělej čumáček, zoubky dej k sobě a prstík pod bradu.');
+    speak(MIRROR[L[cur].grp]);
   }catch(e){
     err.textContent='Zrcátko se nepodařilo zapnout. Povol aplikaci přístup ke kameře.'; err.style.display='block';
   }
@@ -404,6 +409,7 @@ function startListen(pair){
   LG.pair=pair; LG.items=buildLG(pair); LG.idx=0; LG.stars=0; LG.res=[];
   A.go('lgame'); renderLG(true);
 }
+function lgAnswer(it){ return `${cap(it.w)}. To je ${L[it.k].name}. Řekni to se mnou: ${it.w}.`; }
 function lgPrompt(it){ const [a,b]=it.pr; return `Poslouchej: ${it.w}. Je tam ${L[a].name}, nebo ${L[b].name}?`; }
 function renderLG(first){
   const it = LG.items[LG.idx]; LG.wrong=0; LG.busy=false;
@@ -426,9 +432,10 @@ $('#lgAns').addEventListener('click', async e=>{
     if (!LG.wrong){ LG.stars++; LG.res[LG.idx]=1; } else LG.res[LG.idx]=2;
     $('#lgStars').textContent='⭐ '+LG.stars;
     $('#lgWord').innerHTML = mark(it.w, it.k);
-    const praise = pick(['Ano!','Výborně!','Správně!','Super!']) + (Math.random()<.35?` ${VOC}!`:'');
+    const praise = pick(LG_PRAISE);
     $('#lgBubble').textContent = `${praise} ${L[it.k].emo} ${it.k}`;
-    await speak(`${praise} ${cap(it.w)}. To je ${L[it.k].name}. Řekni to se mnou: ${it.w}.`);
+    speak(praise);
+    await speak(lgAnswer(it), {queue:true});
     await new Promise(r=>setTimeout(r,1300));
     if (my!==lgRun || !isOn('lgame')) return;
     LG.idx++;
@@ -475,12 +482,31 @@ async function runWarm(){
   if (my!==wRun || !isOn('warm')) return;
   sfx.good(); confetti(25);
   $('#wBeat').textContent='👏';
-  speak(pick(['Výborně!','Šikovná!','Paráda!']));
+  speak(pick(WARM_PRAISE));
 }
 $('#wGo').addEventListener('click',()=>{ sfx.tap(); runWarm(); });
 $('#wNext').addEventListener('click',()=>{
   wRun++; sfx.tap();
   if (wIdx<WARM.length-1){ wIdx++; renderWarm(); }
   else A.finishRound(3, startWarm, 'logopedie', 0);
+});
+
+// ---------- every sentence this module can say (used to pre-record the voice) ----------
+A.phraseSources.push(()=>{
+  const out = [...LESS_OWL, ...LOGO_OWL, ...LG_PRAISE, ...WARM_PRAISE, ...Object.values(MIRROR),
+    'Lekce sykavky. Vyber si písmenko.', 'Vyber si lekci.', 'A teď poslouchej, jak to zní.',
+    'Zkus to taky! Můžeš se podívat do zrcátka.', 'Připravit, pozor, teď!', 'Poslouchej ještě jednou!'];
+  Object.keys(L).forEach(k=>{
+    const d=L[k];
+    out.push(`Písmenko ${spokenLetter(k)}. ${d.who}.`, modelText(k));
+    steps(k).forEach(s=>out.push(s.t));
+    d.syl.forEach(x=>out.push(x));
+    d.words.forEach(([w])=>{
+      out.push(w, 'Řekni to se mnou: '+w, `Poslouchej ještě jednou. ${w}.`);
+      PAIRS.forEach(pr=>{ if (pr.includes(k)){ const it={w,k,pr}; out.push(lgPrompt(it), lgAnswer(it)); } });
+    });
+  });
+  WARM.forEach(w=>{ out.push(`${w.t}. ${w.x}`); w.b.forEach(b=>out.push(b)); });
+  return out;
 });
 })();

@@ -267,6 +267,7 @@ h1.subh{flex:1;font-size:clamp(26px,7vw,38px);text-align:left}
   </div>
 </section>
 
+<script src="voice/index.js"></script>
 <script>
 (function(){
 'use strict';
@@ -278,6 +279,7 @@ const STICKERS = ['🐶','🐱','🦊','🐼','🐨','🦁','🐸','🦄','🐰'
 const PRAISE = ['Výborně!','Super!','Správně!','Skvělé!','Jsi šikulka!','Paráda!','Bezva!','Jsi jednička!'];
 const VOC = 'Leontýnko';            // oslovení (5. pád)
 const withName = (p, chance)=> Math.random()<chance ? p.replace(/([!.?])$/, ', '+VOC+'$1') : p;
+const nameVariant = p => p.replace(/([!.?])$/, ', '+VOC+'$1');
 
 // ---------- storage ----------
 const store = {
@@ -302,9 +304,40 @@ function ttsAvailable(){
   if (native) { try { return native.status() !== 2; } catch(e){ return false; } }
   return 'speechSynthesis' in window;
 }
+// ---- pre-recorded neural voice (voice/<hash>.mp3, listed in voice/index.js) ----
+const VOICE = new Set(window.VOICE_INDEX || []);
+function vkey(t){
+  const b = new TextEncoder().encode(t.trim()); let h = 0x811c9dc5;
+  for (const x of b){ h ^= x; h = Math.imul(h, 0x01000193) >>> 0; }
+  return ('0000000'+h.toString(16)).slice(-8);
+}
+let vQueue = [], vCur = null;
+function playVoice(file, queue){
+  return new Promise(res=>{
+    if (!queue) stopVoice();
+    vQueue.push({file, res});
+    if (!vCur) nextVoice();
+  });
+}
+function nextVoice(){
+  const it = vQueue.shift(); if (!it){ vCur = null; return; }
+  const a = new Audio(it.file); vCur = {a, it};
+  let done = false;
+  const fin = ()=>{ if (done) return; done = true; it.res(); if (vCur && vCur.a===a){ vCur = null; nextVoice(); } };
+  a.onended = fin; a.onerror = fin; setTimeout(fin, 20000);
+  const p = a.play(); if (p && p.catch) p.catch(fin);
+}
+function stopVoice(){
+  const q = vQueue; vQueue = []; q.forEach(i=>i.res());
+  if (vCur){ const c = vCur; vCur = null; try{ c.a.pause(); }catch(e){} c.it.res(); }
+}
 // speak(text, {queue}) -> Promise resolved when finished (or after a fallback timeout)
 function speak(text, opt){
   opt = opt||{};
+  if (S.sound && VOICE.has(vkey(text))){
+    if (!opt.queue){ try{ if (native) native.stop(); else if ('speechSynthesis' in window) speechSynthesis.cancel(); }catch(e){} }
+    return playVoice('voice/'+vkey(text)+'.mp3', !!opt.queue);
+  }
   return new Promise(resolve=>{
     let done=false; const fin=()=>{ if(!done){done=true;resolve();} };
     const est = 700 + text.length*75;
@@ -323,6 +356,7 @@ function speak(text, opt){
   });
 }
 function hush(){
+  stopVoice();
   Object.keys(pending).forEach(k=>{ const f=pending[k]; delete pending[k]; f(); });
   try{ if (native) native.stop(); else if ('speechSynthesis' in window) speechSynthesis.cancel(); }catch(e){}
 }
@@ -509,9 +543,10 @@ async function answer(btn){
     sfx.good(); confetti(S.wrong===0?40:18);
     if (S.wrong===0){ S.stars++; S.results[S.idx]=1; const sc=$('#scount'); sc.textContent='⭐ '+S.stars; sc.classList.remove('pop'); void sc.offsetWidth; sc.classList.add('pop'); }
     else S.results[S.idx]=2;
-    const p = withName(pick(PRAISE), .4);
+    const p = withName(pick(PRAISE), .08);
     $('#gameBubble').textContent = p+' '+solutionShort(t);
-    await speak(p+' '+solution(t));
+    speak(p);
+    await speak(solution(t), {queue:true});
     await new Promise(r=>setTimeout(r,450));
     if (!$('#game').classList.contains('active')) return;
     next();
@@ -520,13 +555,13 @@ async function answer(btn){
     btn.classList.add('wrong'); sfx.bad();
     if (navigator.vibrate) try{navigator.vibrate(80)}catch(e){}
     if (S.wrong===1){
-      const m = withName('To není ono. Zkus to znovu!', .3);
+      const m = 'To není ono. Zkus to znovu!';
       $('#gameBubble').textContent = m;
       speak(m);
     } else {
       const hidden = !S.pics && !S.reveal;
       S.reveal = true; applyPics();
-      const m = hidden ? `Nevadí, ${VOC}. Ukážu ti obrázky a spočítáme to spolu.` : `Nevadí, ${VOC}. Spočítáme to spolu.`;
+      const m = hidden ? HINT_HIDDEN : HINT_SHOWN;
       $('#gameBubble').textContent = hidden ? 'Ukážu obrázky a spočítáme to spolu!' : 'Spočítáme to spolu!';
       S.busy=true;
       await speak(m);
@@ -552,6 +587,10 @@ function start(mode){
   show('game'); renderTask(true);
 }
 
+const HINT_HIDDEN = 'Nevadí. Ukážu ti obrázky a spočítáme to spolu.', HINT_SHOWN = 'Nevadí. Spočítáme to spolu.';
+const END_TITLES = [`Úžasné, ${VOC}!`, 'Hurá, skvělá práce!', 'Dobrá práce!'];
+const NEW_STICKER = 'A máš novou nálepku do sbírky!';
+const starsSay = (n, of)=> `Získala jsi ${starsPhrase(n)}${of?' z deseti':''}.`;
 function finish(){ finishRound(S.stars, ()=>start(S.mode), 'home'); }
 let againFn = null;
 function finishRound(stars, again, backTo, of){
@@ -562,19 +601,19 @@ function finishRound(stars, again, backTo, of){
   const after = Math.floor(S.total/10);
   show('end');
   sfx.win(); confetti(80);
-  const titles = S.stars>=9?`Úžasné, ${VOC}!`:S.stars>=6?`Hurá, ${VOC}!`:`Dobrá práce, ${VOC}!`;
+  const titles = S.stars>=9 ? END_TITLES[0] : S.stars>=6 ? END_TITLES[1] : END_TITLES[2];
   $('#endTitle').textContent = titles;
   $('#endStars').textContent = S.stars ? '⭐'.repeat(S.stars) : '💪';
-  let say = `${titles} Získala jsi ${starsPhrase(S.stars)}${of?' z deseti':''}.`;
+  speak(titles);
+  speak(starsSay(S.stars, of), {queue:true});
   if (after>before && before<STICKERS.length){
     const s = STICKERS[Math.min(after,STICKERS.length)-1];
     $('#newStk').innerHTML = `Nová nálepka do sbírky!<span>${s}</span>`;
-    say += ' A máš novou nálepku do sbírky!';
+    speak(NEW_STICKER, {queue:true});
   } else {
     const need = 10 - (S.total%10);
     $('#newStk').textContent = after<STICKERS.length ? `Do další nálepky chybí ${need} ⭐` : 'Máš všechny nálepky! 🎉';
   }
-  speak(say);
 }
 
 function confetti(n){
@@ -614,12 +653,17 @@ function back(){
 document.addEventListener('click', e=>{ if (e.target.closest('[data-back]')){ sfx.tap(); back(); } });
 document.querySelectorAll('#hub .tile').forEach(t=>t.addEventListener('click',()=>{
   sfx.tap(); const g=t.dataset.go;
-  if (g==='read'){ const m=`Čtení pro tebe teprve připravujeme, ${VOC}. Brzy tu bude!`; $('#hubBubble').textContent=m; speak(m); return; }
+  if (g==='read'){ const m=READ_SOON; $('#hubBubble').textContent=m; speak(m); return; }
   go(g);
-  if (g==='home') speak(`Jdeme počítat, ${VOC}!`);
+  if (g==='home') speak('Jdeme počítat!');
 }));
-$('#hubOwl').addEventListener('click',()=>{ const t=pick([`Ahoj ${VOC}! Já jsem Sovička. Vyber si, co budeme dělat.`,`${VOC}, ty jsi ale šikovná holčička!`,'Za každou správnou odpověď dostaneš hvězdičku.']); $('#hubBubble').textContent=t; speak(t); });
-const MODE_SAY = {cmp:`Porovnáváme, ${VOC}. Větší, menší, nebo rovná se.`, add:`Jdeme sčítat, ${VOC}!`, sub:`Jdeme odčítat, ${VOC}!`, mix:`Všechno dohromady. Jdeme na to, ${VOC}!`};
+const READ_SOON = 'Čtení teprve připravujeme. Brzy tu bude!';
+const HUB_OWL = ['Já jsem Sovička. Vyber si, co budeme dělat.', `${VOC}, ty jsi ale šikovná holčička!`, 'Za každou správnou odpověď dostaneš hvězdičku.'];
+const HOME_OWL = ['Pojď si se mnou počítat!', 'Za každý správný příklad dostaneš hvězdičku.', 'Ty jsi ale chytrá holčička!'];
+const GREETING = `Ahoj ${VOC}! Co budeme dělat?`;
+const PICS_SAY = ['Obrázky ukážu.', 'Obrázky schovám. Zkus počítat bez nich!', 'Obrázky jsou zpátky.', 'Obrázky jsem schovala.'];
+$('#hubOwl').addEventListener('click',()=>{ const t=pick(HUB_OWL); $('#hubBubble').textContent=t; speak(t); });
+const MODE_SAY = {cmp:'Porovnáváme. Větší, menší, nebo rovná se.', add:'Jdeme sčítat!', sub:'Jdeme odčítat!', mix:'Všechno dohromady. Jdeme na to!'};
 document.querySelectorAll('#home .tile').forEach(t=>t.addEventListener('click',()=>{
   sfx.tap(); const m=t.dataset.mode;
   speak(MODE_SAY[m]).then(()=>{}); // short intro, then the first task speaks (queued)
@@ -631,7 +675,7 @@ document.querySelectorAll('#rangeSeg button').forEach(b=>b.addEventListener('cli
 document.querySelectorAll('#soundSeg button').forEach(b=>b.addEventListener('click',()=>{
   S.sound=+b.dataset.snd; store.set('sound',S.sound); if(!S.sound) hush(); renderHome(); sfx.tap(); if (S.sound) speak('Zvuk zapnutý.');
 }));
-$('#homeOwl').addEventListener('click',()=>{ const t=pick([`Pojď si se mnou počítat, ${VOC}!`,'Za každý správný příklad dostaneš hvězdičku.',`${VOC}, ty jsi ale chytrá holčička!`]); $('#homeBubble').textContent=t; speak(t); });
+$('#homeOwl').addEventListener('click',()=>{ const t=pick(HOME_OWL); $('#homeBubble').textContent=t; speak(t); });
 $('#btnHome').addEventListener('click', goHome);
 function applyPics(){
   const show = S.pics || S.reveal;
@@ -640,10 +684,10 @@ function applyPics(){
 }
 function setPics(v){ S.pics=v; store.set('pics',v); S.reveal=false; applyPics(); renderHome(); }
 document.querySelectorAll('#picsSeg button').forEach(b=>b.addEventListener('click',()=>{
-  sfx.tap(); setPics(+b.dataset.pics); speak(S.pics?'Obrázky ukážu.':'Obrázky schovám. Zkus počítat bez nich!');
+  sfx.tap(); setPics(+b.dataset.pics); speak(S.pics?PICS_SAY[0]:PICS_SAY[1]);
 }));
 $('#btnPics').addEventListener('click',()=>{
-  sfx.tap(); setPics(S.pics?0:1); speak(S.pics?'Obrázky jsou zpátky.':'Obrázky jsem schovala.');
+  sfx.tap(); setPics(S.pics?0:1); speak(S.pics?PICS_SAY[2]:PICS_SAY[3]);
 });
 $('#btnEndHome').addEventListener('click', ()=>go('hub'));
 $('#btnAgain').addEventListener('click', ()=>{ hush(); againFn && againFn(); });
@@ -659,7 +703,24 @@ if (native && native.appVersion){
 }
 
 // shared API for the other modules (logo.js, later reading)
-window.App = {speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, leaveHooks,
+const phraseSources = [()=>{
+  const out = [GREETING, READ_SOON, 'Jdeme počítat!', 'Zvuk zapnutý.', 'Počítáme do pět.', 'Počítáme do deset.',
+    'To není ono. Zkus to znovu!', HINT_HIDDEN, HINT_SHOWN, NEW_STICKER,
+    ...END_TITLES, ...HUB_OWL, ...HOME_OWL, ...PICS_SAY, ...Object.values(MODE_SAY)];
+  PRAISE.forEach(p=>out.push(p, nameVariant(p)));
+  for (let n=1;n<=10;n++) out.push(W(n));
+  for (let n=0;n<=10;n++) out.push(starsSay(n,10), starsSay(n,0));
+  for (let a=0;a<=10;a++) for (let b=0;b<=10;b++){
+    if (a+b>=1 && a+b<=10){ const t={type:'add',a,b,answer:a+b}; out.push(prompt(t), solution(t)); }
+    if (a>=1 && b<=a){ const t={type:'sub',a,b,answer:a-b}; out.push(prompt(t), solution(t)); }
+    const t={type:'cmp',a,b,answer:a>b?'>':a<b?'<':'='}; out.push(prompt(t), solution(t));
+  }
+  return out;
+}];
+// every sentence the app can say, for pre-recording the voice (tools/gen_voice.py)
+window.__allPhrases = ()=>[...new Set(phraseSources.flatMap(f=>f()).map(t=>t.trim()))].sort();
+window.__vkey = vkey;
+window.App = {speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, leaveHooks, phraseSources,
   onLeave:f=>leaveHooks.push(f)};
 
 renderHome();
@@ -670,7 +731,7 @@ setTimeout(()=>{
   else if ('speechSynthesis' in window){ pickVoice(); missing = !czVoice && speechSynthesis.getVoices().length>0; }
   if (missing) $('#ttsWarn').style.display='block';
 }, 2500);
-if (native) setTimeout(()=>speak('Ahoj Leontýnko! Co budeme dělat?'), 600);
+if (native) setTimeout(()=>speak(GREETING), 600);
 })();
 </script>
 <script src="logo.js"></script>
