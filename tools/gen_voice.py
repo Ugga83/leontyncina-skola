@@ -6,7 +6,7 @@ Writes app/src/main/assets/www/voice/<key>.mp3 and voice/index.js (list of avail
 Existing mp3 files are kept, so only new sentences are recorded.
 Usage: pip install edge-tts && python tools/gen_voice.py
 """
-import asyncio, json, os, sys
+import asyncio, json, os, shutil, sys
 
 import edge_tts
 
@@ -25,6 +25,10 @@ def fnv(text):
 
 async def record(sem, text, key, stats):
     path = os.path.join(WWW, key + ".mp3")
+    fixed = os.path.join(WWW, "fixed", key + ".mp3")
+    if os.path.exists(fixed):  # hand-made recording (e.g. syllables the voice would spell out)
+        shutil.copyfile(fixed, path)
+        return
     if os.path.exists(path) and os.path.getsize(path) > 0:
         return
     async with sem:

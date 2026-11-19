@@ -214,6 +214,11 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         }
 
         @JavascriptInterface
+        public void setHints(String json) {
+            listener.setHints(json);
+        }
+
+        @JavascriptInterface
         public void stopListen() {
             runOnUiThread(() -> listener.stop());
         }

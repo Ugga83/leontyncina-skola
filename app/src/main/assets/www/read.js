@@ -31,14 +31,15 @@ const R_LESSONS = [
 ];
 // the voice always gets lower case (upper case could be read as letters)
 const say = syl => syl.toLowerCase();
-const picSay = p => `${say(p[1])}. ${p[3]}.`;
+const picWord = p => `${p[3]}.`;
+const sayPic = p => { speak(say(p[1])); return speak(picWord(p), {queue:true}); };
 const R_PRAISE = ['Výborně!','Správně!','Super!','Paráda!'];
 const R_MSG = {
   pick:'Vyber si úkol.', pickDay:'Vyber si den.', day:'Klepni na slabiku a uslyšíš ji.',
   readStart:'Čti slabiky nahlas. Já poslouchám.', again:'Zkus to znovu.', listen:'Poslouchej.',
   later:'Tuhle si přečteme později.', silent:'Neslyšela jsem tě. Řekni to nahlas.',
   allDone:'Všechny slabiky máš přečtené!', noMic:'Mikrofon nefunguje. Čti nahlas a potvrď tlačítkem.',
-  findHelp:'Poslouchej a najdi slabiku.'
+  findHelp:'Poslouchej a najdi slabiku.', find:'Najdi slabiku.'
 };
 const todayISO = ()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 
@@ -116,7 +117,7 @@ function openLesson(id){
   }).join('');
   speak(R_MSG.pickDay);
 }
-$('#rlPics').addEventListener('click',e=>{ const b=e.target.closest('.rpic'); if(!b) return; sfx.tap(); speak(picSay(curL.pics[+b.dataset.i])); });
+$('#rlPics').addEventListener('click',e=>{ const b=e.target.closest('.rpic'); if(!b) return; sfx.tap(); sayPic(curL.pics[+b.dataset.i]); });
 $('#rlDays').addEventListener('click',e=>{ const b=e.target.closest('[data-day]'); if(!b) return; sfx.tap(); openDay(+b.dataset.day); });
 
 // ---------- one day: table ----------
@@ -172,14 +173,21 @@ function stopListen(){
   Object.keys(sttWait).forEach(k=>delete sttWait[k]);
   try{ if (STT_KIND==='native') native.stopListen(); else if (webRec) webRec.abort(); }catch(e){}
 }
-// lenient match: ignore case, accents (length marks), i/y; accept when a heard word starts with the syllable
-const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/y/g,'i').replace(/[^a-z ]/g,' ');
+// lenient match for a first-grader: ignore case, accents (length, háčky), i/y, similar consonants
+const norm = s => s.toLowerCase().replace(/π/g,'pi').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/y/g,'i').replace(/[^a-z ]/g,' ');
+const CGROUP = {s:'szc', z:'szc', c:'szc', p:'pb', b:'pb', m:'mn', n:'mn', l:'lr', r:'lr', t:'td', d:'td'};
+function syllableOk(t, w){
+  if (!w) return false;
+  if (w.startsWith(t)) return true;
+  const c = t[0], v = t[1];
+  if (!v) return w[0]===c;
+  return (CGROUP[c]||c).includes(w[0]) && w[1]===v;
+}
 function matches(target, results){
-  const t = norm(target).trim();
+  const t = norm(target).replace(/ /g,'');
   return results.some(r=>{
     const words = norm(r).split(/\s+/).filter(Boolean);
-    const joined = words.join('');
-    return joined===t || joined.startsWith(t) || words.some(w=>w===t);
+    return syllableOk(t, words.join('')) || words.some(w=>syllableOk(t, w));
   });
 }
 
@@ -189,6 +197,7 @@ function startRead(){
   const cells = dayCells(day());
   RR.queue = cells.map(c=>({...c, tries:0})); RR.total = cells.length; RR.firstTry = 0; RR.silent = 0; RR.manual = !sttAvailable();
   A.go('rread');
+  if (STT_KIND==='native' && native.setHints){ try{ native.setHints(JSON.stringify([...new Set(cells.map(c=>c.s.toLowerCase()))])); }catch(e){} }
   $('#rrGrid').innerHTML = gridHTML(day(), 'mini');
   $('#rrMicBtn').style.display = RR.manual ? 'none' : '';
   showCur(); setMic('off');
@@ -202,6 +211,7 @@ function showCur(){
   const big = $('#rrSyl'); big.textContent = c.s; big.classList.remove('pop','good'); void big.offsetWidth; big.classList.add('pop');
   $('#rrCount').textContent = `✅ ${RR.total-RR.queue.length} / ${RR.total}`;
   $('#rrHeard').textContent = '';
+  $('#rrOk').classList.remove('hint');
   $('#rrBubble').textContent = 'Přečti slabiku nahlas.';
 }
 function setMic(state){ const m=$('#rrMic'); m.className='mic '+(state||''); m.textContent = state==='busy'?'⏳':'🎤'; }
@@ -242,7 +252,7 @@ async function miss(c, heard){
   const el = cellEl(c); if (el) el.classList.add('bad');
   $('#rrHeard').textContent = heard.length ? `slyšela jsem: ${heard[0]}` : '';
   if (c.tries === 1){ $('#rrBubble').textContent='Zkus to znovu!'; await speak(R_MSG.again); }
-  else if (c.tries === 2){ $('#rrBubble').textContent='Poslouchej: '+c.s; await speak(R_MSG.listen); await speak(say(c.s), {queue:true}); }
+  else if (c.tries === 2){ $('#rrBubble').textContent='Poslouchej: '+c.s; $('#rrOk').classList.add('hint'); await speak(R_MSG.listen); await speak(say(c.s), {queue:true}); }
   else { RR.queue.push(RR.queue.shift()); c.tries = 2; $('#rrBubble').textContent='Vrátíme se k ní.'; await speak(R_MSG.later); }
 }
 function finishRead(){
@@ -279,7 +289,8 @@ function startFind(){
   RF.idx = 0; RF.stars = 0; RF.res = [];
   A.go('rfind'); showFind(true);
 }
-function findSay(s){ return `Najdi slabiku ${say(s)}.`; }
+// the syllable is always spoken on its own (inside a sentence the voice may spell it out)
+function sayFind(s, queue){ speak(R_MSG.find, {queue:!!queue}); return speak(say(s), {queue:true}); }
 function showFind(first){
   const s = RF.items[RF.idx]; RF.wrong = 0; RF.busy = false;
   const pool = [...new Set(day().cols.flat())].filter(x=>x.toLowerCase()!==s.toLowerCase());
@@ -291,10 +302,10 @@ function showFind(first){
   $('#rfBubble').textContent = 'Kterou slabiku slyšíš?';
   $('#rfAns').classList.remove('locked');
   $('#rfAns').innerHTML = opts.map(o=>`<button class="ans rsylb" data-v="${o}">${o}</button>`).join('');
-  if (first) speak(R_MSG.findHelp).then(()=>{ if (isOn('rfind')) speak(findSay(s), {queue:true}); });
-  else speak(findSay(s));
+  if (first) speak(R_MSG.findHelp).then(()=>{ if (isOn('rfind')) sayFind(s, true); });
+  else sayFind(s);
 }
-$('#rfSay').addEventListener('click',()=>{ const s=RF.items[RF.idx]; if (s) speak(findSay(s)); });
+$('#rfSay').addEventListener('click',()=>{ const s=RF.items[RF.idx]; if (s) sayFind(s); });
 $('#rfAns').addEventListener('click', async e=>{
   const b = e.target.closest('.ans'); if (!b || RF.busy) return;
   const s = RF.items[RF.idx], my = rfRun;
@@ -313,7 +324,7 @@ $('#rfAns').addEventListener('click', async e=>{
   } else {
     RF.wrong++; b.classList.add('wrong'); sfx.bad();
     $('#rfBubble').textContent = 'Zkus to znovu!';
-    speak(R_MSG.again); speak(findSay(s), {queue:true});
+    speak(R_MSG.again); sayFind(s, true);
   }
 });
 A.onLeave(()=>{ rfRun++; RR.run++; stopListen(); });
@@ -325,8 +336,8 @@ window.__readTest = {matches};
 A.phraseSources.push(()=>{
   const out = [...R_PRAISE, ...Object.values(R_MSG)];
   R_LESSONS.forEach(l=>{
-    l.pics.forEach(p=>out.push(picSay(p)));
-    l.days.forEach(d=>d.cols.flat().forEach(s=>out.push(say(s), findSay(s))));
+    l.pics.forEach(p=>out.push(say(p[1]), picWord(p)));
+    l.days.forEach(d=>d.cols.flat().forEach(s=>out.push(say(s))));
   });
   return out;
 });

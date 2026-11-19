@@ -126,3 +126,5 @@
 .rs.done{background:#d6f7df !important;color:#1f8a46}
 .rs.bad{color:var(--bad)}
 .bigbtn.small{padding:14px 18px}
+
+#rrOk.hint{animation:pulse 1s infinite;box-shadow:0 7px 0 var(--d),0 0 0 6px #2fc7a055}
