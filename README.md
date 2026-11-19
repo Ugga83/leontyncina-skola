@@ -14,7 +14,7 @@ Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čte
 - hvězdičky za správné odpovědi napoprvé a **sbírka nálepek** (nová za každých 10 ⭐)
 
 **Logopedie (C S Z / Č Š Ž)**
-- ke každé hlásce obrázek úst zepředu i z boku (kde je jazyk, kudy jde vzduch), postup krok za krokem čtený nahlas a ukázka zvuku
+- ke každé hlásce obrázek úst zepředu i z boku (kde je jazyk, kudy jde vzduch); u Č Š Ž podle logopedky špička jazyka dolů a prst pod bradou, na který jazyk míří, postup krok za krokem čtený nahlas a ukázka zvuku
 - 🪞 zrcátko (přední kamera vedle obrázku úst) a 🔴 nahrávání – Leontýnka si poslechne, jak to řekla
 - slabiky a slova s obrázky, poslechová hra „S nebo Š?“, „Z nebo Ž?“, „C nebo Č?“
 - rozcvička pusinky (úsměv–pusinka, jazýček výtah, koník…)

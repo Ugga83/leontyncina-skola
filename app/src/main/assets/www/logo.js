@@ -34,8 +34,12 @@ function steps(k){
   const out = [
     {p:'lips',  i:smile?'😁':'😗', t: smile?'Rty: udělej široký úsměv.':'Rty: našpul pusinku dopředu jako čumáček.'},
     {p:'teeth', i:'🦷', t:'Zoubky: dej je k sobě.'},
-    {p:'tongue',i:'👅', t: smile?'Jazýček: špička se schová dolů, za dolní zoubky.':'Jazýček: špičku zvedni nahoru, za horní zoubky. Jazýček je jako lžička.'},
   ];
+  if (smile) out.push({p:'tongue', i:'👅', t:'Jazýček: špička se schová dolů, za dolní zoubky.'});
+  else {
+    out.push({p:'finger', i:'☝️', t:'Prstík: dej si prst pod bradu.'});
+    out.push({p:'tongue finger', i:'👅', t:'Jazýček: špičku dej dolů a namiř ji na prstík pod bradou.'});
+  }
   let air = smile ? 'Vzduch: foukej úzkým proudem mezi zoubky ven.' : 'Vzduch: foukej mezi zoubky ven a pusinka zůstane jako čumáček.';
   if (d.aff) air = smile ? 'Jazýček krátce ťukne a hned zasyčí: c! c! c!' : 'Jazýček krátce ťukne a hned zašumí: č! č! č!';
   out.push({p:'air', i:'💨', t:air});
@@ -44,6 +48,9 @@ function steps(k){
 }
 
 // ---------- SVG pictures ----------
+const FINGER_FRONT = `<g class="hlable" data-p="finger">
+    <rect x="87" y="124" width="26" height="52" rx="13" fill="#f2b49a" stroke="#d98f73" stroke-width="2"/>
+    <ellipse cx="100" cy="134" rx="8" ry="6" fill="#ffd9cc" stroke="#d98f73" stroke-width="1.5"/></g>`;
 let uid = 0;
 function frontSVG(grp){
   const id = 'c'+(++uid);
@@ -60,8 +67,9 @@ function frontSVG(grp){
   </g>
 </svg>`;
   return `
-<svg class="mouth" viewBox="0 0 200 130" aria-hidden="true">
+<svg class="mouth" viewBox="0 0 200 170" aria-hidden="true">
   <circle cx="100" cy="66" r="62" fill="#fcd9c8"/>
+  ${FINGER_FRONT}
   <defs><clipPath id="${id}"><ellipse cx="100" cy="67" rx="25" ry="19"/></clipPath></defs>
   <g class="hlable" data-p="lips">
     <ellipse cx="100" cy="67" rx="46" ry="40" fill="#e8667a"/>
@@ -81,10 +89,10 @@ function sideSVG(grp, voiced){
   const loLip = smile ? 'M151,85 Q162,88 161,101 Q160,113 149,117 L148,96 Z' : 'M154,84 Q182,86 181,101 Q178,116 150,118 Z';
   const tongue = smile
     ? 'M18,124 Q26,72 88,66 Q128,62 139,88 Q143,98 140,105 Q120,119 80,125 Q40,130 18,124 Z'
-    : 'M18,124 Q28,80 80,80 Q112,80 127,60 Q135,50 141,57 Q139,72 124,92 Q104,116 70,125 Q40,130 18,124 Z';
-  const air = smile ? 'M58,58 Q112,52 136,80 L214,80' : 'M58,62 Q104,60 128,70 Q140,80 160,80 L214,80';
+    : 'M18,124 Q24,66 84,62 Q124,60 136,88 Q141,102 138,112 Q122,124 80,127 Q40,130 18,124 Z';
+  const air = smile ? 'M58,58 Q112,52 136,80 L214,80' : 'M58,54 Q110,48 134,76 Q144,80 160,80 L214,80';
   return `
-<svg class="mouth" viewBox="0 0 220 170" aria-hidden="true">
+<svg class="mouth" viewBox="0 0 220 ${smile?170:206}" aria-hidden="true">
   <path d="M6,14 H138 Q150,18 150,50 L140,51 Q108,33 60,40 Q28,46 6,62 Z" fill="#f6c7b5"/>
   <path d="M6,162 H138 Q156,150 150,116 L140,111 Q120,129 80,131 Q38,133 6,122 Z" fill="#f6c7b5"/>
   <g class="hlable" data-p="lips"><path d="${upLip}" fill="#e8667a"/><path d="${loLip}" fill="#e8667a"/></g>
@@ -96,6 +104,11 @@ function sideSVG(grp, voiced){
     <path d="${smile?'M60,96 Q100,84 132,94':'M60,104 Q96,94 120,80'}" stroke="#e0607a" stroke-width="1.5" fill="none" opacity=".6"/></g>
   <g class="hlable" data-p="air"><path class="air" d="${air}" stroke="#3aa0ff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
     <path d="M206,73 L215,80 L206,87" stroke="#3aa0ff" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>
+  ${smile?'':`<g class="hlable" data-p="finger">
+    <rect x="124" y="166" width="26" height="46" rx="13" fill="#f2b49a" stroke="#d98f73" stroke-width="2"/>
+    <ellipse cx="137" cy="174" rx="8" ry="5" fill="#ffd9cc" stroke="#d98f73" stroke-width="1.5"/>
+    <path d="M138,116 L137,158" stroke="#ff9f1c" stroke-width="3" stroke-dasharray="5 5" fill="none"/>
+    <path d="M131,151 L137,160 L143,151" stroke="#ff9f1c" stroke-width="3" fill="none" stroke-linecap="round"/></g>`}
   ${voiced?`<g class="hlable" data-p="vib"><g class="vib"><path d="M8,148 l6,-8 l6,8 l6,-8 l6,8 l6,-8 l6,8" stroke="#9a7bff" stroke-width="3.5" fill="none" stroke-linejoin="round"/></g>
     <text x="26" y="166" font-size="12" font-weight="800" fill="#7656e6" text-anchor="middle" font-family="Nunito,sans-serif">bzučí</text></g>`:''}
 </svg>`;
@@ -198,7 +211,7 @@ document.querySelectorAll('[data-pair]').forEach(b=>b.addEventListener('click',(
 $('#btnWarm').addEventListener('click',()=>{ sfx.tap(); startWarm(); });
 $('#logoOwl').addEventListener('click',()=>{
   const t = pick([`Vyber si písmenko, ${VOC}. Ukážu ti, kam dát jazýček.`,
-    'U písmenek S, Z a C se usmíváme. U Š, Ž a Č děláme čumáček.',
+    'U písmenek S, Z a C se usmíváme. U Š, Ž a Č děláme čumáček a prstík dáme pod bradu.',
     `Než začneme, uděláme rozcvičku pusinky?`]);
   $('#logoBubble').textContent=t; speak(t);
 });
@@ -216,7 +229,7 @@ function openSound(k){
   const intro = `${d.emo} ${d.who}: ${d.snd}`;
   $('#sndBubble').textContent = intro;
   $('#dFront').innerHTML = frontSVG(d.grp) + (d.grp==='smile'?'zepředu: úsměv':'zepředu: čumáček');
-  $('#dSide').innerHTML = sideSVG(d.grp, d.voiced) + 'z boku: kde je jazýček';
+  $('#dSide').innerHTML = sideSVG(d.grp, d.voiced) + (d.grp==='smile'?'z boku: kde je jazýček':'z boku: jazýček míří na prstík');
   $('#dMirror').innerHTML = frontSVG(d.grp) + 'takhle to má vypadat';
   $('#sndSteps').innerHTML = steps(k).map((s,i)=>`<li data-i="${i}" data-p="${s.p}"><span class="si">${s.i}</span><span>${s.t}</span></li>`).join('');
   $('#sndSyl').innerHTML = d.syl.map(s=>`<button class="chip">${s}</button>`).join('');
@@ -228,7 +241,8 @@ function spokenLetter(k){ return {S:'es',Z:'zet',C:'cé','Š':'eš','Ž':'žet',
 function mark(w,k){ const lc=k.toLowerCase(); return w.split('').map(ch=>ch===lc?`<b>${ch}</b>`:ch).join(''); }
 function isOn(id){ return document.getElementById(id).classList.contains('active'); }
 function highlight(part){
-  document.querySelectorAll('#sound .hlable').forEach(g=>g.classList.toggle('hl', g.dataset.p===part || (part==='vib'&&g.dataset.p==='vib')));
+  const parts = (part||'').split(' ');
+  document.querySelectorAll('#sound .hlable').forEach(g=>g.classList.toggle('hl', parts.includes(g.dataset.p)));
   document.querySelectorAll('#sndSteps li').forEach(li=>li.classList.toggle('on', li.dataset.p===part));
 }
 async function walkSteps(){
@@ -271,7 +285,7 @@ async function startMirror(){
     camStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}, audio:false});
     $('#mirrorVid').srcObject = camStream;
     $('#mirror').classList.add('on'); $('#sndMirror').textContent='🪞 Zavřít zrcátko';
-    speak(L[cur].grp==='smile' ? 'Podívej se do zrcátka. Usměj se a dej zoubky k sobě.' : 'Podívej se do zrcátka. Udělej čumáček a zoubky dej k sobě.');
+    speak(L[cur].grp==='smile' ? 'Podívej se do zrcátka. Usměj se a dej zoubky k sobě.' : 'Podívej se do zrcátka. Udělej čumáček, zoubky dej k sobě a prstík pod bradu.');
   }catch(e){
     err.textContent='Zrcátko se nepodařilo zapnout. Povol aplikaci přístup ke kameře.'; err.style.display='block';
   }
