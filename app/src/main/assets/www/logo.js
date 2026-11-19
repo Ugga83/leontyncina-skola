@@ -11,7 +11,7 @@ const L = {
   S:{grp:'smile', voiced:false, aff:false, emo:'🐍', name:'had',      who:'Had syčí',        snd:'s',   pair:'Š',
      words:[['sova','🦉'],['slon','🐘'],['sýr','🧀'],['sáňky','🛷'],['pes','🐕'],['nos','👃']],
      syl:['sa','se','si','so','su']},
-  Z:{grp:'smile', voiced:true,  aff:false, emo:'🐝', name:'včelka',   who:'Včelka bzučí',    snd:'z',   pair:'Ž',
+  Z:{grp:'smile', voiced:true,  aff:false, emo:'🪰', name:'moucha',   who:'Moucha bzučí',    snd:'z',   pair:'Ž',
      words:[['zebra','🦓'],['zámek','🏰'],['zub','🦷'],['zmrzlina','🍦'],['koza','🐐'],['váza','🏺']],
      syl:['za','ze','zi','zo','zu']},
   C:{grp:'smile', voiced:false, aff:true,  emo:'🦗', name:'cvrček',   who:'Cvrček cvrká',    snd:'c', pair:'Č',
@@ -20,7 +20,7 @@ const L = {
   'Š':{grp:'round', voiced:false, aff:false, emo:'🚂', name:'mašinka', who:'Mašinka šumí',   snd:'š',   pair:'S',
      words:[['šnek','🐌'],['šála','🧣'],['šaty','👗'],['myš','🐭'],['koš','🧺'],['hruška','🍐']],
      syl:['ša','še','ši','šo','šu']},
-  'Ž':{grp:'round', voiced:true,  aff:false, emo:'🪲', name:'brouček', who:'Brouček letí',   snd:'ž',   pair:'Z',
+  'Ž':{grp:'round', voiced:true,  aff:false, emo:'🐝', name:'včela',   who:'Včela bzučí',   snd:'ž',   pair:'Z',
      words:[['žába','🐸'],['žirafa','🦒'],['ježek','🦔'],['lžíce','🥄'],['žížala','🪱'],['nůžky','✂️']],
      syl:['ža','že','ži','žo','žu']},
   'Č':{grp:'round', voiced:false, aff:true,  emo:'🐱', name:'kočička', who:'Voláme kočičku',  snd:'č', pair:'C',
@@ -410,8 +410,8 @@ function startListen(pair){
   LG.pair=pair; LG.items=buildLG(pair); LG.idx=0; LG.stars=0; LG.res=[];
   A.go('lgame'); renderLG(true);
 }
-function lgAnswer(it){ return `${cap(it.w)}. To je ${L[it.k].name}. Řekni to se mnou: ${it.w}.`; }
-function lgPrompt(it){ const [a,b]=it.pr; return `Poslouchej: ${it.w}. Je tam ${L[a].name}, nebo ${L[b].name}?`; }
+function lgAnswer(it){ return `${cap(it.w)}. Je tam ${spokenLetter(it.k)}. Řekni to se mnou: ${it.w}.`; }
+function lgPrompt(it){ const [a,b]=it.pr; return `Poslouchej: ${it.w}. Je tam ${spokenLetter(a)}, nebo ${spokenLetter(b)}?`; }
 function renderLG(first){
   const it = LG.items[LG.idx]; LG.wrong=0; LG.busy=false;
   $('#lgDots').innerHTML = LG.items.map((_,i)=>`<div class="dot ${i===LG.idx?'cur':''} ${LG.res[i]===1?'gold':LG.res[i]===2?'ok':''}"></div>`).join('');
@@ -419,9 +419,9 @@ function renderLG(first){
   $('#lgPic').textContent = it.e;
   $('#lgWord').innerHTML = '&nbsp;';
   const [a,b] = it.pr;
-  $('#lgBubble').textContent = `${L[a].emo} ${a}, nebo ${L[b].emo} ${b}?`;
+  $('#lgBubble').textContent = `Je tam ${a}, nebo ${b}?`;
   $('#lgAns').classList.remove('locked');
-  $('#lgAns').innerHTML = [a,b].map(k=>`<button class="ans snd" data-k="${k}"><span>${k} <span class="em">${L[k].emo}</span></span><small>${L[k].name}</small></button>`).join('');
+  $('#lgAns').innerHTML = [a,b].map(k=>`<button class="ans snd" data-k="${k}"><span>${k}</span><small class="em2">${L[k].emo}</small></button>`).join('');
   speak(lgPrompt(it), {queue:!!first});
 }
 $('#lgAns').addEventListener('click', async e=>{
