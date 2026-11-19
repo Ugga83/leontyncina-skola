@@ -7,6 +7,8 @@ Mluvící matematická hra pro prvňáčky (Android).
 - 🍎 **Sčítání** a 🎈 **Odčítání** – s obrázky, které se dají spočítat
 - 🎲 **Všechno dohromady** – míchané příklady
 - přepínač **do 5 / do 10**
+- **schování obrázků** (🙈) – počítá se jen s čísly; když si neví rady, Sovička obrázky ukáže a spočítá je
+- Sovička oslovuje **Leontýnku** (jméno je v `index.html` v konstantě `VOC`)
 - Sovička vše **čte nahlas česky** (zadání, pochvalu i správné řešení)
 - klepnutím na skupinku obrázků je Sovička nahlas **spočítá**; po dvou chybách počítá sama a napoví
 - hvězdičky za správné odpovědi napoprvé a **sbírka nálepek** (nová za každých 10 ⭐)
