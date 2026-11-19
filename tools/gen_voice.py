@@ -6,14 +6,22 @@ Writes app/src/main/assets/www/voice/<key>.mp3 and voice/index.js (list of avail
 Existing mp3 files are kept, so only new sentences are recorded.
 Usage: pip install edge-tts && python tools/gen_voice.py
 """
-import asyncio, json, os, shutil, sys
+import asyncio, json, os, re, shutil, sys
 
 import edge_tts
 
 VOICE = os.environ.get("VOICE", "cs-CZ-VlastaNeural")
 RATE = os.environ.get("RATE", "-8%")
-# spelling tweaks for the voice only (the screen keeps the normal spelling)
-SAY_AS = {"Leontýnko": "Lejontýnko"}  # without it the voice makes a break after "Le"
+# The voice cannot say "Leontýnko" smoothly, so the name is left out of the audio
+# (the screen still shows it): "Ahoj Leontýnko!" -> "Ahoj!", "Leontýnko, ty jsi..." -> "Ty jsi..."
+NAME = "Leontýnko"
+
+
+def spoken_text(text):
+    t = re.sub(r"^" + NAME + r", (\w)", lambda m: m.group(1).upper(), text)
+    t = re.sub(r",? " + NAME + r"(?=[!.?,])", "", t)
+    return t
+
 WWW = os.path.join(os.path.dirname(__file__), "..", "app", "src", "main", "assets", "www", "voice")
 
 
@@ -37,9 +45,7 @@ async def record(sem, text, key, stats):
         for attempt in range(4):
             try:
                 tmp = path + ".part"
-                spoken = text
-                for a, b in SAY_AS.items():
-                    spoken = spoken.replace(a, b)
+                spoken = spoken_text(text)
                 await edge_tts.Communicate(spoken, VOICE, rate=RATE).save(tmp)
                 if os.path.getsize(tmp) > 0:
                     os.replace(tmp, path)

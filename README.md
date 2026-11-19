@@ -8,7 +8,7 @@ Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čte
 - 🎲 **Všechno dohromady** – míchané příklady
 - přepínač **do 5 / do 10**
 - **schování obrázků** (🙈) – počítá se jen s čísly; když si neví rady, Sovička obrázky ukáže a spočítá je
-- Sovička oslovuje **Leontýnku** (jméno je v `index.html` v konstantě `VOC`)
+- Na obrazovce Sovička oslovuje **Leontýnku**; nahlas jméno neříká (hlas ho neumí vyslovit plynule).
 - Sovička vše **čte nahlas česky** (zadání, pochvalu i správné řešení)
 - klepnutím na skupinku obrázků je Sovička nahlas **spočítá**; po dvou chybách počítá sama a napoví
 - hvězdičky za správné odpovědi napoprvé a **sbírka nálepek** (nová za každých 10 ⭐)
