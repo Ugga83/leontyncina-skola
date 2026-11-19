@@ -114,36 +114,25 @@ function sideSVG(grp, voiced){
 </svg>`;
 }
 
-// ---------- synthesized model sounds ----------
-let ac = null;
+// ---------- model sounds (real recordings) ----------
+// Priority: parent's own recording (saved on the phone) > bundled recording > voice reading syllables.
+const FILES = {S:'s.ogg', Z:'z.ogg', C:'c.ogg', 'Š':'sh.ogg', 'Ž':'zh.ogg', 'Č':'ch.ogg'};
+let curAudio = null;
+function stopModel(){ if (curAudio){ try{ curAudio.pause(); }catch(e){} curAudio = null; } }
+function ownModel(k){ return A.store.get('model_'+k, null); }
 function playModel(k){
-  if (!A.S.sound) return;
-  try{
-    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
-    if (ac.state==='suspended') ac.resume();
-    const d = L[k], smile = d.grp==='smile';
-    const len = 1.6, sr = ac.sampleRate, buf = ac.createBuffer(1, sr*len, sr), ch = buf.getChannelData(0);
-    for (let i=0;i<ch.length;i++) ch[i] = Math.random()*2-1;
-    const bursts = d.aff ? [[0,.22],[.45,.22],[.9,.22]] : [[0,1.3]];
-    bursts.forEach(([st,du])=>{
-      const t0 = ac.currentTime + .05 + st;
-      const n = ac.createBufferSource(); n.buffer = buf;
-      const bp = ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = smile?6800:2900; bp.Q.value = smile?1.4:1.6;
-      const g = ac.createGain();
-      g.gain.setValueAtTime(0,t0);
-      g.gain.linearRampToValueAtTime(d.aff?.9:.7, t0+(d.aff?.01:.08));
-      g.gain.setValueAtTime(d.aff?.9:.7, t0+du-.08);
-      g.gain.linearRampToValueAtTime(0, t0+du);
-      n.connect(bp).connect(g).connect(ac.destination); n.start(t0); n.stop(t0+du+.05);
-      if (d.voiced){
-        const o = ac.createOscillator(); o.type='sawtooth'; o.frequency.value=150;
-        const lp = ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=700;
-        const vg = ac.createGain(); vg.gain.setValueAtTime(0,t0); vg.gain.linearRampToValueAtTime(.16,t0+.08);
-        vg.gain.setValueAtTime(.16,t0+du-.08); vg.gain.linearRampToValueAtTime(0,t0+du);
-        o.connect(lp).connect(vg).connect(ac.destination); o.start(t0); o.stop(t0+du+.05);
-      }
-    });
-  }catch(e){}
+  return new Promise(res=>{
+    let done=false; const fin=()=>{ if(!done){ done=true; res(); } };
+    if (!A.S.sound) return fin();
+    stopModel(); hush();
+    const a = new Audio(ownModel(k) || ('sounds/'+FILES[k]));
+    curAudio = a;
+    let failed = false;
+    const fallback = ()=>{ if (failed) return; failed = true; speak(L[k].syl.slice(0,3).join('. ')+'.').then(fin); };
+    a.onended = fin; a.onerror = fallback;
+    const p = a.play(); if (p && p.catch) p.catch(fallback);
+    setTimeout(fin, 7000);
+  });
 }
 
 // ---------- screens ----------
@@ -163,7 +152,7 @@ const html = `
   <div class="lsec"><h3>🤸 Na rozehřátí</h3><div class="gamebtns">
     <button class="gbtn wide" style="--c:var(--orange);--d:var(--orange-d)" id="btnWarm">🤸 Rozcvička pusinky</button>
   </div></div>
-  <div class="note"><b>Pro rodiče:</b> pomůcka k domácímu procvičování, nenahrazuje logopedku. Pokud paní logopedka učí jinou polohu jazyka nebo jiné obrázky, řiďte se jí. Cvičte krátce (5–10 minut), hlavně s chválou. Nejdřív zvuk samotný, pak slabiky, pak slova.</div>
+  <div class="note"><b>Pro rodiče:</b> pomůcka k domácímu procvičování, nenahrazuje logopedku. Pokud paní logopedka učí jinou polohu jazyka nebo jiné obrázky, řiďte se jí. Cvičte krátce (5–10 minut), hlavně s chválou. Nejdřív zvuk samotný, pak slabiky, pak slova.<br><small>Zvukové ukázky hlásek: Peter Isotalo, Wikimedia Commons, licence CC BY-SA 3.0.</small></div>
 </section>
 
 <section id="logo" class="screen scroll">
@@ -196,6 +185,12 @@ const html = `
     <div class="btnrow" style="margin-top:0"><button class="pill" id="sndMirror">🪞 Zrcátko</button><button class="pill rec" id="sndRec">🔴 Nahraj se</button><button class="pill" id="sndHear" disabled style="opacity:.5">▶️ Poslechni se</button></div>
     <div class="mirror" id="mirror"><video id="mirrorVid" autoplay playsinline muted></video><div class="diag" id="dMirror"></div></div>
     <div class="merr" id="merr"></div>
+  </div>
+  <div class="lcard parent">
+    <h4>👩 Pro rodiče: vlastní ukázka</h4>
+    <div class="ptext">Nesedí vám ukázka? Nahrajte, jak hlásku vyslovuje paní logopedka nebo vy. Sovička pak bude pouštět vaši nahrávku.</div>
+    <div class="btnrow"><button class="pill" id="ownRec">🎙️ Nahrát ukázku</button><button class="pill" id="ownDel">↩️ Vrátit původní</button></div>
+    <div class="ptext" id="ownState"></div>
   </div>
   <div class="lcard"><h4>Slabiky</h4><div class="chips" id="sndSyl"></div></div>
   <div class="lcard"><h4>Slova</h4><div class="words" id="sndWords"></div></div>
@@ -260,7 +255,7 @@ function openSound(k){
   $('#sndSteps').innerHTML = steps(k).map((s,i)=>`<li data-i="${i}" data-p="${s.p}"><span class="si">${s.i}</span><span>${s.t}</span></li>`).join('');
   $('#sndSyl').innerHTML = d.syl.map(s=>`<button class="chip">${s}</button>`).join('');
   $('#sndWords').innerHTML = d.words.map(([w,e])=>`<button class="word" data-w="${w}"><span class="e">${e}</span><span class="w">${mark(w,k)}</span></button>`).join('');
-  stopMirror(); resetRec();
+  stopMirror(); resetRec(); ownUI();
   speak(`Písmenko ${spokenLetter(k)}. ${d.who}.`).then(()=>{ if (cur===k && isOn('sound')) playModel(k); });
 }
 function spokenLetter(k){ return {S:'es',Z:'zet',C:'cé','Š':'eš','Ž':'žet','Č':'čé'}[k]; }
@@ -283,8 +278,8 @@ async function walkSteps(){
   if (my!==showing || !isOn('sound')) return;
   highlight('air');
   await speak('A teď poslouchej, jak to zní.');
-  playModel(cur);
-  await new Promise(r=>setTimeout(r,1800));
+  await playModel(cur);
+  await new Promise(r=>setTimeout(r,400));
   if (my!==showing || !isOn('sound')) return;
   highlight(null);
   speak(`Zkus to taky, ${VOC}! Můžeš se podívat do zrcátka.`);
@@ -356,7 +351,37 @@ function playRec(){ if(!recUrl) return; const a=new Audio(recUrl); a.play().catc
 $('#sndRec').addEventListener('click',()=>{ sfx.tap(); if (rec && rec.state==='recording'){ clearInterval(recTimer); rec.stop(); } else startRec(); });
 $('#sndHear').addEventListener('click',()=>{ playRec(); });
 
-A.onLeave(()=>{ showing++; stopMirror(); resetRec(); lgRun++; wRun++; highlight(null); });
+// ---------- parent's own model recording ----------
+function ownUI(){
+  const has = !!ownModel(cur);
+  $('#ownState').textContent = has ? '✅ Používá se vaše nahrávka.' : 'Teď se používá původní ukázka.';
+  $('#ownDel').style.display = has ? '' : 'none';
+}
+async function recordClip(btn, seconds){
+  const label = btn.textContent;
+  const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+  return new Promise(resolve=>{
+    const chunks=[]; const r = new MediaRecorder(stream);
+    r.ondataavailable = e=>{ if(e.data.size) chunks.push(e.data); };
+    r.onstop = ()=>{ stream.getTracks().forEach(t=>t.stop()); btn.classList.remove('live'); btn.textContent=label;
+      resolve(new Blob(chunks,{type:r.mimeType||'audio/webm'})); };
+    r.start(); btn.classList.add('live');
+    let left = seconds; btn.textContent='⏺ Nahrávám… '+left;
+    const t = setInterval(()=>{ left--; btn.textContent='⏺ Nahrávám… '+left; if(left<=0){ clearInterval(t); r.stop(); } },1000);
+  });
+}
+$('#ownRec').addEventListener('click', async ()=>{
+  const btn=$('#ownRec'); if (btn.classList.contains('live')) return;
+  showing++; hush(); stopModel();
+  try{
+    const blob = await recordClip(btn, 3);
+    const url = await new Promise(r=>{ const fr=new FileReader(); fr.onload=()=>r(fr.result); fr.readAsDataURL(blob); });
+    A.store.set('model_'+cur, url); ownUI(); playModel(cur);
+  }catch(e){ $('#ownState').textContent='Mikrofon se nepodařilo zapnout. Povolte aplikaci přístup k mikrofonu.'; }
+});
+$('#ownDel').addEventListener('click',()=>{ try{ localStorage.removeItem('mat_model_'+cur); }catch(e){} ownUI(); playModel(cur); });
+
+A.onLeave(()=>{ stopModel(); showing++; stopMirror(); resetRec(); lgRun++; wRun++; highlight(null); });
 
 // ---------- listening game: S or Š? ----------
 const ROUND = 10;
