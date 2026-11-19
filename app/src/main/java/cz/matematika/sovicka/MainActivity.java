@@ -3,6 +3,8 @@ package cz.matematika.sovicka;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.Manifest;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
@@ -11,10 +13,13 @@ import android.speech.tts.Voice;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -32,6 +37,8 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
     private WebView web;
     private String pendingText;
     private String pendingId;
+    private PermissionRequest pendingPerm;
+    private static final int REQ_MEDIA = 42;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +53,12 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setAllowFileAccess(true);
         s.setTextZoom(100);
-        web.setWebChromeClient(new WebChromeClient());
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                runOnUiThread(() -> handleWebPermission(request));
+            }
+        });
         web.addJavascriptInterface(new Bridge(), "AndroidTTS");
         web.loadUrl("file:///android_asset/www/index.html");
         setContentView(web);
@@ -83,6 +95,38 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
                 pendingText = null;
             }
         }
+    }
+
+    /** Camera (mirror) and microphone (record yourself) for the speech-therapy part. */
+    private void handleWebPermission(PermissionRequest request) {
+        List<String> need = new ArrayList<>();
+        for (String r : request.getResources()) {
+            if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r)
+                    && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                need.add(Manifest.permission.CAMERA);
+            }
+            if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(r)
+                    && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                need.add(Manifest.permission.RECORD_AUDIO);
+            }
+        }
+        if (need.isEmpty()) {
+            request.grant(request.getResources());
+            return;
+        }
+        if (pendingPerm != null) pendingPerm.deny();
+        pendingPerm = request;
+        requestPermissions(need.toArray(new String[0]), REQ_MEDIA);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode != REQ_MEDIA || pendingPerm == null) return;
+        boolean ok = results.length > 0;
+        for (int r : results) ok &= r == PackageManager.PERMISSION_GRANTED;
+        if (ok) pendingPerm.grant(pendingPerm.getResources()); else pendingPerm.deny();
+        pendingPerm = null;
     }
 
     /** Prefer an offline, high-quality Czech voice when several are installed. */

@@ -25,19 +25,19 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assembleRelease
           mkdir -p out
-          cp app/build/outputs/apk/release/app-release.apk out/pocitani-se-sovickou.apk
+          cp app/build/outputs/apk/release/app-release.apk out/leontyncina-skola.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: pocitani-se-sovickou-apk
-          path: out/pocitani-se-sovickou.apk
+          name: leontyncina-skola-apk
+          path: out/leontyncina-skola.apk
 
       - name: Zveřejnit ke stažení (Releases)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
-          name: Počítání se Sovičkou 1.0.${{ github.run_number }}
+          name: Leontýnčina škola 1.0.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           body: |
-            Stáhni soubor **pocitani-se-sovickou.apk** přímo v telefonu a nainstaluj ho.
-          files: out/pocitani-se-sovickou.apk
+            Stáhni soubor **leontyncina-skola.apk** přímo v telefonu a nainstaluj ho.
+          files: out/leontyncina-skola.apk

@@ -1,8 +1,8 @@
-# Počítání se Sovičkou 🦉
+# Leontýnčina škola 🦉
 
-Mluvící matematická hra pro prvňáčky (Android).
+Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čtení.
 
-**Co umí**
+**Matematika**
 - 🐊 **Větší, menší, rovná se** – porovnávání dvou skupinek obrázků (`<`, `=`, `>`)
 - 🍎 **Sčítání** a 🎈 **Odčítání** – s obrázky, které se dají spočítat
 - 🎲 **Všechno dohromady** – míchané příklady
@@ -13,10 +13,17 @@ Mluvící matematická hra pro prvňáčky (Android).
 - klepnutím na skupinku obrázků je Sovička nahlas **spočítá**; po dvou chybách počítá sama a napoví
 - hvězdičky za správné odpovědi napoprvé a **sbírka nálepek** (nová za každých 10 ⭐)
 
+**Logopedie (C S Z / Č Š Ž)**
+- ke každé hlásce obrázek úst zepředu i z boku (kde je jazyk, kudy jde vzduch), postup krok za krokem čtený nahlas a ukázka zvuku
+- 🪞 zrcátko (přední kamera vedle obrázku úst) a 🔴 nahrávání – Leontýnka si poslechne, jak to řekla
+- slabiky a slova s obrázky, poslechová hra „S nebo Š?“, „Z nebo Ž?“, „C nebo Č?“
+- rozcvička pusinky (úsměv–pusinka, jazýček výtah, koník…)
+- nic se nikam neodesílá; jde o pomůcku k domácímu cvičení, přednost mají pokyny logopedky
+
 ## Jak aplikaci dostat do telefonu
-1. Na GitHubu otevři v tomto repozitáři **Releases** (vpravo) a v telefonu stáhni nejnovější `pocitani-se-sovickou.apk`.
+1. Na GitHubu otevři v tomto repozitáři **Releases** (vpravo) a v telefonu stáhni nejnovější `leontyncina-skola.apk`.
 2. Otevři stažený soubor a povol instalaci z „neznámých zdrojů“ (telefon se zeptá).
-3. Spusť aplikaci **Počítání**.
+3. Spusť aplikaci **Leontýnčina škola**.
 
 APK se sestaví automaticky (GitHub Actions) po každé změně v repozitáři.
 
@@ -25,7 +32,7 @@ Aplikace používá hlas zabudovaný v Androidu. Pokud chybí čeština:
 **Nastavení → Usnadnění (nebo Systém → Jazyky) → Převod textu na řeč** → modul Google → nainstalovat hlasová data **Čeština**.
 
 ## Pro vývoj
-- celá hra je v `app/src/main/assets/www/index.html` (lze otevřít i v prohlížeči na počítači)
+- hra je v `app/src/main/assets/www/` (`index.html` = rozcestník a matematika, `logo.js`/`logo.css` = logopedie) (lze otevřít i v prohlížeči na počítači)
 - Android obal (WebView + čeština přes TextToSpeech): `app/src/main/java/cz/matematika/sovicka/MainActivity.java`
 - sestavení: `./gradlew assembleRelease` (vyžaduje Android SDK)
 - `app/sovicka.keystore` je záměrně v repozitáři, aby šly nové verze instalovat přes staré (heslo `sovicka`).
