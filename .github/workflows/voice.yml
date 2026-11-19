@@ -27,7 +27,7 @@ jobs:
 
       - name: Namluvit nové věty (Google, hlas Sulafat)
         env:
-          GOOGLE_TTS_KEY: ${{ secrets.GOOGLE_TTS_KEY }}
+          GOOGLE_TTS_KEY: ${{ secrets.GOOGLE_TTS_KEY || secrets.SPEECH_API_KEY }}
         run: |
           if [ -z "$GOOGLE_TTS_KEY" ]; then echo "::warning::Chybí secret GOOGLE_TTS_KEY"; exit 0; fi
           python tools/gen_voice.py
