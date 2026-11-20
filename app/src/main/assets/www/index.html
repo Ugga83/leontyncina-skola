@@ -630,15 +630,28 @@ const starsSay = (n, of)=> `Získala jsi ${starsPhrase(n)}${of?' z deseti':''}.`
 function finish(){ finishRound(S.stars, ()=>start(S.mode), 'home'); }
 let againFn = null;
 // score = correct answers out of `of` (of=0: warm-up) -> 1..3 round stars
+// stars for a finished round (also used by the endless modes, which keep going without the end screen)
+function awardRound(score, of, backTo){
+  const ratio = of ? score/of : 0, add = !of ? 1 : ratio>=0.9 ? 3 : ratio>=0.6 ? 2 : 1;
+  S.total += add; store.set('total', S.total);
+  const won = addStars(add);
+  const extra = (App.rewards ? App.rewards.afterRound(add) : '') + (App.progress ? App.progress.roundDone(backTo) : '');
+  return {add, won, extra};
+}
+// endless modes: a small banner instead of the end screen
+function toastStars(add, won){
+  const t = document.createElement('div'); t.className = 'startoast';
+  t.innerHTML = `${'⭐'.repeat(add)}<span>+${add}</span>`; document.body.appendChild(t);
+  sfx.win(); confetti(40); setTimeout(()=>t.remove(), 2600);
+  const p = speak(starsSay(add, 0), {queue:true});
+  return won.length ? speak(STATION_SAY, {queue:true}) : p;
+}
 function finishRound(score, again, backTo, of){
   if (of===undefined) of = 10;
   againFn = again; S.endBack = backTo;
-  const ratio = of ? score/of : 0, earned = !of ? 1 : ratio>=0.9 ? 3 : ratio>=0.6 ? 2 : 1;
-  const add = earned;
+  const {add, won, extra} = awardRound(score, of, backTo), earned = add;
   S.stars = add;
-  S.total += add; store.set('total', S.total);
-  const won = addStars(add), st = store.get('stk');
-  const extra = (App.rewards ? App.rewards.afterRound(add) : '') + (App.progress ? App.progress.roundDone(backTo) : '');
+  const st = store.get('stk');
   show('end');
   sfx.win(); confetti(80);
   const titles = earned===3 ? END_TITLES[0] : earned===2 ? END_TITLES[1] : END_TITLES[2];
@@ -761,7 +774,7 @@ const phraseSources = [()=>{
 // every sentence the app can say, for pre-recording the voice (tools/gen_voice.py)
 window.__allPhrases = ()=>[...new Set(phraseSources.flatMap(f=>f()).map(t=>t.trim()))].sort();
 window.__vkey = vkey;
-window.App = {STICKERS, BARKS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, leaveHooks, phraseSources,
+window.App = {STICKERS, BARKS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, awardRound, toastStars, leaveHooks, phraseSources,
   onLeave:f=>leaveHooks.push(f)};
 
 // sticker state {got, have, cost, earned, first}; first run: keep every sticker already earned (old rule: one per 10 stars)

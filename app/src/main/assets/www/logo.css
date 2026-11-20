@@ -242,12 +242,17 @@
 
 /* ---------- Psaní (tracing) ---------- */
 @font-face{font-family:'PlaywriteCZ';src:url(fonts/playwrite-cz.woff2) format('woff2');font-display:block}
-.wcur{font-family:'PlaywriteCZ',cursive;font-weight:400}
-.lesson .le.wcur{font-size:clamp(22px,6vw,32px);min-width:4.2em;text-align:center;letter-spacing:.02em}
+@font-face{font-family:'Slabikar';src:url(fonts/slabikar.otf) format('opentype');font-display:block}
+.wcur,.fs-slab{font-family:'Slabikar',cursive;font-weight:400}
+.wcur,.fs-slab{-webkit-text-stroke:.045em currentColor}   /* Slabikář is a thin pen line: make it readable */
+.wfont-pw .wcur,.fs-pw{font-family:'PlaywriteCZ',cursive;-webkit-text-stroke:0}
+.lesson .le.wcur{font-size:clamp(30px,8.4vw,44px);min-width:3.4em;text-align:center;letter-spacing:.02em}
+.wfont-pw .lesson .le.wcur{font-size:clamp(22px,6vw,32px);min-width:4.2em}
+#wFontSeg .fs-slab{font-size:1.6em;line-height:.8}#wFontSeg .fs-pw{font-size:1.2em;line-height:.8}
+#wBubble .wcur{font-size:2.1em;line-height:.6;margin-left:.15em}.wfont-pw #wBubble .wcur{font-size:1.3em}
 .wcard{position:relative;flex:1;min-height:0;padding:0;overflow:hidden;touch-action:none}
 .wcard canvas{position:absolute;left:0;top:0}
 #wInk{z-index:2;touch-action:none}#wDemo{z-index:3;pointer-events:none}
-#wBubble .wcur{font-size:1.3em}
 
 /* ---------- výzva dne ---------- */
 .challenge{border:0;font:inherit;cursor:pointer;width:100%;max-width:720px;display:flex;align-items:center;gap:12px;
@@ -317,3 +322,7 @@
 .kennel .lampglow{position:absolute;top:22%;width:26cqw;height:26cqw;margin-left:-13cqw;border-radius:50%;z-index:160;pointer-events:none;
   background:radial-gradient(circle,#fff3b0aa 0,#ffe48a55 30%,transparent 65%);mix-blend-mode:screen}
 .kennel.night .zzz{z-index:170}
+.startoast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:999;background:#fff;border-radius:22px;padding:10px 20px;
+  font-size:40px;box-shadow:0 8px 0 #f0b44a,0 10px 30px #0003;animation:toastIn 2.6s ease both;pointer-events:none;white-space:nowrap}
+.startoast span{font:900 30px 'Nunito',sans-serif;color:#b07a00;margin-left:8px;vertical-align:middle}
+@keyframes toastIn{0%{opacity:0;transform:translate(-50%,-30px) scale(.6)}12%{opacity:1;transform:translate(-50%,0) scale(1.05)}20%{transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-20px)}}
