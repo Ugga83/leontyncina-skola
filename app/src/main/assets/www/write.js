@@ -2,12 +2,8 @@
 (() => {
 const A = window.App, {speak, sfx, confetti, pick} = A;
 const $ = s => document.querySelector(s);
-// two school fonts to choose from: Slabikář (Czech school cursive, P. Olšák) and Playwrite CZ
-const FONTS = {slab:'Slabikar', pw:'PlaywriteCZ'};
-let fontKey = A.store.get('wfont', 'slab');
-const FONT = () => FONTS[fontKey];
-const applyFont = () => document.documentElement.classList.toggle('wfont-pw', fontKey==='pw');
-applyFont();
+// Slabikář: Czech school cursive (shapes by Petr Olšák)
+const FONT = () => 'Slabikar';
 
 const W_LESSONS = [
   {id:'vow',  c:'orange', t:'Samohlásky',     items:['a','e','i','o','u']},
@@ -39,6 +35,13 @@ function prompt(x){
   }
   return W_LESSONS[2].items.includes(x) ? 'Obtáhni slabiku.' : `Obtáhni slovo ${x}.`;
 }
+// after tracing Ayra says what is written there
+function sayWritten(x){
+  if (isNum(x)) return speak(`To je ${NUM[x]}.`, {queue:true});
+  if (x.length === 1){ const n = NAME[x.toLowerCase()] || x; return speak(x===x.toUpperCase() ? `To je velké ${n}.` : `To je ${n}.`, {queue:true}); }
+  if (W_LESSONS[2].items.includes(x)) return speak(x, {queue:true});      // syllable alone: recorded sound
+  return speak(`Napsala jsi ${x}.`, {queue:true});
+}
 // a syllable is spoken on its own (inside a sentence the voice may spell it out)
 const sayItem = (x, queue) => {
   const p = speak(prompt(x), {queue:!!queue});
@@ -55,8 +58,6 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
     <button class="lesson" style="--c:var(--violet);--d:var(--violet-d)" data-wl="all">
       <span class="le">🎲</span><span class="lt"><b>${ALL.t}</b><small>všechno dohromady, hvězdičky po každých 10</small></span></button>
   </div></div>
-  <div class="panel"><div class="row"><span class="lbl">Písmo</span>
-    <div class="seg" id="wFontSeg"><button data-f="slab"><span class="fs-slab">p</span> Slabikář</button><button data-f="pw"><span class="fs-pw">p</span> Playwrite</button></div></div></div>
 </section>
 <section id="wtrace" class="screen">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div>
@@ -90,12 +91,7 @@ function start(id){
   A.go('wtrace');
   document.fonts.load(`100px ${FONT()}`).then(()=>{ setup(true); });
 }
-function renderFontSeg(){ document.querySelectorAll('#wFontSeg button').forEach(b=>b.classList.toggle('on', b.dataset.f===fontKey)); }
-$('#wFontSeg').addEventListener('click', e=>{
-  const b = e.target.closest('[data-f]'); if (!b) return; sfx.tap();
-  fontKey = b.dataset.f; A.store.set('wfont', fontKey); applyFont(); renderFontSeg();
-});
-renderFontSeg();
+
 function setup(first){
   const x = WS.items[WS.idx]; WS.miss = 0; WS.done = false; WS.restSaid = false; WS.run++;
   $('#wDots').innerHTML = WS.items.map((_,i)=>`<div class="dot ${i===WS.idx?'cur':''} ${WS.res[i]===1?'gold':WS.res[i]===2?'ok':''}"></div>`).join('');
@@ -115,12 +111,13 @@ function sizeCanvas(c){
 }
 function layout(ctx, x){
   const W = ctx.canvas.width, H = ctx.canvas.height;
-  ctx.font = `100px ${FONT()}`;
-  const m = ctx.measureText(x);
+  ctx.font = `100px ${FONT()}`; ctx.textAlign = 'center';
+  // the school font has lead-in and lead-out strokes outside the letter box: fit the real ink box
+  const m = ctx.measureText(x), Lx = m.actualBoundingBoxLeft, Rx = m.actualBoundingBoxRight;
   const asc = Math.max(m.actualBoundingBoxAscent, 70), desc = Math.max(m.actualBoundingBoxDescent, 30);
-  const fs = Math.min(100 * W * .86 / m.width, 100 * H * .84 / (asc + desc), H * .62);
+  const fs = Math.min(100 * W * .8 / (Lx + Rx), 100 * H * .8 / (asc + desc), H * .62);
   const base = H * .5 + (asc - desc) / 100 * fs / 2;
-  return {fs, base, cx: W / 2};
+  return {fs, base, cx: W / 2 - (Rx - Lx) / 2 * fs / 100};
 }
 function glyph(ctx, x, L){ ctx.font = `${L.fs}px ${FONT()}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; }
 function draw(){
@@ -193,8 +190,9 @@ async function check(){
     if (A.progress) A.progress.track('write', WS.items[WS.idx], first);
     if (first){ WS.stars++; WS.res[WS.idx] = 1; } else WS.res[WS.idx] = 2;
     recolor(); sfx.good(); confetti(first ? 35 : 15);
-    const p = pick(W_SAY.praise); $('#wBubble').textContent = p; $('#wStars').textContent = '✓ ' + WS.stars;
-    await speak(p); await new Promise(r=>setTimeout(r, 700));
+    const p = pick(W_SAY.praise), x = WS.items[WS.idx];
+    $('#wBubble').innerHTML = `${p} <b class="wcur">${x}</b>`; $('#wStars').textContent = '✓ ' + WS.stars;
+    await speak(p); await sayWritten(x); await new Promise(r=>setTimeout(r, 500));
     if (my !== WS.run || !isOn('wtrace')) return;
     WS.idx++;
     if (WS.idx >= WS.items.length){
@@ -219,7 +217,8 @@ $('#wSay').addEventListener('click', ()=>{ sfx.tap(); sayItem(WS.items[WS.idx]);
 $('#wShow').addEventListener('click', ()=>{
   sfx.tap(); speak(W_SAY.show);
   const x = WS.items[WS.idx], c = $('#wDemo').getContext('2d'), L = WS.L, W = c.canvas.width, H = c.canvas.height;
-  c.font = `${L.fs}px ${FONT()}`; const w = c.measureText(x).width, x0 = L.cx - w/2 - L.fs*.05;
+  c.font = `${L.fs}px ${FONT()}`; c.textAlign = 'center';
+  const m = c.measureText(x), w = m.actualBoundingBoxLeft + m.actualBoundingBoxRight, x0 = L.cx - m.actualBoundingBoxLeft - L.fs*.05;
   const t0 = performance.now(), dur = 900 + 450 * x.length, my = ++WS.demo;
   (function frame(t){
     if (my !== WS.demo) return;
@@ -233,5 +232,5 @@ $('#wShow').addEventListener('click', ()=>{
 WS.demo = 0;
 A.onLeave(()=>{ WS.run++; WS.demo++; });
 
-A.phraseSources.push(()=>[...W_LESSONS.flatMap(l=>l.items.map(prompt)), W_SAY.pick, W_SAY.start, W_SAY.slow, W_SAY.rest, W_SAY.show, ...W_SAY.praise]);
+A.phraseSources.push(()=>[...W_LESSONS.flatMap(l=>l.items.map(prompt)), ...W_LESSONS.flatMap(l=>l.items).map(x=>W_LESSONS[2].items.includes(x)?'':(isNum(x)?`To je ${NUM[x]}.`:x.length===1?(x===x.toUpperCase()?`To je velké ${NAME[x.toLowerCase()]}.`:`To je ${NAME[x]}.`):`Napsala jsi ${x}.`)).filter(Boolean), W_SAY.pick, W_SAY.start, W_SAY.slow, W_SAY.rest, W_SAY.show, ...W_SAY.praise]);
 })();

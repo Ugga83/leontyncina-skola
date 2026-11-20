@@ -187,6 +187,7 @@ h1.subh{flex:1;font-size:clamp(26px,7vw,38px);text-align:left}
 
 <!-- HUB -->
 <section id="hub" class="screen active">
+  <button class="round-btn sndbtn" id="sndBtn" aria-label="Zvuk">🔊</button>
   <h1>Leontýnčina škola</h1>
   <div class="hero">
     <div class="owl" id="hubOwl" title="Ayra"></div>
@@ -199,12 +200,6 @@ h1.subh{flex:1;font-size:clamp(26px,7vw,38px);text-align:left}
     <button class="tile t-mix" data-go="write"><span class="ic">✏️</span><span class="t">Psaní</span><span class="s">písmenka</span></button>
   </div>
   <div class="warn" id="ttsWarn">🔇 Ayra zatím nemá český hlas. Otevři v telefonu <b>Nastavení → Usnadnění / Systém → Převod textu na řeč</b>, zvol Google a stáhni <b>češtinu</b>. Pak aplikaci znovu spusť.</div>
-  <div class="panel">
-    <div class="row">
-      <span class="lbl">Zvuk</span>
-      <div class="seg" id="soundSeg"><button data-snd="1">🔊</button><button data-snd="0">🔇</button></div>
-    </div>
-  </div>
   <div class="panel">
     <div class="row"><span class="lbl">Moje nálepky</span><span class="starsum" id="starSum">⭐ 0</span></div>
     <div class="stknext" id="stkNext"></div>
@@ -685,7 +680,7 @@ function confetti(n){
 // ---------- home ----------
 function renderHome(){
   document.querySelectorAll('#rangeSeg button').forEach(b=>b.classList.toggle('on', +b.dataset.max===S.max));
-  document.querySelectorAll('#soundSeg button').forEach(b=>b.classList.toggle('on', +b.dataset.snd===S.sound));
+  const sb = $('#sndBtn'); if (sb){ sb.textContent = S.sound ? '🔊' : '🔇'; sb.classList.toggle('off', !S.sound); }
   document.querySelectorAll('#picsSeg button').forEach(b=>b.classList.toggle('on', +b.dataset.pics===S.pics));
   if ($('#starSum')) $('#starSum').textContent = '⭐ '+S.total;
   if (App.rewards) App.rewards.renderHub();
@@ -730,9 +725,9 @@ document.querySelectorAll('#home .tile').forEach(t=>t.addEventListener('click',(
 document.querySelectorAll('#rangeSeg button').forEach(b=>b.addEventListener('click',()=>{
   S.max=+b.dataset.max; store.set('max',S.max); renderHome(); sfx.tap(); speak('Počítáme do '+W(S.max)+'.');
 }));
-document.querySelectorAll('#soundSeg button').forEach(b=>b.addEventListener('click',()=>{
-  S.sound=+b.dataset.snd; store.set('sound',S.sound); if(!S.sound) hush(); renderHome(); sfx.tap(); if (S.sound) speak('Zvuk zapnutý.');
-}));
+$('#sndBtn').addEventListener('click',()=>{
+  S.sound = S.sound ? 0 : 1; store.set('sound',S.sound); if(!S.sound) hush(); renderHome(); sfx.tap(); if (S.sound) speak('Zvuk zapnutý.');
+});
 $('#homeOwl').addEventListener('click',()=>{ const t=pick(HOME_OWL); $('#homeBubble').textContent=t; speak(t); });
 $('#btnHome').addEventListener('click', goHome);
 function applyPics(){

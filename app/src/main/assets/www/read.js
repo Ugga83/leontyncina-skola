@@ -51,8 +51,6 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
   <div class="lsec"><h3>📚 Úkoly ze školy</h3><div class="lessons">
     ${R_LESSONS.map(l=>`<button class="lesson" style="--c:var(--${l.c});--d:var(--${l.c}-d)" data-rl="${l.id}">
       <span class="le">${l.emo}</span><span class="lt"><b>${l.title}</b><small>${l.sub}</small></span></button>`).join('')}
-    <button class="lesson" style="--c:var(--orange);--d:var(--orange-d)" id="rAll">
-      <span class="le">🎲</span><span class="lt"><b>Ze všeho – bez konce</b><small>slabiky ze všech úkolů, hvězdičky po každých 20</small></span></button>
     <div class="lesson soon"><span class="le">✨</span><span class="lt"><b>Další úkoly</b><small>přidáme podle papíru ze školy</small></span></div>
   </div></div>
 </section>
@@ -94,15 +92,7 @@ let curL = null, curDay = null;
 const isOn = id => document.getElementById(id).classList.contains('active');
 // curDay -1 = repeating the syllables that went wrong lately (any lesson)
 const REP_DAY = () => { const w = A.progress ? A.progress.weak('read', 20) : []; return {title:'Opakování', date:'', dates:[], cols:[w]}; };
-// curDay -2 = endless mode: batches of 20 syllables from all lessons, it never ends
-const ALL_L = {id:'all', title:'Ze všeho', days:[], pics:[]};
-function endlessBatch(){
-  const all = [...new Set(R_LESSONS.flatMap(l=>l.days.flatMap(d=>d.cols.flat())))];
-  const weak = (A.progress ? A.progress.weak('read', 10) : []).filter(x=>all.includes(x)).slice(0, 5), out = [...weak];
-  while (out.length < Math.min(20, all.length)){ const x = pick(all); if (out[out.length-1] !== x && out.filter(y=>y===x).length < 1) out.push(x); }
-  return {title:'Ze všeho', date:'', dates:[], cols:[out.sort(()=>Math.random()-.5)]};
-}
-const day = () => curDay === -2 ? (RR.endless || (RR.endless = endlessBatch())) : curDay < 0 ? (curL._rep || (curL._rep = REP_DAY())) : curL.days[curDay];
+const day = () => curDay < 0 ? (curL._rep || (curL._rep = REP_DAY())) : curL.days[curDay];
 const dayCells = d => d.cols.flatMap((c,ci)=>c.map((s,ri)=>({s, ci, ri})));
 
 document.querySelectorAll('[data-rl]').forEach(b=>b.addEventListener('click',()=>{ sfx.tap(); openLesson(b.dataset.rl); }));
@@ -231,15 +221,14 @@ function fitGrid(){
   g.style.fontSize = Math.min(best[0], 64) + 'px';
 }
 window.addEventListener('resize', ()=>{ if (isOn('rread')) fitGrid(); });
-$('#rAll').addEventListener('click', ()=>{ sfx.tap(); curL = ALL_L; curDay = -2; RR.endless = null; startRead(true); });
-function startRead(fresh, quiet){
+function startRead(fresh){
   const cells = dayCells(day());
   const saved = fresh===true ? null : A.store.get(progKey(), null);
   const doneSet = new Set(saved ? saved.done : []);
   RR.queue = cells.filter(c=>!doneSet.has(c.ci+'-'+c.ri)).map(c=>({...c, tries:0}));
   if (!RR.queue.length){ RR.queue = cells.map(c=>({...c, tries:0})); doneSet.clear(); }
   RR.total = cells.length; RR.firstTry = saved && doneSet.size ? saved.firstTry : 0; RR.silent = 0;
-  if (!quiet) A.go('rread');
+  A.go('rread');
   if (STT_KIND==='native' && native.setHints){ try{ native.setHints(JSON.stringify([...new Set(cells.map(c=>c.s.toLowerCase()))])); }catch(e){} }
   // the paper's columns are not kept: syllables flow left to right in reading order and fill the card
   $('#rrGrid').innerHTML = cells.map(c=>`<span class="rs" data-c="${c.ci}" data-r="${c.ri}">${c.s}</span>`).join('');
@@ -247,7 +236,6 @@ function startRead(fresh, quiet){
   doneSet.forEach(k=>{ const [ci,ri]=k.split('-'); const el=document.querySelector(`#rrGrid .rs[data-c="${ci}"][data-r="${ri}"]`); if (el) el.classList.add('done'); });
   applyMode(); requestAnimationFrame(fitGrid);
   showCur(); setMic('off');
-  if (quiet) return loop();
   speak(RR.manual ? R_MSG.readManual : R_MSG.readStart).then(()=>{ if (isOn('rread')) loop(); });
 }
 function cellEl(c){ return document.querySelector(`#rrGrid .rs[data-c="${c.ci}"][data-r="${c.ri}"]`); }
@@ -308,13 +296,6 @@ async function miss(c, heard){
   else { RR.queue.push(RR.queue.shift()); c.tries = 2; $('#rrBubble').textContent='Vrátíme se k ní.'; await speak(R_MSG.later); }
 }
 function finishRead(){
-  if (curDay === -2){                                   // endless: stars, a new batch and on it goes
-    const r = A.awardRound(RR.firstTry, RR.total, 'rlesson'), my = RR.run;
-    $('#rrBubble').textContent = 'Paráda! Další slabiky!';
-    RR.endless = endlessBatch();
-    A.toastStars(r.add, r.won).then(()=>{ if (my===RR.run && isOn('rread')) startRead(true, true); });
-    return;
-  }
   if (curDay >= 0){ const done = A.store.get('rdone', {}); done[curL.id+'_'+curDay] = true; A.store.set('rdone', done); }
   try{ localStorage.removeItem('mat_'+progKey()); }catch(e){}
   setMic('off');
@@ -389,7 +370,6 @@ $('#rfAns').addEventListener('click', async e=>{
   }
 });
 A.onLeave(id=>{ rfRun++; RR.run++; stopListen();
-  if (id==='rlesson' && curL===ALL_L) return setTimeout(()=>A.go('read'), 0);    // endless has no lesson page
   if (id==='rlesson' && curL) setTimeout(renderDays, 0); });
 
 // for automated tests

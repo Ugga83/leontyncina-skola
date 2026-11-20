@@ -109,27 +109,46 @@ if (get('rewv1', 0) === 0){ set('wallet', wallet() + 15); set('boxAt', A.S.total
 
 // ---------- Ayra's accessories (shown on every Ayra picture) ----------
 // a knitted scarf drawn around Ayra's neck (the emoji one only hangs straight down)
-const SCARF = `<svg viewBox="0 0 100 64">
-  <path d="M3 10 Q50 30 97 10 L95 24 Q50 44 5 24 Z" fill="#e2574c"/>
-  <path d="M8 14 Q50 33 92 14 M8 19 Q50 38 92 19" stroke="#f47f73" stroke-width="1.6" fill="none"/>
-  <path d="M57 30 L71 29 L77 56 L62 58 Z" fill="#d94a40"/>
-  <rect x="59" y="38" width="15" height="3" fill="#f4a29a" transform="rotate(-6 66 39)"/><rect x="60" y="46" width="16" height="3" fill="#f4a29a" transform="rotate(-6 68 47)"/>
-  <path d="M63 58 v6 M66 57.6 v6 M69 57.2 v6 M72 56.8 v6 M75 56.4 v6" stroke="#d94a40" stroke-width="1.6"/>
-  <ellipse cx="64" cy="30" rx="9" ry="7" fill="#c43d33"/></svg>`;
+// neck things are drawn around the neck (emoji alone would just hang over the mouth)
+const NECK_CURVE = t => [3*(1-t)*(1-t) + 100*(1-t)*t + 97*t*t, 10*(1-t)*(1-t) + 60*(1-t)*t + 10*t*t];  // Q 3,10 50,30 97,10
+const along = (n, from, to) => Array.from({length:n}, (_,i)=>NECK_CURVE(from + (to-from)*i/(n-1)));
+const NECK = {
+  scarf:`<path d="M3 10 Q50 30 97 10 L95 24 Q50 44 5 24 Z" fill="#e2574c"/>
+    <path d="M8 14 Q50 33 92 14 M8 19 Q50 38 92 19" stroke="#f47f73" stroke-width="1.6" fill="none"/>
+    <path d="M57 30 L71 29 L77 56 L62 58 Z" fill="#d94a40"/>
+    <rect x="59" y="38" width="15" height="3" fill="#f4a29a" transform="rotate(-6 66 39)"/><rect x="60" y="46" width="16" height="3" fill="#f4a29a" transform="rotate(-6 68 47)"/>
+    <path d="M63 58 v6 M66 57.6 v6 M69 57.2 v6 M72 56.8 v6 M75 56.4 v6" stroke="#d94a40" stroke-width="1.6"/>
+    <ellipse cx="64" cy="30" rx="9" ry="7" fill="#c43d33"/>`,
+  beads: along(15, .02, .98).map(([x,y],i)=>`<circle cx="${x}" cy="${y+2}" r="3.6" fill="${['#e2574c','#f2b134','#3f8fd2','#5fb36b','#9b6bd3'][i%5]}" stroke="#00000033" stroke-width=".6"/><circle cx="${x-1}" cy="${y+.8}" r="1" fill="#fff9"/>`).join(''),
+  bell:`<path d="M3 10 Q50 30 97 10" stroke="#d93b3b" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M3 8.5 Q50 28.5 97 8.5" stroke="#ff7a7a" stroke-width="1.4" fill="none"/>
+    <text x="50" y="40" font-size="20" text-anchor="middle">🔔</text>`,
+  medal:`<path d="M34 16 L46 44 L54 44 L44 18 Z" fill="#3f8fd2"/><path d="M66 16 L54 44 L46 44 L56 18 Z" fill="#e2574c"/>
+    <circle cx="50" cy="50" r="10" fill="#f5c242" stroke="#d39b12" stroke-width="2"/><text x="50" y="55" font-size="12" text-anchor="middle" fill="#b07a00" font-weight="900">1</text>`,
+  gem:`<path d="M3 10 Q50 30 97 10" stroke="#c9ced8" stroke-width="1.6" fill="none" stroke-dasharray="2 1.2"/>
+    <path d="M44 20 L50 25 L56 20" stroke="#c9ced8" stroke-width="1.6" fill="none"/><text x="50" y="40" font-size="16" text-anchor="middle">💎</text>`,
+  hibis: along(5, .1, .9).map(([x,y])=>`<text x="${x}" y="${y+7}" font-size="15" text-anchor="middle">🌺</text>`).join(''),
+  ribbon:`<text x="76" y="44" font-size="20" text-anchor="middle">🎗️</text>`,     // pinned on the chest, her left side
+};
+const NECK_SVG = id => NECK[id] ? `<svg viewBox="0 0 100 64" overflow="visible">${NECK[id]}</svg>` : null;
+// put the worn things on every Ayra; only owls whose outfit changed are touched
 function decorate(){
-  const w = wear();
+  const w = wear(), sig = [w.head, w.eyes, w.neck].join('|');
   document.querySelectorAll('.owl').forEach(o=>{
+    if (o.dataset.acc === sig) return;
+    o.dataset.acc = sig;
     o.querySelectorAll('.acc').forEach(x=>x.remove());
     ['head','eyes','neck'].forEach(slot=>{
       const it = SHOP.find(i=>i.id===w[slot]); if (!it) return;
       const s = document.createElement('span'); s.className='acc acc-'+slot;
-      if (it.id==='scarf' && o.classList.contains('full')){ s.className += ' wrap'; s.innerHTML = SCARF; }   // wrapped around the neck
-      else s.textContent = it.e;
+      const svg = slot==='neck' && NECK_SVG(it.id);
+      if (svg){ s.className += ' wrap'; s.innerHTML = svg; } else s.textContent = it.e;
       o.appendChild(s);
     });
   });
 }
-const mo = new MutationObserver(()=>{ mo.disconnect(); decorate(); mo.observe(document.body,{childList:true,subtree:true}); });
+let decoQueued = false;
+const mo = new MutationObserver(()=>{ if (decoQueued) return; decoQueued = true; requestAnimationFrame(()=>{ decoQueued = false; decorate(); }); });
 
 // ---------- screens ----------
 document.getElementById('end').insertAdjacentHTML('beforebegin', `

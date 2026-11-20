@@ -264,11 +264,13 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         if (tts != null && ttsStatus == 1) tts.stop();
         if (listener != null) listener.stop();
         web.onPause();
+        web.pauseTimers();          // no animations or timers while the app is in the background
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        web.resumeTimers();
         web.onResume();
         if (updater != null) updater.onResume();
     }
