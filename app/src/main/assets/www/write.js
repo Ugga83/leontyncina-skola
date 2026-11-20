@@ -17,28 +17,30 @@ const W_LESSONS = [
 const ALL = {id:'all', c:'violet', t:'Ze všeho – bez konce', items:[...new Set(W_LESSONS.flatMap(l=>l.items))], endless:true};
 const NUM = {'0':'nula','1':'jedna','2':'dva','3':'tři','4':'čtyři','5':'pět','6':'šest','7':'sedm','8':'osm','9':'devět'};
 const isNum = x => /^[0-9]$/.test(x);
-const NAME = {a:'á', e:'é', i:'í', o:'ó', u:'ú', m:'em', l:'el', s:'es', p:'pé'};
+// how a letter is said: vowels short (a, e, i, o, u), consonants by name; always with a word, so it can't be misheard
+const NAME = {a:'a', e:'e', i:'i', o:'o', u:'u', m:'em', l:'el', s:'es', p:'pé'};
+const LIKE = {a:'auto', e:'Ema', i:'iglú', o:'osel', u:'ucho', m:'máma', l:'lama', s:'sova', p:'pes'};
+const letterSay = x => { const k = x.toLowerCase(); return `${NAME[k] || k}, jako ${LIKE[k] || ''}`; };
 const ROUND = 6;
 const W_SAY = {
   pick:'Vyber si, co budeme psát.',
   start:'Obtáhni prstem šedé písmenko. Jezdi přesně po čáře.',
   slow:'Jezdi prstem přesně po šedé čáře. Zkus to znovu.',
   rest:'Ještě obtáhni zbytek.',
-  show:'Dívej se, jak se to píše.',
   praise:['Krásně!','Paráda, to je hezké!','Výborně!','Haf! To se ti povedlo!','Jako ve škole!'],
 };
 function prompt(x){
   if (isNum(x)) return `Obtáhni číslo ${NUM[x]}.`;
   if (x.length === 1){
-    const n = NAME[x.toLowerCase()] || x;
-    return x === x.toUpperCase() ? `Obtáhni velké písmeno ${n}.` : `Obtáhni písmenko ${n}.`;
+    return x === x.toUpperCase() ? `Obtáhni velké písmeno ${letterSay(x)}.` : `Obtáhni písmenko ${letterSay(x)}.`;
   }
   return W_LESSONS[2].items.includes(x) ? 'Obtáhni slabiku.' : `Obtáhni slovo ${x}.`;
 }
 // after tracing Ayra says what is written there
+const written = x => x===x.toUpperCase() ? `To je velké ${letterSay(x)}.` : `To je ${letterSay(x)}.`;
 function sayWritten(x){
   if (isNum(x)) return speak(`To je ${NUM[x]}.`, {queue:true});
-  if (x.length === 1){ const n = NAME[x.toLowerCase()] || x; return speak(x===x.toUpperCase() ? `To je velké ${n}.` : `To je ${n}.`, {queue:true}); }
+  if (x.length === 1) return speak(written(x), {queue:true});
   if (W_LESSONS[2].items.includes(x)) return speak(x, {queue:true});      // syllable alone: recorded sound
   return speak(`Napsala jsi ${x}.`, {queue:true});
 }
@@ -64,9 +66,8 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
     <div class="scount" id="wStars">✓ 0</div><button class="round-btn" id="wSay" aria-label="Zopakovat">🔊</button></div>
   <div class="dots" id="wDots"></div>
   <div class="gtalk"><div class="owl"></div><div class="bubble" id="wBubble"></div></div>
-  <div class="card wcard" id="wCard"><canvas id="wGuide"></canvas><canvas id="wInk"></canvas><canvas id="wDemo"></canvas></div>
+  <div class="card wcard" id="wCard"><canvas id="wGuide"></canvas><canvas id="wInk"></canvas></div>
   <div class="btns" style="padding-bottom:6px">
-    <button class="bigbtn" style="--c:var(--orange);--d:var(--orange-d)" id="wShow">👀 Ukaž</button>
     <button class="bigbtn" style="--c:var(--violet);--d:var(--violet-d)" id="wClear">🧽 Smazat</button>
   </div>
 </section>`);
@@ -121,7 +122,7 @@ function layout(ctx, x){
 }
 function glyph(ctx, x, L){ ctx.font = `${L.fs}px ${FONT()}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; }
 function draw(){
-  const x = WS.items[WS.idx], g = sizeCanvas($('#wGuide')); sizeCanvas($('#wInk')); sizeCanvas($('#wDemo'));
+  const x = WS.items[WS.idx], g = sizeCanvas($('#wGuide')); sizeCanvas($('#wInk'));
   const L = layout(g, x); WS.fs = L.fs; WS.L = L;
   const W = g.canvas.width, H = g.canvas.height;
   // school lines: baseline, x-height and a faint top line
@@ -213,24 +214,8 @@ function clearInk(){ const c = ink.getContext('2d'); c.clearRect(0, 0, ink.width
 $('#wClear').addEventListener('click', ()=>{ sfx.tap(); if (!WS.done) clearInk(); });
 $('#wSay').addEventListener('click', ()=>{ sfx.tap(); sayItem(WS.items[WS.idx]); });
 
-// "show me": the letter is written left to right
-$('#wShow').addEventListener('click', ()=>{
-  sfx.tap(); speak(W_SAY.show);
-  const x = WS.items[WS.idx], c = $('#wDemo').getContext('2d'), L = WS.L, W = c.canvas.width, H = c.canvas.height;
-  c.font = `${L.fs}px ${FONT()}`; c.textAlign = 'center';
-  const m = c.measureText(x), w = m.actualBoundingBoxLeft + m.actualBoundingBoxRight, x0 = L.cx - m.actualBoundingBoxLeft - L.fs*.05;
-  const t0 = performance.now(), dur = 900 + 450 * x.length, my = ++WS.demo;
-  (function frame(t){
-    if (my !== WS.demo) return;
-    const k = Math.min(1, (t - t0) / dur);
-    c.clearRect(0, 0, W, H); c.save(); c.beginPath(); c.rect(0, 0, x0 + (w + L.fs*.1) * k, H); c.clip();
-    glyph(c, x, L); c.lineJoin = c.lineCap = 'round'; c.strokeStyle = c.fillStyle = '#ff8a3c'; c.lineWidth = L.fs * .045;
-    c.strokeText(x, L.cx, L.base); c.fillText(x, L.cx, L.base); c.restore();
-    if (k < 1) requestAnimationFrame(frame); else setTimeout(()=>{ if (my === WS.demo) c.clearRect(0, 0, W, H); }, 900);
-  })(t0);
-});
 WS.demo = 0;
 A.onLeave(()=>{ WS.run++; WS.demo++; });
 
-A.phraseSources.push(()=>[...W_LESSONS.flatMap(l=>l.items.map(prompt)), ...W_LESSONS.flatMap(l=>l.items).map(x=>W_LESSONS[2].items.includes(x)?'':(isNum(x)?`To je ${NUM[x]}.`:x.length===1?(x===x.toUpperCase()?`To je velké ${NAME[x.toLowerCase()]}.`:`To je ${NAME[x]}.`):`Napsala jsi ${x}.`)).filter(Boolean), W_SAY.pick, W_SAY.start, W_SAY.slow, W_SAY.rest, W_SAY.show, ...W_SAY.praise]);
+A.phraseSources.push(()=>[...W_LESSONS.flatMap(l=>l.items.map(prompt)), ...W_LESSONS.flatMap(l=>l.items).map(x=>W_LESSONS[2].items.includes(x)?'':(isNum(x)?`To je ${NUM[x]}.`:x.length===1?written(x):`Napsala jsi ${x}.`)).filter(Boolean), W_SAY.pick, W_SAY.start, W_SAY.slow, W_SAY.rest, ...W_SAY.praise]);
 })();

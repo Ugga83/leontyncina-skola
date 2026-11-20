@@ -248,7 +248,7 @@
 #wBubble .wcur{font-size:2.1em;line-height:.6;margin-left:.15em}
 .wcard{position:relative;flex:1;min-height:0;padding:0;overflow:hidden;touch-action:none}
 .wcard canvas{position:absolute;left:0;top:0}
-#wInk{z-index:2;touch-action:none}#wDemo{z-index:3;pointer-events:none}
+#wInk{z-index:2;touch-action:none}
 
 /* ---------- výzva dne ---------- */
 .challenge{border:0;font:inherit;cursor:pointer;width:100%;max-width:720px;display:flex;align-items:center;gap:12px;
