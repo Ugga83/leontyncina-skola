@@ -111,7 +111,7 @@ class Updater {
         if (act.isFinishing()) return;
         new AlertDialog.Builder(act)
                 .setTitle("Nová verze je tady! 🎉")
-                .setMessage("Leontýnčina škola " + tag.replaceFirst("^v", "")
+                .setMessage("Učíme se s Ayrou " + tag.replaceFirst("^v", "")
                         + " je připravená. Chceš ji teď stáhnout a nainstalovat?\n\n"
                         + "Hvězdičky a nálepky zůstanou.")
                 .setPositiveButton("Aktualizovat", (d, w) -> download(url))

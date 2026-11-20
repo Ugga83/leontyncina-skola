@@ -1,4 +1,4 @@
-// Leontýnčina škola – what went wrong (to repeat it), daily challenge, parents' overview
+// Učíme se s Ayrou – what went wrong (to repeat it), daily challenge, parents' overview
 (() => {
 const A = window.App, {store, speak, sfx, confetti} = A;
 const $ = s => document.querySelector(s);
@@ -126,7 +126,7 @@ $('#pClear').addEventListener('click', ()=>{
   if (!confirm('Opravdu vymazat seznam chyb k opakování?')) return;
   const st = stats(); st.weak = {}; store.set('stats', st); renderParent();
 });
-// hold the title "Leontýnčina škola" for 2 seconds
+// hold the title "Učíme se s Ayrou" for 2 seconds
 (() => {
   const h = $('#hub h1'); if (!h) return; let t = null;
   const stop = () => { clearTimeout(t); t = null; h.classList.remove('holding'); };

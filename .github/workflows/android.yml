@@ -52,7 +52,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ env.APP_BUILD }}
-          name: Leontýnčina škola 1.0.${{ env.APP_BUILD }}
+          name: Učíme se s Ayrou 1.0.${{ env.APP_BUILD }}
           target_commitish: ${{ github.sha }}
           body: |
             Stáhni soubor **leontyncina-skola.apk** přímo v telefonu a nainstaluj ho.

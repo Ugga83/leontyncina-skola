@@ -1,4 +1,4 @@
-# Leontýnčina škola 🐶
+# Učíme se s Ayrou 🐶
 
 Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čtení.
 
@@ -35,7 +35,7 @@ Mluvící aplikace pro prvňáčky (Android): matematika, logopedie, brzy i čte
 ## Jak aplikaci dostat do telefonu
 1. Na GitHubu otevři v tomto repozitáři **Releases** (vpravo) a v telefonu stáhni nejnovější `leontyncina-skola.apk`.
 2. Otevři stažený soubor a povol instalaci z „neznámých zdrojů“ (telefon se zeptá).
-3. Spusť aplikaci **Leontýnčina škola**.
+3. Spusť aplikaci **Učíme se s Ayrou**.
 
 APK se sestaví po každé změně (kontrola), ale nová verze se vydá jen ručně: Actions → Sestavit APK → Run workflow, nebo commit se slovem [vydat].
 

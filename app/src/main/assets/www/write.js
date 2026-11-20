@@ -1,4 +1,4 @@
-// Leontýnčina škola – Psaní: tracing Czech school cursive letters with a finger
+// Učíme se s Ayrou – Psaní: tracing Czech school cursive letters with a finger
 (() => {
 const A = window.App, {speak, sfx, confetti, pick} = A;
 const $ = s => document.querySelector(s);
