@@ -466,3 +466,4 @@
 #endless .enreadbtns{display:flex;justify-content:center;gap:14px;width:100%;flex:0 0 auto}
 #endless.readmode .encard{flex:1}
 #endless .encard .heard{min-height:1.2em}
+#endless .top{gap:6px}#endless .hearts{font-size:22px;margin-left:2px}

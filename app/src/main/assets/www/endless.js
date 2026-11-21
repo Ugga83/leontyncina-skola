@@ -51,7 +51,7 @@ function start(cont){
 function offer(){
   const sv = store.get('enSave', null);
   if (!sv) return start(false);
-  ES.task = null; ES.busy = false; ES.n = sv.n; ES.hearts = sv.hearts; render();
+  ES.task = null; ES.busy = false; ES.n = sv.n; ES.hearts = sv.hearts; blank(); render();    // layout of the last task must not stay
   $('#enBubble').textContent = `Máš rozehranou hru: 🔥 ${sv.n}. Pokračovat?`;
   $('#enCard').innerHTML = '<div class="enq">🎲</div>';
   $('#enAns').className = 'answers enans';
@@ -102,7 +102,7 @@ function render(){
   const np = nextPrize(ES.n), prev = PRIZES.filter(p=>p.at<=ES.n).map(p=>p.at).pop() || 0;
   $('#enNext').innerHTML = `<span>Další odměna: ${np.t}</span><i><b style="width:${Math.round(100*(ES.n-prev)/Math.max(1,np.at-prev))}%"></b></i>`;
   const pb = $('#enPics'); pb.textContent = enPics() ? '🍎' : '🙈'; pb.classList.toggle('off', !enPics());
-  pb.style.visibility = ES.task && ES.task.kind==='math' ? '' : 'hidden';
+  pb.style.display = ES.task && ES.task.kind==='math' ? '' : 'none';         // only for math, and no empty gap otherwise
 }
 function applyPics(){ const t = ES.task; $('#enCard').classList.toggle('nopics', !(enPics() || (t && t.reveal))); }
 function next(first){
