@@ -17,10 +17,12 @@ const W_LESSONS = [
 const ALL = {id:'all', c:'violet', t:'Ze všeho – bez konce', items:[...new Set(W_LESSONS.flatMap(l=>l.items))], endless:true};
 const NUM = {'0':'nula','1':'jedna','2':'dva','3':'tři','4':'čtyři','5':'pět','6':'šest','7':'sedm','8':'osm','9':'devět'};
 const isNum = x => /^[0-9]$/.test(x);
-// how a letter is said: vowels short (a, e, i, o, u), consonants by name; always with a word, so it can't be misheard
-const NAME = {a:'a', e:'e', i:'i', o:'o', u:'u', m:'em', l:'el', s:'es', p:'pé'};
+// how a letter is said: consonants by name (em, el…), always with a word, so it can't be misheard.
+// A vowel on its own would be read long by the sentence voice ("é"), so it is said as a separate
+// short recorded sound (voice/fixed, exact pronunciation) between two parts of the sentence.
+const NAME = {m:'em', l:'el', s:'es', p:'pé'};
 const LIKE = {a:'auto', e:'Ema', i:'iglú', o:'osel', u:'ucho', m:'máma', l:'lama', s:'sova', p:'pes'};
-const letterSay = x => { const k = x.toLowerCase(); return `${NAME[k] || k}, jako ${LIKE[k] || ''}`; };
+const isVowel = x => /^[aeiou]$/i.test(x);
 const ROUND = 6;
 const W_SAY = {
   pick:'Vyber si, co budeme psát.',
@@ -29,26 +31,28 @@ const W_SAY = {
   rest:'Ještě obtáhni zbytek.',
   praise:['Krásně!','Paráda, to je hezké!','Výborně!','Haf! To se ti povedlo!','Jako ve škole!'],
 };
-function prompt(x){
-  if (isNum(x)) return `Obtáhni číslo ${NUM[x]}.`;
+const isSyl = x => W_LESSONS[2].items.includes(x);
+const big = x => x.length===1 && !isNum(x) && x===x.toUpperCase();
+function promptParts(x){
+  if (isNum(x)) return [`Obtáhni číslo ${NUM[x]}.`];
   if (x.length === 1){
-    return x === x.toUpperCase() ? `Obtáhni velké písmeno ${letterSay(x)}.` : `Obtáhni písmenko ${letterSay(x)}.`;
+    const k = x.toLowerCase(), head = big(x) ? 'Obtáhni velké písmeno' : 'Obtáhni písmenko';
+    return isVowel(k) ? [head, k, `jako ${LIKE[k]}.`] : [`${head} ${NAME[k]}, jako ${LIKE[k]}.`];
   }
-  return W_LESSONS[2].items.includes(x) ? 'Obtáhni slabiku.' : `Obtáhni slovo ${x}.`;
+  return isSyl(x) ? ['Obtáhni slabiku.', x] : [`Obtáhni slovo ${x}.`];     // a syllable alone: recorded sound
 }
 // after tracing Ayra says what is written there
-const written = x => x===x.toUpperCase() ? `To je velké ${letterSay(x)}.` : `To je ${letterSay(x)}.`;
-function sayWritten(x){
-  if (isNum(x)) return speak(`To je ${NUM[x]}.`, {queue:true});
-  if (x.length === 1) return speak(written(x), {queue:true});
-  if (W_LESSONS[2].items.includes(x)) return speak(x, {queue:true});      // syllable alone: recorded sound
-  return speak(`Napsala jsi ${x}.`, {queue:true});
+function writtenParts(x){
+  if (isNum(x)) return [`To je ${NUM[x]}.`];
+  if (x.length === 1){
+    const k = x.toLowerCase(), head = big(x) ? 'To je velké' : 'To je';
+    return isVowel(k) ? [head, k, `jako ${LIKE[k]}.`] : [`${head} ${NAME[k]}, jako ${LIKE[k]}.`];
+  }
+  return isSyl(x) ? [x] : [`Napsala jsi ${x}.`];
 }
-// a syllable is spoken on its own (inside a sentence the voice may spell it out)
-const sayItem = (x, queue) => {
-  const p = speak(prompt(x), {queue:!!queue});
-  return W_LESSONS[2].items.includes(x) ? speak(x, {queue:true}) : p;
-};
+const sayParts = (parts, queue) => parts.reduce((p, t, i)=>speak(t, {queue: i>0 || !!queue}), null);
+const sayWritten = x => sayParts(writtenParts(x), true);
+const sayItem = (x, queue) => sayParts(promptParts(x), queue);
 
 document.getElementById('end').insertAdjacentHTML('beforebegin', `
 <section id="write" class="screen scroll">
@@ -217,5 +221,5 @@ $('#wSay').addEventListener('click', ()=>{ sfx.tap(); sayItem(WS.items[WS.idx]);
 WS.demo = 0;
 A.onLeave(()=>{ WS.run++; WS.demo++; });
 
-A.phraseSources.push(()=>[...W_LESSONS.flatMap(l=>l.items.map(prompt)), ...W_LESSONS.flatMap(l=>l.items).map(x=>W_LESSONS[2].items.includes(x)?'':(isNum(x)?`To je ${NUM[x]}.`:x.length===1?written(x):`Napsala jsi ${x}.`)).filter(Boolean), W_SAY.pick, W_SAY.start, W_SAY.slow, W_SAY.rest, ...W_SAY.praise]);
+A.phraseSources.push(()=>[...W_LESSONS.flatMap(l=>l.items).flatMap(x=>[...promptParts(x), ...writtenParts(x)]), W_SAY.pick, W_SAY.start, W_SAY.slow, W_SAY.rest, ...W_SAY.praise]);
 })();

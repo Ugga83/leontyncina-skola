@@ -27,6 +27,12 @@ function track(sec, key, ok){
   while (keys.length > 90) delete st.days[keys.shift()];
   store.set('stats', st);
 }
+// what the microphone heard when a syllable did not match (last 30), for tuning the recognition
+function heard(target, results){
+  const h = store.get('heard', []);
+  h.unshift([target, (results||[]).slice(0,3).join(' / ') || '(ticho)', todayISO()]);
+  store.set('heard', h.slice(0, 30));
+}
 function weak(sec, n){
   const w = stats().weak[sec] || {};
   return Object.keys(w).sort((a,b)=>w[b]-w[a]).slice(0, n || 99);
@@ -85,6 +91,7 @@ document.body.insertAdjacentHTML('beforeend', `
   <div class="lcard"><h4>Co ještě nejde <small>(opakuje se, dokud to nezvládne)</small></h4><div id="pWeak"></div>
     <button class="pclear" id="pClear">Vymazat seznam chyb</button></div>
   <div class="lcard"><h4>Nejčastější chyby celkem</h4><div id="pErrs"></div></div>
+  <div class="lcard"><h4>Co Ayra slyšela <small>(když slabiku nepoznala)</small></h4><div id="pHeard"></div></div>
 </section>`);
 
 function lastDays(n){ const out = []; for (let i=n-1;i>=0;i--){ const d = new Date(); d.setDate(d.getDate()-i); out.push(d); } return out; }
@@ -121,6 +128,9 @@ function renderParent(){
   }).join('') || '<p class="pnone">Nic – všechno jde! 🎉</p>';
   $('#pWeak').innerHTML = list(st.weak);
   $('#pErrs').innerHTML = list(st.errs);
+  const hd = store.get('heard', []);
+  $('#pHeard').innerHTML = hd.length ? hd.map(([t,r,d])=>`<div class="pheard"><b>${t}</b><span>${r}</span><i>${d.slice(8)}.${d.slice(5,7)}.</i></div>`).join('')
+    : '<p class="pnone">Zatím nic.</p>';
 }
 $('#pClear').addEventListener('click', ()=>{
   if (!confirm('Opravdu vymazat seznam chyb k opakování?')) return;
@@ -135,7 +145,7 @@ $('#pClear').addEventListener('click', ()=>{
   h.addEventListener('contextmenu', e=>e.preventDefault());
 })();
 
-A.progress = {track, weak, roundDone, renderChallenge};
+A.progress = {track, weak, heard, roundDone, renderChallenge};
 A.phraseSources.push(()=>[...CH.map(c=>c.say), CH_DONE, CH_DONE.split('!')[0] + '!']);
 renderChallenge();
 })();

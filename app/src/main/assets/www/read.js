@@ -172,19 +172,25 @@ function stopListen(){
 }
 // lenient match for a first-grader: ignore case, accents (length, háčky), i/y, similar consonants
 const norm = s => s.toLowerCase().replace(/π/g,'pi').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/y/g,'i').replace(/[^a-z ]/g,' ');
-const CGROUP = {s:'szc', z:'szc', c:'szc', p:'pb', b:'pb', m:'mn', n:'mn', l:'lr', r:'lr', t:'td', d:'td'};
+const CGROUP = {s:'szc', z:'szc', c:'szc', p:'pb', b:'pb', m:'mnb', n:'mn', l:'lr', r:'lr', t:'td', d:'td'};
+// how the recogniser writes a lone syllable or letter: "mo" -> "mol", "se" -> "C", "si" -> "sí"
+const LETTER = {c:'ce', s:'es', z:'zet', m:'em', l:'el', p:'pe'};
 function syllableOk(t, w){
   if (!w) return false;
   if (w.startsWith(t)) return true;
-  const c = t[0], v = t[1];
+  const c = t[0], v = t[1], g = CGROUP[c] || c;
   if (!v) return w[0]===c;
-  return (CGROUP[c]||c).includes(w[0]) && w[1]===v;
+  if (g.includes(w[0]) && w[1]===v) return true;
+  if (w.length===1 && g.includes(w)) return true;                    // only the consonant was caught
+  if (LETTER[w] && g.includes(w[0]) && LETTER[w].endsWith(v)) return true;   // read as a letter name
+  return false;
 }
 function matches(target, results){
   const t = norm(target).replace(/ /g,'');
   return results.some(r=>{
-    const words = norm(r).split(/\s+/).filter(Boolean);
-    return syllableOk(t, words.join('')) || words.some(w=>syllableOk(t, w));
+    const words = norm(r).split(/\s+/).filter(Boolean), all = words.join('');
+    return syllableOk(t, all) || words.some(w=>syllableOk(t, w))
+      || (all.length <= t.length + 2 && all.includes(t));           // "a mo", "omo"
   });
 }
 
@@ -289,6 +295,7 @@ async function success(c){
 }
 async function miss(c, heard){
   c.tries++; sfx.bad();
+  if (A.progress && A.progress.heard) A.progress.heard(c.s, heard);
   const el = cellEl(c); if (el) el.classList.add('bad');
   $('#rrHeard').textContent = heard.length ? `slyšela jsem: ${heard.slice(0,3).join(' / ')}` : '';
   if (c.tries === 1){ $('#rrBubble').textContent='Zkus to znovu!'; await speak(R_MSG.again); }
