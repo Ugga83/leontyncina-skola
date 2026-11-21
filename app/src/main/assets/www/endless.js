@@ -70,12 +70,10 @@ function makeTask(){
   do { kind = pick(kinds); } while (kind === ES.last && Math.random() < .7);
   ES.last = kind;
   if (kind==='add' || kind==='sub' || kind==='cmp'){
+    // shown exactly like in Matematika (pictures, example, the same buttons)
     const t = M.genTask(kind, max);
-    if (kind==='cmp') return {kind, t, say:M.prompt(t), show:`${t.a} <span class="slot">?</span> ${t.b}`, ans:t.answer, opts:['<','=','>'], key:'math'};
-    const opts = new Set([t.answer]);
-    let guard = 0;
-    while (opts.size < nOpt && guard++ < 100){ const x = t.answer + Math.floor(Math.random()*5) - 2; if (x >= 1 && x <= max) opts.add(x); }          // no zero, like in Matematika
-    return {kind, t, say:M.prompt(t), show:`${t.a} ${kind==='add'?'+':'−'} ${t.b} = <span class="slot">?</span>`, ans:t.answer, opts:shuffle([...opts]), key:'math'};
+    t.emoji = pick(M.EMOJI); t.emoji2 = pick(M.EMOJI.filter(e=>e!==t.emoji));
+    return {kind, t, max, say:M.prompt(t), ans:t.answer, key:'math'};
   }
   const pool = A.syllables ? A.syllables().map(s=>s.toLowerCase()) : ['ma','me','mi','mo','mu'];
   const uniq = [...new Set(pool)];
@@ -105,10 +103,16 @@ function next(first){
   ES.task = makeTask(); ES.busy = false;
   const t = ES.task;
   render();
-  $('#enBubble').textContent = t.kind==='syl' ? 'Najdi slabiku, kterou říkám.' : t.kind==='cur' ? 'Najdi psané písmo, které říkám.' : t.kind==='cmp' ? 'Větší, menší, nebo rovná se?' : 'Kolik to je?';
-  $('#enCard').innerHTML = `<div class="enq ${t.show==='👂'?'ear':''}">${t.show}</div>`;
-  $('#enAns').className = 'answers enans' + (t.cursive ? ' cursive' : '');
-  $('#enAns').innerHTML = t.opts.map(o=>`<button class="ans" data-v="${o}">${o}</button>`).join('');
+  $('#enBubble').textContent = t.kind==='syl' ? 'Najdi slabiku, kterou říkám.' : t.kind==='cmp' ? `Je ${t.t.a} větší, menší, nebo stejně jako ${t.t.b}?` : `Kolik je ${t.t.a} ${t.kind==='add'?'+':'−'} ${t.t.b}?`;
+  $('#endless').classList.toggle('mathmode', !!t.t);
+  $('#enAns').className = 'answers enans';
+  if (t.t){
+    M.draw($('#enCard'), $('#enAns'), t.t, t.max);
+    const sl = $('#enCard .slot'); if (sl) sl.removeAttribute('id');
+  } else {
+    $('#enCard').innerHTML = `<div class="enq ear">👂</div>`;
+    $('#enAns').innerHTML = t.opts.map(o=>`<button class="ans" data-v="${o}">${o}</button>`).join('');
+  }
   sayTask(!!first);
 }
 $('#enSay').addEventListener('click', ()=>{ sfx.tap(); sayTask(); });

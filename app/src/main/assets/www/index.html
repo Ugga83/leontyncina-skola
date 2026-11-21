@@ -503,6 +503,13 @@ function renderTask(queue){
   $('#scount').textContent = '✓ '+S.stars;
   $('#gameBubble').textContent = bubbleText(t);
 
+  drawMath(card, ans, t, S.max);
+  S.reveal=false; applyPics();
+  speak(prompt(t), {queue:!!queue});
+}
+
+// draws a math task (pictures + example + answer buttons); used by Matematika and by the game Ze všeho
+function drawMath(card, ans, t, max){
   if (t.type==='add'){
     card.innerHTML = `<div class="visual hideable">${groupHTML(t.a,t.emoji,0,true)}<div class="opsign">+</div>${groupHTML(t.b,t.emoji,1,true)}</div>
       <div class="expr"><span>${t.a}</span><span class="o">+</span><span>${t.b}</span><span class="o">=</span><span class="slot" id="slot">?</span></div>`;
@@ -515,21 +522,18 @@ function renderTask(queue){
     card.innerHTML = `<div class="visual">${groupHTML(t.a,t.emoji,0,true)}<span class="slot cmp-slot" id="slot">?</span>${groupHTML(t.b,t.emoji2,1,true)}</div>`;
   }
 
-  S.reveal=false; applyPics();
   const vis=card.querySelector('.visual');
   vis.style.setProperty('--tc', t.type==='sub'?cols(t.a):cols(t.a)+cols(t.b));
   if (t.type==='cmp'){
     ans.innerHTML = [['<','menší'],['=','rovná se'],['>','větší']]
       .map(([s,l])=>`<button class="ans sign" data-v="${s}">${s==='<'?'&lt;':s==='>'?'&gt;':s}<small>${l}</small></button>`).join('');
   } else {
-    let h=''; for(let i=1;i<=S.max;i++) h+=`<button class="ans" data-v="${i}">${i}</button>`;
+    let h=''; for(let i=1;i<=max;i++) h+=`<button class="ans" data-v="${i}">${i}</button>`;
     ans.innerHTML = h;
   }
   // tap a group to count it aloud
   card.querySelectorAll('.grp').forEach(g=>g.addEventListener('click',()=>{ if(!S.busy) countItems([...g.querySelectorAll('.it:not(.gone)')]); }));
-  speak(prompt(t), {queue:!!queue});
 }
-
 let counting = 0;
 async function countItems(items){
   const my = ++counting;
@@ -770,7 +774,7 @@ const phraseSources = [()=>{
 // every sentence the app can say, for pre-recording the voice (tools/gen_voice.py)
 window.__allPhrases = ()=>[...new Set(phraseSources.flatMap(f=>f()).map(t=>t.trim()))].sort();
 window.__vkey = vkey;
-window.App = {STICKERS, BARKS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, awardRound, toastStars, math:{genTask, prompt, solution, solutionShort}, leaveHooks, phraseSources,
+window.App = {STICKERS, BARKS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, awardRound, toastStars, math:{genTask, prompt, solution, solutionShort, draw:drawMath, EMOJI}, leaveHooks, phraseSources,
   onLeave:f=>leaveHooks.push(f)};
 
 // sticker state {got, have, cost, earned, first}; first run: keep every sticker already earned (old rule: one per 10 stars)
