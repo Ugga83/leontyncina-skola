@@ -110,13 +110,14 @@ function next(first){
     M.draw($('#enCard'), $('#enAns'), t.t, t.max);
     const sl = $('#enCard .slot'); if (sl) sl.removeAttribute('id');
   } else {
-    $('#enCard').innerHTML = `<div class="enq ear">👂</div>`;
+    $('#enCard').innerHTML = `<div class="enq ear">👂</div><button class="bigbtn enreplay" style="--c:var(--orange);--d:var(--orange-d)">🔊 Znovu</button>`;
     $('#enAns').innerHTML = t.opts.map(o=>`<button class="ans" data-v="${o}">${o}</button>`).join('');
   }
   sayTask(!!first);
 }
 $('#enSay').addEventListener('click', ()=>{ sfx.tap(); sayTask(); });
-$('#enCard').addEventListener('click', ()=>{ if (ES.task && ES.task.sayX) sayTask(); });
+// "again" says just the syllable, without the whole sentence
+$('#enCard').addEventListener('click', e=>{ if (ES.task && ES.task.sayX){ sfx.tap(); speak(ES.task.sayX); } });
 
 $('#enAns').addEventListener('click', async e=>{
   const act = e.target.closest('[data-act]');
