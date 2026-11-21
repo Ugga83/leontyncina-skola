@@ -691,7 +691,7 @@ function renderHome(){
     : '<span>Máš celou sbírku! 🎉</span>';
 }
 function goHome(){ go('home'); }
-const PARENT = {treasure:'hub', write:'hub', wtrace:'write', parent:'hub', shop:'hub', journey:'hub', paws:'hub', read:'hub', rlesson:'read', rread:'rlesson', rfind:'rlesson', home:'hub', logopedie:'parent', logo:'logopedie', game:'home', sound:'logo', lgame:'logo', warm:'logopedie'};
+const PARENT = {advent:'hub', treasure:'hub', write:'hub', wtrace:'write', parent:'hub', shop:'hub', journey:'hub', paws:'hub', read:'hub', rlesson:'read', rread:'rlesson', rfind:'rlesson', home:'hub', logopedie:'parent', logo:'logopedie', game:'home', sound:'logo', lgame:'logo', warm:'logopedie'};
 const leaveHooks = [];
 function go(id){
   counting++; hush(); leaveHooks.forEach(f=>{try{f(id)}catch(e){}});

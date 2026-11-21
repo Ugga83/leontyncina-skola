@@ -6,9 +6,17 @@ const {sfx, confetti, store, speak, pick} = A;
 const SAY = {
   wear:['Haf! Děkuju, to mi sluší!','Haf haf! Moc se mi to líbí!'], room:'Haf! To je pro mě? Děkuju!',
   poor:'Na tohle ještě nemáme dost hvězdiček.', shop:'Vítej v mojí boudě! Co mi koupíš?',
-  treasure:'Tady jsou všechny tvoje poklady.', journey:'Tohle je naše cesta. Na konci jsou prázdniny!', paws:'Za každý den s procvičováním dostaneš tlapku.',
+  treasure:'Tady je tvoje album sbírek a odznaky.', journey:'Tohle je naše cesta. Na konci jsou prázdniny!', paws:'Za každý den s procvičováním dostaneš tlapku.',
   week:'Haf haf! Pět tlapek za týden! Tady máš bonus.', gift:'Haf! Máš dárek! Otevři ho.', gold:'Haf haf! Zlatý poklad!', yay:'Paráda!',
   night:'Psst, Ayra už spinká. Ťukni na ni a probudí se.', night2:'Dobrý večer! Ayra je ospalá. Kup jí pelíšek, ať má kde spát.',
+  lockAlbum:'Tohle nejde koupit. Dostaneš to, když dokončíš sbírku v albu.', lockAdvent:'Tohle je z adventního kalendáře.',
+  album:'Hurá! Máš celou sbírku! Tady máš deset hvězdiček a něco speciálního pro Ayru!',
+  badge:'Haf haf! Máš nový odznak!', trick:'Haf! Naučila jsem se nový trik! Pojď se podívat do boudy.',
+  wheelWin:'Haf! Kolo štěstí se zastavilo!', spin:'Pět tlapek za týden! Můžeš zatočit kolem štěstí!',
+  advent:'Tohle je adventní kalendář. Každý den, kdy si zahraješ, otevřeš jedno okénko.',
+  advOpen:'Haf! Co je v okénku?', adv24:'Veselé Vánoce! Tady je velký dárek!',
+  advWait:'Tohle okénko ještě nejde otevřít. Musíš počkat na ten den.', advPlay:'Nejdřív si dnes zahraj aspoň jedno kolo.',
+  visit:'Ahoj Ayro! Přišel jsem na návštěvu!', swap:'Vyber si obrázek, který chceš.',
   yum:'Mňam, mňam! Děkuju!', ball:'Haf haf! Hodíš mi ho ještě?', teddy:'Můj plyšáček!', bed:'Jdu si na chvilku lehnout.'
 };
 const $ = s => document.querySelector(s);
@@ -43,7 +51,7 @@ const SHOP = [
   {id:'bowl',   e:'🥣', n:'Miska',             p:6,  slot:'room', pos:[39,.8,.34]},
   {id:'ball',   e:'🎾', n:'Míček',             p:8,  slot:'room', pos:[64,.92,.3]},
   {id:'meat',   e:'🍖', n:'Masíčko',           p:9,  slot:'room', pos:[44,.98,.3]},
-  {id:'balloon',e:'🎈', n:'Balonek',           p:10, slot:'room', wall:[7,13,.45]},
+  {id:'balloon',e:'🎈', n:'Balonek',           p:10, slot:'room', wall:[76,12,.45]},
   {id:'car',    e:'🚗', n:'Autíčko',           p:12, slot:'room', pos:[57,1,.34]},
   {id:'puzzle', e:'🧩', n:'Skládačka',         p:12, slot:'room', pos:[80,.97,.34]},
   {id:'plant',  e:'🪴', n:'Kytka v květináči', p:14, slot:'room', pos:[52,0,.6]},
@@ -81,6 +89,28 @@ const SHOP = [
   {id:'wsun',   e:'🌤️', n:'Okno se sluníčkem', p:30, slot:'window', v:'☀️'},
   {id:'wmoon',  e:'🌙', n:'Okno s měsíčkem',   p:30, slot:'window', v:'🌙'},
   {id:'lights', e:'✨', n:'Světýlka',          p:25, slot:'light'},
+  // ---- speciální: za dokončené sbírky v albu (from:'album:<id>') a z adventního kalendáře (from:'advent') ----
+  {id:'cl_sea',   e:'🤿', n:'Potápěčská maska',  p:0, slot:'eyes', from:'album:sea'},
+  {id:'cl_tent',  e:'🏕️', n:'Stan',              p:0, slot:'room', from:'album:forest', pos:[33,.38,.75]},
+  {id:'cl_tract', e:'🚜', n:'Traktůrek',          p:0, slot:'room', from:'album:farm',   pos:[70,1,.32]},
+  {id:'cl_space', e:'🌠', n:'Hvězdná čelenka',    p:0, slot:'head', from:'album:space'},
+  {id:'cl_dino',  e:'🦕', n:'Plyšový dinosaurus', p:0, slot:'room', from:'album:dino',   pos:[19,.96,.45]},
+  {id:'cl_lolly', e:'🍭', n:'Obří lízátko',       p:0, slot:'room', from:'album:sweet',  pos:[97,.88,.55]},
+  {id:'cl_fruit', e:'🧺', n:'Košík s ovocem',     p:0, slot:'room', from:'album:fruit',  pos:[42,.62,.32]},
+  {id:'cl_bugs',  e:'🔍', n:'Lupa na broučky',    p:0, slot:'room', from:'album:bugs',   pos:[60,.78,.22]},
+  {id:'cl_music', e:'🎤', n:'Mikrofon',           p:0, slot:'room', from:'album:music',  pos:[76,.62,.4]},
+  {id:'cl_tales', e:'💫', n:'Kouzelná čelenka',   p:0, slot:'head', from:'album:tales'},
+  {id:'cl_rain',  e:'☂️', n:'Deštník',            p:0, slot:'room', from:'album:weather', wall:[33,10,.4]},
+  {id:'cl_race',  e:'🏎️', n:'Závodní auto',       p:0, slot:'room', from:'album:trans',  pos:[90,.99,.36]},
+  {id:'w_snow',   e:'🌨️', n:'Sníh za oknem',      p:0, slot:'snow', from:'advent'},
+  {id:'w_stock',  e:'🧦', n:'Vánoční punčocha',   p:0, slot:'room', from:'advent', winter:true, wall:[88,40,.35]},
+  {id:'w_snowman',e:'⛄', n:'Sněhulák',           p:0, slot:'room', from:'advent', winter:true, pos:[3,.75,.6]},
+  {id:'w_sled',   e:'🛷', n:'Sáňky',              p:0, slot:'room', from:'advent', winter:true, pos:[28,.75,.5]},
+  {id:'w_bells',  e:'🔔', n:'Vánoční zvonky',     p:0, slot:'room', from:'advent', winter:true, wall:[85,8,.35]},
+  {id:'w_scarf',  e:'🧣', n:'Zimní šála',         p:0, slot:'neck', from:'advent'},
+  {id:'w_candle', e:'🕯️', n:'Svíčka',             p:0, slot:'room', from:'advent', winter:true, pos:[55,.97,.25]},
+  {id:'w_santa',  e:'🎅', n:'Mikulášská čepice',  p:0, slot:'head', from:'advent'},
+  {id:'w_gifts',  e:'🎁', n:'Dárky pod stromeček',p:0, slot:'room', from:'advent', winter:true, pos:[89,.12,.4]},
 ];
 const WEAR_SLOTS = ['head','eyes','neck'], HOUSE_SLOTS = ['wall','floor','window','light'];
 const PLACES = [
@@ -89,12 +119,7 @@ const PLACES = [
   ['🌾','Pole'],['🚂','Nádraží'],['🏙️','Město'],['🎪','Cirkus'],['🎡','Pouť'],['🏜️','Poušť'],['🌴','Oáza'],['🏖️','Pláž'],
   ['🌊','Moře'],['⛵','Plachetnice'],['🏝️','Ostrov'],['🐠','Korálový útes'],['🌈','Duha'],['🏰','Hrad'],['🎆','Ohňostroj'],['🎉','Prázdniny!']
 ];
-const TREASURES = {
-  common:['🐚','🍀','🪨','🌰','🍁','🪶','🔮','🎈'],
-  rare:['💎','🦋','🌟','🪄','🧩','🎐'],
-  gold:['🏆','🥇','🦄','👸']
-};
-const WEEK_BONUS = 5, BOX_EVERY = 10;
+const BOX_EVERY = 10;
 
 // ---------- state helpers ----------
 const get = (k,d)=>store.get(k,d), set = (k,v)=>store.set(k,v);
@@ -103,6 +128,225 @@ const dayNo = d => Math.floor((d||new Date()).getTime()/86400000 - (d||new Date(
 const weekOf = n => Math.floor((n + 3) / 7);            // weeks start on Monday (day 0 = Thu 1.1.1970)
 function owned(){ return get('owned', []); }
 function wear(){ return get('wear', {}); }
+
+// ====================================================================================
+// ALBUM: 12 collections of 10 (6 common, 3 rare, 1 gold). Gifts bring album pictures;
+// 3 spare doubles can be swapped for a missing one; a full collection = 10 ⭐ + a special thing.
+// ====================================================================================
+const COLL = [
+  {id:'sea',     n:'Moře',      e:'🌊', it:['🐚','🦀','🐟','🐠','🦐','🐡','🐙','🐢','🐬','🐳']},
+  {id:'forest',  n:'Les',       e:'🌲', it:['🍄','🌰','🍂','🐌','🦔','🐿️','🦊','🦉','🦌','🐻']},
+  {id:'farm',    n:'Statek',    e:'🐄', it:['🐔','🐣','🐷','🐮','🐑','🐐','🐴','🦆','🐇','🐓']},
+  {id:'space',   n:'Vesmír',    e:'🚀', it:['🌙','⭐','☄️','🌍','🪐','🛰️','👽','🛸','🌌','👩‍🚀']},
+  {id:'dino',    n:'Dinosauři', e:'🦕', it:['🥚','🦴','🌋','🌿','🦎','🐊','🦕','🦖','🐉','🐲']},
+  {id:'sweet',   n:'Sladkosti', e:'🍭', it:['🍬','🍭','🍫','🍪','🍩','🧁','🍰','🍦','🎂','🍯']},
+  {id:'fruit',   n:'Ovoce',     e:'🍎', it:['🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🍒','🍍']},
+  {id:'bugs',    n:'Broučci',   e:'🐞', it:['🐜','🐛','🐝','🐞','🦗','🕷️','🕸️','🪲','🦋','🌼']},
+  {id:'music',   n:'Hudba',     e:'🎵', it:['🎵','🎶','🥁','🎺','🎷','🎻','🪕','🎹','🎸','🎼']},
+  {id:'tales',   n:'Pohádky',   e:'🏰', it:['🧚','🧙','🧝','🧜','🐸','🔮','🪄','🦄','🏰','👸']},
+  {id:'weather', n:'Počasí',    e:'🌈', it:['☀️','☁️','🌧️','⛅','❄️','⛄','⚡','🌪️','🌈','🌞']},
+  {id:'trans',   n:'Doprava',   e:'🚗', it:['🚲','🛴','🚌','🚕','🚓','🚑','🚒','🚂','✈️','🚁']},
+];
+const RARITY = i => i < 6 ? 'common' : i < 9 ? 'rare' : 'gold';
+const ALBUM_TOTAL = COLL.length * 10;
+const album = () => get('album', {});                    // {"sea:3": copies}
+const albumHave = (al, c) => c.it.filter((_,i)=>al[c.id+':'+i]).length;
+const spare = al => Object.values(al).reduce((s,n)=>s + Math.max(0, n-1), 0);
+// old treasures move into the album (same picture where it exists, else a common picture)
+if (!get('albumv1', false)){
+  const old = get('treasures', {}), al = album();
+  Object.keys(old).forEach(t=>{
+    let k = null;
+    COLL.forEach(c=>c.it.forEach((x,i)=>{ if (!k && x===t) k = c.id+':'+i; }));
+    if (!k){ const free = COLL.flatMap(c=>c.it.map((_,i)=>c.id+':'+i)).filter(x=>!al[x] && RARITY(+x.split(':')[1])==='common'); k = pick(free); }
+    if (k) al[k] = (al[k]||0) + 1;
+  });
+  set('album', al); set('albumv1', true);
+}
+// a new picture: mostly ones she does not have yet, so the album keeps filling up
+function drawPicture(tier){
+  const al = album();
+  if (!tier){ const r = Math.random(); tier = r < .06 ? 'gold' : r < .3 ? 'rare' : 'common'; }
+  const all = COLL.flatMap(c=>c.it.map((_,i)=>c.id+':'+i)).filter(k=>RARITY(+k.split(':')[1])===tier);
+  const missing = all.filter(k=>!al[k]);
+  return (missing.length && Math.random() < .75) ? pick(missing) : pick(all);
+}
+const picOf = k => { const [c,i] = k.split(':'); return COLL.find(x=>x.id===c).it[+i]; };
+// adds a picture; returns text for the screen, pays the bonus for a finished collection
+function addPicture(k){
+  const al = album(), [cid, i] = k.split(':'), c = COLL.find(x=>x.id===cid), tier = RARITY(+i);
+  const isNew = !al[k]; al[k] = (al[k]||0) + 1; set('album', al);
+  let txt = `${picOf(k)} ${isNew ? (tier==='gold' ? 'ZLATÝ obrázek' : tier==='rare' ? 'vzácný obrázek' : 'nový obrázek') : 'obrázek, který už máš (do výměny)'} – sbírka ${c.n}`;
+  if (isNew && albumHave(al, c) === 10) txt += '<br>' + finishCollection(c);
+  return txt;
+}
+function finishCollection(c){
+  const done = get('albumDone', []); if (done.includes(c.id)) return '';
+  done.push(c.id); set('albumDone', done);
+  set('wallet', wallet() + 10);
+  const sp = SHOP.find(i=>i.from==='album:'+c.id), own = owned();
+  if (sp && !own.includes(sp.id)){ own.push(sp.id); set('owned', own); }
+  confetti(120); speak(SAY.album, {queue:true});
+  return `🏆 Celá sbírka ${c.e} ${c.n}! +10 ⭐ a ${sp ? sp.e + ' ' + sp.n : ''} pro Ayru!`;
+}
+
+// ====================================================================================
+// BADGES: real learning milestones, bronze / silver / gold
+// ====================================================================================
+const BADGES = [
+  {id:'read',   e:'📖', n:'Čtenářka',    t:'přečtené slabiky',     at:[100, 500, 1000]},
+  {id:'math',   e:'🔢', n:'Počtářka',    t:'příklady napoprvé',    at:[50, 200, 500]},
+  {id:'write',  e:'✏️', n:'Písařka',     t:'obtažená písmena',     at:[20, 100, 300]},
+  {id:'streak', e:'🔥', n:'Vytrvalost',  t:'dní v řadě',           at:[3, 7, 30]},
+  {id:'perfect',e:'🌟', n:'Bez chyby',   t:'kola za 3 hvězdičky',  at:[10, 50, 150]},
+  {id:'stars',  e:'⭐', n:'Hvězdička',   t:'hvězdiček celkem',     at:[100, 300, 1000]},
+  {id:'album',  e:'📒', n:'Sběratelka',  t:'obrázků v albu',       at:[20, 60, 120]},
+  {id:'chall',  e:'🎯', n:'Výzvy',       t:'splněné výzvy dne',    at:[5, 20, 60]},
+];
+const TIERS = ['🥉','🥈','🥇'], TIER_N = ['bronzový','stříbrný','zlatý'];
+function badgeValue(id){
+  const st = store.get('stats', {}) || {}, days = Object.values(st.days || {});
+  const sum = (sec, i) => days.reduce((a,d)=>a + (d[sec] ? d[sec][i] : 0), 0);
+  if (id==='read') return sum('read', 0);
+  if (id==='math') return sum('math', 0);
+  if (id==='write') return sum('write', 1);
+  if (id==='streak') return get('bestStreak', 0);
+  if (id==='perfect') return get('perfect', 0);
+  if (id==='stars') return A.S.total;
+  if (id==='album') return Object.keys(album()).length;
+  if (id==='chall') return get('chCount', 0);
+  return 0;
+}
+const badgeLevel = b => b.at.filter(x=>badgeValue(b.id) >= x).length;     // 0..3
+function checkBadges(){
+  const got = get('badges', {}), out = [];
+  BADGES.forEach(b=>{
+    const lv = badgeLevel(b);
+    if (lv > (got[b.id]||0)){ got[b.id] = lv; out.push(`${TIERS[lv-1]} ${b.e} Nový ${TIER_N[lv-1]} odznak ${b.n}!`); }
+  });
+  if (out.length){ set('badges', got); speak(SAY.badge, {queue:true}); }
+  return out;
+}
+function updateStreak(){
+  const paws = new Set(get('paws', [])); let n = 0, d = dayNo();
+  while (paws.has(d)){ n++; d--; }
+  if (n > get('bestStreak', 0)) set('bestStreak', n);
+}
+
+// ====================================================================================
+// TRICKS: every 50 stars Ayra learns a new trick and shows it in her kennel
+// ====================================================================================
+const TRICKS = [
+  {id:'sit',   n:'Sedni!'},          {id:'jump',  n:'Hop!'},           {id:'spin',  n:'Zatoč se!'},
+  {id:'paw',   n:'Dej pac!'},        {id:'bow',   n:'Ukloň se!'},      {id:'roll',  n:'Převal se!'},
+  {id:'dance', n:'Zatancuj!'},       {id:'five',  n:'Dej pětku!'},     {id:'stand', n:'Panáček!'},
+  {id:'sing',  n:'Zazpívej!'},       {id:'flip',  n:'Salto!'},         {id:'wave',  n:'Zamávej!'},
+];
+const STARS_PER_LEVEL = 50;
+const level = () => Math.floor(A.S.total / STARS_PER_LEVEL);
+const tricksKnown = () => TRICKS.slice(0, Math.min(TRICKS.length, level()));
+function checkLevel(){
+  const lv = level(), seen = get('levelSeen', lv === 0 ? 0 : lv - 1);
+  if (lv <= seen) return [];
+  set('levelSeen', lv);
+  const t = TRICKS[Math.min(lv, TRICKS.length) - 1];
+  speak(SAY.trick, {queue:true});
+  return [lv <= TRICKS.length ? `🐶 Ayra je na úrovni ${lv} a naučila se nový trik: <b>${t.n}</b> Ukáže ti ho v boudě.` : `🐶 Ayra je na úrovni ${lv}!`];
+}
+
+// ====================================================================================
+// LUCKY WHEEL instead of the fixed weekly bonus (5 paws in a week = one spin)
+// ====================================================================================
+const WHEEL = [
+  {e:'⭐3', k:'s', v:3, c:'#ffd447'}, {e:'🎁', k:'g', v:1, c:'#ff8fb1'}, {e:'⭐5', k:'s', v:5, c:'#7fd3ff'},
+  {e:'💜', k:'r', v:1, c:'#c9a7ff'},  {e:'⭐8', k:'s', v:8, c:'#9be38f'}, {e:'🎁🎁', k:'g', v:2, c:'#ffb36b'},
+  {e:'⭐4', k:'s', v:4, c:'#ffd447'}, {e:'⭐15', k:'s', v:15, c:'#ff7b7b'},
+];
+function wheelSVG(){
+  const n = WHEEL.length, R = 100;
+  return `<svg viewBox="-105 -105 210 210" class="wheel" id="wheel">${WHEEL.map((w,i)=>{
+    const a0 = (i/n)*2*Math.PI - Math.PI/2, a1 = ((i+1)/n)*2*Math.PI - Math.PI/2, am = (a0+a1)/2;
+    return `<path d="M0 0 L${R*Math.cos(a0)} ${R*Math.sin(a0)} A${R} ${R} 0 0 1 ${R*Math.cos(a1)} ${R*Math.sin(a1)} Z" fill="${w.c}" stroke="#fff" stroke-width="3"/>
+      <text x="${62*Math.cos(am)}" y="${62*Math.sin(am)+7}" font-size="19" font-weight="900" text-anchor="middle" fill="#3b3b5c">${w.e}</text>`;
+  }).join('')}<circle r="14" fill="#fff" stroke="#ddd" stroke-width="3"/></svg>`;
+}
+let wheelTurn = 0, spinning = false;
+function spinWheel(){
+  if (spinning || get('spins', 0) <= 0) return;
+  spinning = true; set('spins', get('spins',0) - 1); sfx.tap();
+  const i = Math.floor(Math.random() * WHEEL.length), seg = 360 / WHEEL.length;
+  wheelTurn += 360*5 + (360 - (wheelTurn % 360)) - (i*seg + seg/2);
+  $('#wheel').style.transform = `rotate(${wheelTurn}deg)`;
+  setTimeout(()=>{
+    const w = WHEEL[i]; let txt;
+    if (w.k==='s'){ set('wallet', wallet() + w.v); txt = `⭐ ${w.v} hvězdiček!`; }
+    else if (w.k==='g'){ set('boxes', get('boxes',0) + w.v); txt = w.v > 1 ? '🎁🎁 Dva dárky! Otevřeš je v Pokladech.' : '🎁 Dárek! Otevřeš ho v Pokladech.'; }
+    else txt = addPicture(drawPicture('rare'));
+    sfx.win(); confetti(70); speak(SAY.wheelWin);
+    $('#wheelRes').innerHTML = txt; spinning = false; renderHub(); renderWheelBtn();
+  }, 4200);
+}
+function renderWheelBtn(){
+  const n = get('spins', 0), b = $('#spinBtn'); if (!b) return;
+  b.disabled = n <= 0 || spinning; b.textContent = n > 0 ? `🎡 Zatoč! (${n})` : '🎡 Zatočíš za 5 tlapek v týdnu';
+}
+
+// ====================================================================================
+// ADVENT CALENDAR: 1.–24. 12., one window for every day she plays (missed ones can be caught up)
+// ====================================================================================
+const ADVENT = {
+  1:{s:3}, 2:{i:'w_snow'}, 3:{s:3}, 4:{g:1}, 5:{i:'w_stock'}, 6:{s:5, g:1}, 7:{s:3}, 8:{i:'w_snowman'},
+  9:{s:3}, 10:{g:1}, 11:{i:'w_sled'}, 12:{s:4}, 13:{i:'w_bells'}, 14:{g:1}, 15:{i:'w_scarf'}, 16:{s:4},
+  17:{i:'w_candle'}, 18:{g:1}, 19:{s:5}, 20:{i:'w_santa'}, 21:{g:1}, 22:{s:5}, 23:{i:'w_gifts'}, 24:{s:15, g:3, i:'tree'},
+};
+const ADV_ORDER = [7,15,2,20,11,4,18,9,23,1,13,6,16,22,3,10,19,8,14,24,5,17,12,21];   // shuffled like a real one
+const isWinter = () => [11,0,1].includes(new Date().getMonth());
+const adventOn = () => { const d = new Date(); return (d.getMonth()===10 && d.getDate()>=25) || (d.getMonth()===11 && d.getDate()<=31); };
+const advDay = () => { const d = new Date(); return d.getMonth()===11 ? Math.min(d.getDate(), 24) : 0; };
+const playedToday = () => get('paws', []).includes(dayNo());
+function advContent(day){
+  const a = ADVENT[day], parts = [];
+  if (a.i){ const it = SHOP.find(x=>x.id===a.i); if (it) parts.push(it.e); }
+  if (a.g) parts.push('🎁'.repeat(Math.min(a.g, 3)));
+  if (a.s) parts.push('⭐' + a.s);
+  return parts.join(' ');
+}
+function openAdvent(day){
+  const opened = get('advent', []);
+  if (opened.includes(day)) return;
+  if (day > advDay()) { speak(SAY.advWait); return; }
+  if (!playedToday()){ speak(SAY.advPlay); return; }
+  opened.push(day); set('advent', opened);
+  const a = ADVENT[day], own = owned(); let txt = [];
+  if (a.i){ const it = SHOP.find(x=>x.id===a.i);
+    if (it && !own.includes(it.id)){ own.push(it.id); set('owned', own); txt.push(`${it.e} ${it.n}`); }
+    else if (it) { set('wallet', wallet() + 10); txt.push('⭐ 10'); } }
+  if (a.g){ set('boxes', get('boxes',0) + a.g); txt.push(`🎁 ${a.g > 1 ? a.g + ' dárky' : 'dárek'}`); }
+  if (a.s){ set('wallet', wallet() + a.s); txt.push(`⭐ ${a.s}`); }
+  sfx.win(); confetti(day===24 ? 150 : 60); speak(day===24 ? SAY.adv24 : SAY.advOpen);
+  renderAdvent(`${day}. prosince: ${txt.join(' + ')}`); renderHub();
+}
+function renderAdvent(msg){
+  const opened = get('advent', []), today = advDay();
+  $('#advInfo').innerHTML = msg ? `<b>${msg}</b>` : today === 0
+    ? 'Kalendář se otevírá 1. prosince. Každý den, kdy si zahraješ aspoň jedno kolo, otevřeš okénko!'
+    : (playedToday() ? 'Dnes jsi hrála, můžeš otvírat okénka! 🎄' : 'Zahraj si dnes aspoň jedno kolo a pak otevři okénko. 🎄');
+  $('#advGrid').innerHTML = ADV_ORDER.map(d=>{
+    const o = opened.includes(d), can = !o && d <= today && playedToday();
+    return `<button class="advwin ${o?'open':''} ${can?'can':''} ${d===24?'big':''}" data-adv="${d}">${o ? `<span>${advContent(d)}</span>` : `<b>${d}</b>`}</button>`;
+  }).join('');
+}
+
+// ====================================================================================
+// FRIENDS from the journey come to visit the kennel (a different one every day)
+// ====================================================================================
+function visitor(){
+  const st = get('stk', {got:0}), friends = (A.STICKERS || []).slice(0, st.got);
+  if (!friends.length) return null;
+  const d = dayNo(); if (d % 3 === 1) return null;                      // some days Ayra is alone
+  return friends[d % friends.length];
+}
+
 
 // first run: a welcome gift so she can buy something straight away
 if (get('rewv1', 0) === 0){ set('wallet', wallet() + 15); set('boxAt', A.S.total + BOX_EVERY); set('rewv1', 1); }
@@ -130,7 +374,16 @@ const NECK = {
   hibis: along(5, .1, .9).map(([x,y])=>`<text x="${x}" y="${y+7}" font-size="15" text-anchor="middle">🌺</text>`).join(''),
   ribbon:`<text x="76" y="44" font-size="20" text-anchor="middle">🎗️</text>`,     // pinned on the chest, her left side
 };
+// winter scarf: the knitted one in green and white
+NECK.w_scarf = NECK.scarf.replace(/#e2574c/g,'#2f9e5b').replace(/#f47f73/g,'#ffffff').replace(/#d94a40/g,'#278a4e').replace(/#f4a29a/g,'#ffffff').replace(/#c43d33/g,'#1f7a43');
 const NECK_SVG = id => NECK[id] ? `<svg viewBox="0 0 100 64" overflow="visible">${NECK[id]}</svg>` : null;
+// drawn hats (an emoji face would not fit): Santa's cap sits on the head, slightly tilted
+const HEAD = {
+  w_santa:`<path d="M10 52 Q22 10 64 8 Q86 10 92 34 L80 36 Q70 22 58 26 Q40 34 34 52 Z" fill="#e2453c"/>
+    <path d="M58 26 Q74 18 80 36" fill="none" stroke="#c43a32" stroke-width="2"/>
+    <rect x="4" y="46" width="66" height="14" rx="7" fill="#fff"/><circle cx="88" cy="38" r="9" fill="#fff"/>`,
+};
+const HEAD_SVG = id => HEAD[id] ? `<svg viewBox="0 0 100 64" overflow="visible">${HEAD[id]}</svg>` : null;
 // put the worn things on every Ayra; only owls whose outfit changed are touched
 function decorate(){
   const w = wear(), sig = [w.head, w.eyes, w.neck].join('|');
@@ -141,7 +394,7 @@ function decorate(){
     ['head','eyes','neck'].forEach(slot=>{
       const it = SHOP.find(i=>i.id===w[slot]); if (!it) return;
       const s = document.createElement('span'); s.className='acc acc-'+slot;
-      const svg = slot==='neck' && NECK_SVG(it.id);
+      const svg = (slot==='neck' && NECK_SVG(it.id)) || (slot==='head' && HEAD_SVG(it.id));
       if (svg){ s.className += ' wrap'; s.innerHTML = svg; } else s.textContent = it.e;
       o.appendChild(s);
     });
@@ -159,10 +412,16 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
   <div class="lcard"><div class="items" id="shopItems"></div></div>
 </section>
 <section id="treasure" class="screen scroll">
-  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Moje poklady</h1></div>
-  <div class="hero"><div class="owl"></div><div class="bubble" id="trBubble">Za každých 10 hvězdiček dostaneš dárek. Je v něm poklad, nebo hvězdičky navíc!</div></div>
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Album a odznaky</h1></div>
+  <div class="hero"><div class="owl"></div><div class="bubble" id="trBubble">Za každých 10 hvězdiček dostaneš dárek s obrázkem do alba. Za celou sbírku dostane Ayra něco speciálního!</div></div>
   <div class="lcard" id="trGifts"></div>
+  <div class="lcard"><h4>🏅 Odznaky</h4><div class="badges" id="trBadges"></div></div>
   <div class="lcard"><h4 id="trCount"></h4><div id="trAll"></div></div>
+</section>
+<section id="advent" class="screen scroll">
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Adventní kalendář</h1></div>
+  <div class="lcard advinfo" id="advInfo"></div>
+  <div class="advgrid" id="advGrid"></div>
 </section>
 <section id="journey" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Ayřina cesta</h1></div>
@@ -186,15 +445,20 @@ if (stkPanel) stkPanel.outerHTML = `
       <button class="rewbtn" data-rgo="paws"><span>🐾</span>Tlapky</button>
       <button class="rewbtn" data-rgo="treasure"><span>🎁</span>Poklady<i class="rbadge" id="giftBadge"></i></button>
     </div>
+    <button class="advcard" data-rgo="advent" id="advCard">🎄 <b>Adventní kalendář</b><span id="advCardTxt"></span></button>
     <div class="stknext" id="rewNext"></div>
   </div>`;
 document.querySelectorAll('[data-rgo]').forEach(b=>b.addEventListener('click',()=>{ sfx.tap(); open(b.dataset.rgo); }));
-function open(id){ A.go(id); if (id==='shop') renderShop(); if (id==='journey') renderJourney(); if (id==='paws') renderPaws(); if (id==='treasure') renderTreasure();
+function open(id){ A.go(id); if (id==='shop') renderShop(); if (id==='journey') renderJourney(); if (id==='paws') renderPaws(); if (id==='treasure'){ swapMode = false; renderTreasure(); } if (id==='advent') renderAdvent();
   speak(id==='shop' && phase()==='night' ? (owned().includes('bed') ? SAY.night : SAY.night2) : SAY[id]); }
 
 function renderHub(){
   const st = get('stk', {got:0,have:0,cost:5});
   const w = $('#rewWallet'); if (w) w.textContent = '⭐ ' + wallet();
+  const ac = $('#advCard'); if (ac){ ac.style.display = adventOn() ? '' : 'none';
+    const waiting = advDay() && !get('advent', []).includes(advDay());
+    $('#advCardTxt').textContent = !advDay() ? 'od 1. prosince' : waiting ? (playedToday() ? 'otevři dnešní okénko!' : 'zahraj si a otevři okénko') : 'dnešní okénko je otevřené';
+    ac.classList.toggle('ready', !!(waiting && playedToday())); }
   const gb = $('#giftBadge'); if (gb){ const n = get('boxes',0); gb.textContent = n || ''; gb.style.display = n ? '' : 'none'; }
   const n = $('#rewNext'); if (!n) return;
   n.innerHTML = st.got < PLACES.length
@@ -209,10 +473,11 @@ const inTab = it => shopTab==='wear' ? WEAR_SLOTS.includes(it.slot) : shopTab===
 const needs = it => it.on && !owned().includes(it.on) ? SHOP.find(f=>f.id===it.on) : null;
 function itemHTML(it){
   const have = owned().includes(it.id), on = wear()[it.slot]===it.id, togg = !['room','furn'].includes(it.slot);
-  const need = !have && needs(it);
-  const label = need ? `nejdřív ${need.n.toLowerCase()}` : !have ? `⭐ ${it.p}` : !togg ? 'máš' : on ? (WEAR_SLOTS.includes(it.slot)?'nosí':'je tam') : (WEAR_SLOTS.includes(it.slot)?'obléct':'použít');
+  const need = !have && needs(it), lockedSpecial = !have && it.from;
+  const label = lockedSpecial ? (it.from==='advent' ? '🔒 z adventu' : `🔒 sbírka ${COLL.find(c=>'album:'+c.id===it.from).n}`)
+    : need ? `nejdřív ${need.n.toLowerCase()}` : !have ? `⭐ ${it.p}` : !togg ? 'máš' : on ? (WEAR_SLOTS.includes(it.slot)?'nosí':'je tam') : (WEAR_SLOTS.includes(it.slot)?'obléct':'použít');
   const icon = it.svg ? `<svg viewBox="0 0 ${FURN[it.svg].w} ${FURN[it.svg].h}">${FURN[it.svg].draw(true)}</svg>` : it.e;
-  return `<button class="item ${have?'have':''} ${on?'on':''} ${need?'need':''} ${!have && !need && wallet()<it.p?'poor':''}" data-it="${it.id}">
+  return `<button class="item ${have?'have':''} ${on?'on':''} ${need||lockedSpecial?'need':''} ${it.from?'special':''} ${!have && !need && !lockedSpecial && wallet()<it.p?'poor':''}" data-it="${it.id}">
     <span class="ie">${icon}</span><span class="in">${it.n}</span><span class="ip">${label}</span></button>`;
 }
 
@@ -350,8 +615,18 @@ document.getElementById('kennel').addEventListener('click', e=>{
   if (dog) return act(async alive=>{
     const el = $('#kdog');
     if (el.classList.contains('sleep')){ placeDog(DOG.at, ''); speak('Haf!'); hearts(2); await wait(9000); if (alive()) await goHome(alive); return; }
-    el.classList.add('wag'); speak(pick(A.BARKS)); hearts(3); await wait(900); el.classList.remove('wag');
+    const known = tricksKnown();
+    if (!known.length){ el.classList.add('wag'); speak(pick(A.BARKS)); hearts(3); await wait(900); el.classList.remove('wag'); return; }
+    // a trick she has learnt (the newest one more often)
+    const t = Math.random() < .4 ? known[known.length-1] : pick(known);
+    const tag = document.createElement('div'); tag.className = 'ktrick'; tag.textContent = t.n;
+    tag.style.left = el.style.left; tag.style.bottom = `calc(${el.style.bottom} + ${el.style.fontSize} * 1.15)`;
+    $('#kennel').appendChild(tag);
+    el.classList.add('trick-' + t.id); speak(t.n); if (t.id==='sing') hearts(4, '🎵'); else hearts(2);
+    if (t.id==='five' || t.id==='paw' || t.id==='wave') hearts(1, t.id==='five' ? '✋' : t.id==='wave' ? '👋' : '🐾');
+    await wait(1600); el.classList.remove('trick-' + t.id); tag.remove();
   });
+  if (e.target.closest('[data-id="visitor"]')){ sfx.tap(); speak(SAY.visit); hearts(3); return; }
   if (!kit) return;
   const id = kit.dataset.id;
   kit.classList.remove('boing'); void kit.getBoundingClientRect(); kit.classList.add('boing'); sfx.tap();
@@ -375,20 +650,34 @@ document.getElementById('kennel').addEventListener('click', e=>{
     placeDog(BED_SPOT(), ''); await wait(300); await goHome(alive);
   });
 });
+// earned badges stand on a little shelf on the wall
+function trophyShelf(){
+  const got = get('badges', {}), list = BADGES.filter(b=>got[b.id]);
+  if (!list.length) return '';
+  return `<div class="trophies">${list.map(b=>`<span title="${b.n}">${TIERS[got[b.id]-1]}</span>`).join('')}</div>`;
+}
+function levelTag(){
+  const lv = level(), into = A.S.total % STARS_PER_LEVEL;
+  return `<div class="klevel">🐶 Úroveň ${lv} · triky ${Math.min(lv, TRICKS.length)}/${TRICKS.length}<i><b style="width:${into*100/STARS_PER_LEVEL}%"></b></i></div>`;
+}
 function renderKennel(){
   const w = wear(), own = owned();
   const wall = (SHOP.find(i=>i.id===w.wall)||{}).v || '#efe3cf';
   const floor = (SHOP.find(i=>i.id===w.floor)||{}).v || 'plain';
   const win = (SHOP.find(i=>i.id===w.window)||{}).v;
-  const items = SHOP.filter(i=>(i.slot==='room' || i.slot==='furn') && own.includes(i.id));
+  const items = SHOP.filter(i=>(i.slot==='room' || i.slot==='furn') && own.includes(i.id) && (!i.winter || isWinter()));
   const ph = phase(), sleeping = ph==='night' && own.includes('bed');
   const sofa = SHOP.find(i=>i.id==='sofa');
   $('#kennel').style.setProperty('--wall', wall);
-  $('#kennel').className = 'kennel floor-'+floor + (w.light ? ' lit' : '') + ' ' + ph;
+  $('#kennel').className = 'kennel floor-'+floor + (w.light ? ' lit' : '') + ' ' + ph + (own.includes('w_snow') && isWinter() && win ? ' snowy' : '');
   $('#kennel').innerHTML = `
     <div class="roof"></div><div class="wallz"></div><div class="floorz"></div>
     ${win ? `<div class="win"><span>${ph==='night' ? '🌙' : win}</span></div>` : ''}
     ${ph==='night' && own.includes('sofa') ? `<div class="lampglow" style="left:${sofa.pos[0]+8}%"></div>` : ''}
+    ${trophyShelf()}
+    ${levelTag()}
+    ${(()=>{ const v = visitor(); if (!v || ph==='night') return ''; const p = spot({pos:[73,.82,.42]}, []);
+      return `<span class="kit floor visitor" data-id="visitor" style="left:${p.x}%;bottom:${p.bottom}%;font-size:${p.size}cqw;z-index:${p.z}">${v}</span>`; })()}
     ${w.light ? '<div class="garland">✨ ✨ ✨ ✨ ✨ ✨ ✨</div>' : ''}
     ${items.map(i=>kitHTML(i, own)).join('')}
     <div class="kdog" id="kdog"><div class="kshadow"></div><div class="owl kayra full"></div></div>
@@ -400,7 +689,7 @@ function renderKennel(){
 function renderShop(){
   $('#shopWallet').textContent = '⭐ ' + wallet();
   document.querySelectorAll('#shopTabs button').forEach(b=>b.classList.toggle('on', b.dataset.tab===shopTab));
-  $('#shopItems').innerHTML = SHOP.filter(inTab).sort((a,b)=>a.p-b.p).map(itemHTML).join('');
+  $('#shopItems').innerHTML = SHOP.filter(inTab).sort((a,b)=>(!!a.from - !!b.from) || a.p-b.p).map(itemHTML).join('');
   renderKennel();
 }
 document.getElementById('shopTabs').addEventListener('click', e=>{
@@ -410,6 +699,8 @@ document.getElementById('shop').addEventListener('click', e=>{
   const b = e.target.closest('[data-it]'); if (!b) return;
   const it = SHOP.find(i=>i.id===b.dataset.it), own = owned();
   if (!own.includes(it.id)){
+    if (it.from){ sfx.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+      speak(it.from==='advent' ? SAY.lockAdvent : SAY.lockAlbum); return; }
     const need = needs(it);
     if (need){ sfx.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); speak(need.say); return; }
     if (wallet() < it.p){ sfx.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); speak(SAY.poor); return; }
@@ -452,7 +743,10 @@ function renderPaws(){
   let inWeek = 0; for (let d=0; d<7; d++) if (paws.has(wk*7-3+d)) inWeek++;
   const claimed = get('weekBonus', []).includes(wk);
   $('#pWeek').innerHTML = `<b>Tento týden: ${'🐾'.repeat(inWeek)}${'⚪'.repeat(Math.max(0,5-inWeek))}</b>
-    <small>${claimed ? `Týdenní bonus ${WEEK_BONUS} ⭐ už máš. Skvělé!` : `Za 5 dní s tlapkou v týdnu dostaneš bonus ${WEEK_BONUS} ⭐.`}</small>`;
+    <small>${claimed ? 'Tento týden už máš 5 tlapek. Skvělé!' : 'Za 5 dní s tlapkou v týdnu zatočíš kolem štěstí.'}</small>
+    <div class="wheelbox"><div class="wpin">▼</div>${wheelSVG()}</div>
+    <button class="giftbtn" id="spinBtn"></button><div class="giftres" id="wheelRes"></div>`;
+  $('#wheel').style.transform = `rotate(${wheelTurn}deg)`; renderWheelBtn();
   const now = new Date(), y = now.getFullYear(), m = now.getMonth();
   $('#pMonth').textContent = MONTHS[m][0].toUpperCase()+MONTHS[m].slice(1)+' '+y;
   const first = new Date(y,m,1), offset = (first.getDay()+6)%7, days = new Date(y,m+1,0).getDate();
@@ -470,49 +764,75 @@ function renderPaws(){
 function afterRound(add){
   const out = [];
   set('wallet', wallet() + add);
-  // paw for today + weekly bonus
+  if (add >= 3) set('perfect', get('perfect', 0) + 1);
+  // paw for today; 5 paws in a week = a spin of the lucky wheel
   const today = dayNo(), paws = get('paws', []);
   if (!paws.includes(today)){ paws.push(today); set('paws', paws); out.push('🐾 Dnešní tlapka je v kalendáři!'); }
+  updateStreak();
   const wk = weekOf(today); let inWeek = 0; for (let d=0; d<7; d++) if (paws.includes(wk*7-3+d)) inWeek++;
   const wb = get('weekBonus', []);
-  if (inWeek >= 5 && !wb.includes(wk)){ wb.push(wk); set('weekBonus', wb); set('wallet', wallet()+WEEK_BONUS); out.push(`🎉 5 tlapek za týden: bonus ${WEEK_BONUS} ⭐!`); speak(SAY.week, {queue:true}); }
+  if (inWeek >= 5 && !wb.includes(wk)){ wb.push(wk); set('weekBonus', wb); set('spins', get('spins',0) + 1);
+    out.push('🎡 5 tlapek za týden: zatoč kolem štěstí v Tlapkách!'); speak(SAY.spin, {queue:true}); }
   // surprise box every BOX_EVERY stars (all-time)
   let boxAt = get('boxAt', A.S.total + BOX_EVERY), boxes = 0;
   while (A.S.total >= boxAt){ boxes++; boxAt += BOX_EVERY; }
   set('boxAt', boxAt);
   if (boxes){ set('boxes', get('boxes',0) + boxes); speak(SAY.gift, {queue:true}); }
+  out.push(...checkLevel(), ...checkBadges());
+  if (adventOn() && advDay() && !get('advent', []).includes(advDay())) out.push('🎄 Dnešní okénko v adventním kalendáři čeká!');
   if (get('boxes',0) > 0) out.push(`<button class="giftbtn" id="openGift">🎁 Otevři dárek${get('boxes',0)>1?' ('+get('boxes',0)+')':''}</button>`);
   out.push(`<span class="small">Teď máš ⭐ ${wallet()} na nákupy v obchůdku</span>`);
   renderHub();
   return out.map(x=>`<div class="rewline">${x}</div>`).join('');
 }
-// ---------- treasures: all collected things and unopened gifts ----------
-const TIER = {common:'Běžné poklady', rare:'Vzácné poklady 💜', gold:'Zlaté poklady ✨'};
+
+// ---------- album + badges screen ----------
+let swapMode = false;
 function renderTreasure(){
-  const tr = get('treasures', {}), n = get('boxes', 0);
-  const all = [...TREASURES.common, ...TREASURES.rare, ...TREASURES.gold], have = all.filter(t=>tr[t]).length;
-  $('#trGifts').innerHTML = n > 0
+  const al = album(), n = get('boxes', 0), sp = spare(al), have = Object.keys(al).length;
+  $('#trGifts').innerHTML = (n > 0
     ? `<div class="rewline"><button class="giftbtn" id="openGift">🎁 Otevři dárek${n>1?' ('+n+')':''}</button></div>`
-    : `<div class="trnext">🎁 Další dárek za <b>${Math.max(1, get('boxAt', A.S.total + BOX_EVERY) - A.S.total)} ⭐</b></div>`;
-  $('#trCount').textContent = `Máš ${have} z ${all.length} pokladů`;
-  $('#trAll').innerHTML = Object.entries(TIER).map(([k, name])=>`<div class="trtier"><small>${name}</small><div class="treasures">${
-    TREASURES[k].map(t=>`<span class="tr ${k==='common'?'':k} ${tr[t]?'':'lock'}">${tr[t]?t:'?'}</span>`).join('')}</div></div>`).join('');
+    : `<div class="trnext">🎁 Další dárek za <b>${Math.max(1, get('boxAt', A.S.total + BOX_EVERY) - A.S.total)} ⭐</b></div>`)
+    + `<div class="swaprow"><span>🔁 Obrázky navíc: <b>${sp}</b></span>
+       <button class="swapbtn ${swapMode?'on':''}" id="swapBtn" ${sp < 3 && !swapMode ? 'disabled' : ''}>${swapMode ? 'Zrušit výměnu' : 'Vyměnit 3 za 1'}</button></div>
+       ${swapMode ? '<div class="swaphint">Ťukni na otazník, který chceš. Zlatý stojí 6 obrázků navíc.</div>' : ''}`;
+  $('#trCount').textContent = `Album: ${have} z ${ALBUM_TOTAL} obrázků · hotové sbírky ${get('albumDone',[]).length} z ${COLL.length}`;
+  $('#trAll').innerHTML = COLL.map(c=>{
+    const h = albumHave(al, c), done = h === 10, sp2 = SHOP.find(i=>i.from==='album:'+c.id);
+    return `<div class="coll ${done?'done':''}"><div class="ch"><span class="ce">${c.e}</span><b>${c.n}</b>
+      <span class="cp"><i style="width:${h*10}%"></i></span><small>${h}/10</small></div>
+      <div class="treasures">${c.it.map((x,i)=>{ const k = c.id+':'+i, cnt = al[k]||0, t = RARITY(i);
+        return `<span class="tr ${t==='common'?'':t} ${cnt?'':'lock'} ${swapMode&&!cnt?'pickable':''}" data-pic="${k}">${cnt ? x : '?'}${cnt>1?`<i>${cnt}</i>`:''}</span>`; }).join('')}</div>
+      <div class="creward">${done ? '✅' : '🎁'} Odměna: ${sp2 ? sp2.e+' '+sp2.n : ''} + 10 ⭐</div></div>`;
+  }).join('');
+  const got = get('badges', {});
+  $('#trBadges').innerHTML = BADGES.map(b=>{
+    const lv = got[b.id]||0, v = badgeValue(b.id), next = b.at[lv];
+    return `<div class="badge lv${lv}"><span class="be">${b.e}</span><span class="bt">${lv ? TIERS[lv-1] : '⚪'}</span>
+      <b>${b.n}</b><small>${next ? `${Math.min(v,next)}/${next} ${b.t}` : `${v} ${b.t} – hotovo!`}</small></div>`;
+  }).join('');
 }
+document.addEventListener('click', e=>{
+  if (e.target.closest('#swapBtn')){ sfx.tap(); swapMode = !swapMode; if (swapMode) speak(SAY.swap); renderTreasure(); return; }
+  const t = e.target.closest('[data-pic]'); if (!t || !swapMode) return;
+  const k = t.dataset.pic, al = album(); if (al[k]) return;
+  const cost = RARITY(+k.split(':')[1]) === 'gold' ? 6 : 3;
+  if (spare(al) < cost){ sfx.bad(); speak(SAY.poor); return; }
+  let left = cost;                                    // take the spares from the pictures she has most of
+  Object.keys(al).sort((a,b)=>al[b]-al[a]).forEach(x=>{ while (left && al[x] > 1){ al[x]--; left--; } });
+  set('album', al); swapMode = false;
+  const txt = addPicture(k); sfx.win(); confetti(50); speak(SAY.yay);
+  renderTreasure(); const d = document.createElement('div'); d.className = 'giftres'; d.innerHTML = txt; $('#trGifts').prepend(d);
+});
 function openGift(){
   let n = get('boxes',0); if (n<=0) return; set('boxes', n-1);
   let txt;
-  if (Math.random() < 0.55){
+  if (Math.random() < 0.3){
     const s = 2 + Math.floor(Math.random()*3); set('wallet', wallet()+s); txt = `⭐ ${s} hvězdičky navíc!`;
-  } else {
-    const r = Math.random(), tier = r < 0.07 ? 'gold' : r < 0.32 ? 'rare' : 'common';
-    const t = TREASURES[tier][Math.floor(Math.random()*TREASURES[tier].length)];
-    const tr = get('treasures', {});
-    if (tr[t]){ set('wallet', wallet()+2); txt = `${t} tenhle poklad už máš, tak ⭐ 2 navíc!`; }
-    else { tr[t] = 1; set('treasures', tr); txt = `${t} nový ${tier==='gold'?'ZLATÝ ':tier==='rare'?'vzácný ':''}poklad! Najdeš ho v Pokladech 🎁`; }
-  }
+  } else txt = addPicture(drawPicture()) + ' – najdeš ho v albu 🎁';
   sfx.win(); confetti(60); speak(/ZLATÝ/.test(txt) ? SAY.gold : SAY.yay);
   const b = $('#openGift');
-  if (b){ const d = document.createElement('div'); d.className='giftres'; d.textContent = txt; b.parentNode.insertBefore(d, b);
+  if (b){ const d = document.createElement('div'); d.className='giftres'; d.innerHTML = txt; b.parentNode.insertBefore(d, b);
     const left = get('boxes',0); if (left>0) b.textContent = '🎁 Otevři další dárek ('+left+')'; else b.remove(); }
   renderHub();
   if (document.getElementById('treasure').classList.contains('active')){       // keep the result visible
@@ -520,6 +840,8 @@ function openGift(){
     keep.forEach(d=>$('#trGifts').prepend(d));
   }
 }
+document.addEventListener('click', e=>{ if (e.target.closest('#spinBtn')) spinWheel(); });
+document.addEventListener('click', e=>{ const w = e.target.closest('[data-adv]'); if (w){ sfx.tap(); openAdvent(+w.dataset.adv); } });
 document.addEventListener('click', e=>{ if (e.target.closest('#openGift')){ sfx.tap(); openGift(); } });
 
 A.rewards = {afterRound, renderHub, decorate, PLACES};

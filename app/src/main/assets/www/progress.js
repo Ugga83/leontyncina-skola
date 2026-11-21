@@ -74,6 +74,7 @@ function roundDone(backTo){
   const s = d[sec] || (d[sec] = [0, 0, 0]); s[2]++; store.set('stats', st);
   if (challenge().sec !== sec || chDone()) return '';
   store.set('chDone', todayISO());
+  store.set('chCount', store.get('chCount', 0) + 1);
   store.set('wallet', store.get('wallet', 0) + CH_BONUS);
   speak(CH_DONE, {queue:true}); confetti(60);
   renderChallenge(); if (A.rewards) A.rewards.renderHub();

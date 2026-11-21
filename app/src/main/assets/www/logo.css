@@ -339,3 +339,88 @@
 .trtier{margin:8px 0}.trtier small{display:block;font-weight:800;color:var(--ink-soft);margin-bottom:4px}
 .trnext{font-weight:800;text-align:center;font-size:18px}
 #trGifts .giftres{font-weight:900;font-size:20px;text-align:center;margin-bottom:8px}
+
+/* ---------- drawn hats ---------- */
+.owl .acc-head.wrap{font-size:1em;width:.62em;left:52%;top:-14%;transform:translateX(-50%) rotate(-8deg)}
+.owl .acc-head.wrap svg{display:block;width:100%;height:auto;overflow:visible}
+.owl.full .acc-head.wrap{width:.5em;top:-4%;left:49%;transform:translateX(-50%) rotate(-8deg)}
+
+/* ---------- album ---------- */
+.coll{border-radius:16px;background:#f7f8ff;padding:8px 10px;margin:8px 0}
+.coll.done{background:#fff7d6;box-shadow:0 0 0 2px #ffd447 inset}
+.coll .ch{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.coll .ce{font-size:24px}.coll .ch b{font-size:17px}
+.coll .cp{flex:1;height:10px;border-radius:5px;background:#e3e7f5;overflow:hidden}.coll .cp i{display:block;height:100%;background:#5fb36b;border-radius:5px}
+.coll .ch small{font-weight:800;color:var(--ink-soft)}
+.coll .creward{font-size:13px;font-weight:700;color:var(--ink-soft);margin-top:6px}
+.coll .treasures{gap:5px}
+.tr{position:relative}
+.tr i{position:absolute;right:-4px;bottom:-4px;font:900 11px/16px 'Nunito',sans-serif;font-style:normal;background:#3f8fd2;color:#fff;border-radius:8px;min-width:16px;text-align:center}
+.tr.pickable{outline:3px dashed #9a7bff;cursor:pointer;animation:pulse 1.2s infinite}
+.swaprow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;font-weight:700}
+.swapbtn{border:0;font:inherit;font-weight:900;background:#9a7bff;color:#fff;border-radius:14px;padding:8px 12px;box-shadow:0 4px 0 #6f52d6;cursor:pointer}
+.swapbtn:disabled{opacity:.45}.swapbtn.on{background:#ff8f8f;box-shadow:0 4px 0 #d55}
+.swaphint{font-size:14px;font-weight:700;color:#6f52d6;margin-top:6px}
+.badges{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.badge{background:#f3f6ff;border-radius:14px;padding:8px;display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;column-gap:8px;align-items:center}
+.badge .be{grid-row:span 2;font-size:28px}.badge .bt{grid-row:span 2;font-size:26px}
+.badge b{font-size:15px}.badge small{font-size:12px;font-weight:700;color:var(--ink-soft)}
+.badge.lv0{opacity:.7}.badge.lv1{background:#f7e3d0}.badge.lv2{background:#eceff5}.badge.lv3{background:#fff1b8}
+
+/* ---------- lucky wheel ---------- */
+.wheelbox{position:relative;width:min(70vw,280px);margin:12px auto 6px}
+.wheel{display:block;width:100%;height:auto;transition:transform 4s cubic-bezier(.15,.9,.2,1)}
+.wpin{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:26px;color:#e2453c;z-index:2;text-shadow:0 2px 0 #fff}
+#spinBtn:disabled{opacity:.5;animation:none}
+#wheelRes{text-align:center}
+
+/* ---------- advent ---------- */
+.advcard{display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;border:0;font:inherit;font-size:16px;cursor:pointer;
+  background:linear-gradient(90deg,#2f9e5b,#3cb86c);color:#fff;border-radius:16px;padding:10px 14px;box-shadow:0 4px 0 #1f7a43}
+.advcard span{margin-left:auto;font-weight:800;font-size:13px;opacity:.95}
+.advcard.ready{animation:pulse 1.2s infinite}
+.advinfo{text-align:center;font-weight:700}
+.advgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;max-width:720px}
+.advwin{aspect-ratio:1;border:0;border-radius:14px;font:inherit;cursor:pointer;background:#2f6e4a;color:#fff;
+  box-shadow:inset 0 0 0 3px #ffd447,0 4px 0 #1d4a31;display:grid;place-items:center;padding:2px}
+.advwin b{font-size:clamp(22px,7vw,32px);font-weight:900}
+.advwin.big{background:#b8322c;box-shadow:inset 0 0 0 3px #ffd447,0 4px 0 #7a1f1b}
+.advwin.can{animation:pulse 1s infinite;background:#e2a33c}
+.advwin.open{background:#fff7e6;color:var(--ink);box-shadow:inset 0 0 0 2px #e8d6a8}
+.advwin.open span{font-size:clamp(14px,4.4vw,22px);line-height:1.15;text-align:center}
+
+/* ---------- kennel: level, tricks, trophies, visitor, snow ---------- */
+.kennel .klevel{position:absolute;left:2%;bottom:2%;z-index:190;background:#ffffffd9;border-radius:10px;padding:.4cqw 1.4cqw;
+  font:800 2.6cqw 'Nunito',sans-serif;color:var(--ink);display:flex;flex-direction:column;gap:.4cqw}
+.kennel .klevel i{display:block;height:.9cqw;background:#e3e7f5;border-radius:1cqw;overflow:hidden}.kennel .klevel b{display:block;height:100%;background:#ffb02e}
+.kennel .trophies{position:absolute;left:8%;top:9%;z-index:4;display:flex;gap:.6cqw;padding:0 1cqw .4cqw;font-size:3.4cqw;
+  border-bottom:1.2cqw solid #b8763d;border-radius:0 0 .6cqw .6cqw}
+.kennel .ktrick{position:absolute;transform:translateX(-50%);z-index:210;background:#fff;border-radius:2cqw;padding:.6cqw 1.8cqw;
+  font:900 3.4cqw 'Nunito',sans-serif;color:var(--ink);box-shadow:0 .6cqw 0 #0002;white-space:nowrap;animation:pop .4s}
+.kennel .visitor{animation:visit 2.6s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes visit{50%{transform:translateY(-6%) rotate(-4deg)}}
+.kennel.snowy .win::after{content:"❄ ❅ ❄ ❆ ❄ ❅";position:absolute;left:0;right:0;top:-10%;color:#fff;font-size:2.4cqw;letter-spacing:.6em;text-align:center;
+  animation:snowfall 3s linear infinite;text-shadow:0 0 4px #9cd}
+@keyframes snowfall{from{transform:translateY(0)}to{transform:translateY(5.5cqw)}}
+.kdog.trick-sit .kayra{animation:tSit .8s ease 2;transform-origin:50% 100%}
+@keyframes tSit{50%{transform:scaleY(.86)}}
+.kdog.trick-jump .kayra{animation:tJump .5s ease-out 3}
+@keyframes tJump{50%{transform:translateY(-30%)}}
+.kdog.trick-spin .kayra{animation:tSpin 1.2s ease-in-out}
+@keyframes tSpin{25%{transform:scaleX(-1)}50%{transform:scaleX(1)}75%{transform:scaleX(-1)}}
+.kdog.trick-paw .kayra,.kdog.trick-wave .kayra{animation:tPaw .4s ease 4 alternate;transform-origin:30% 100%}
+@keyframes tPaw{to{transform:rotate(-8deg)}}
+.kdog.trick-bow .kayra{animation:tBow 1.4s ease;transform-origin:50% 100%}
+@keyframes tBow{40%,60%{transform:rotate(12deg) scaleY(.85)}}
+.kdog.trick-roll .kayra{animation:tRoll 1.4s ease-in-out;transform-origin:50% 60%}
+@keyframes tRoll{to{transform:rotate(360deg)}}
+.kdog.trick-dance .kayra{animation:tDance .4s ease-in-out 4 alternate;transform-origin:50% 100%}
+@keyframes tDance{from{transform:rotate(-10deg) translateX(-6%)}to{transform:rotate(10deg) translateX(6%)}}
+.kdog.trick-five .kayra{animation:tFive .7s ease 2;transform-origin:50% 100%}
+@keyframes tFive{50%{transform:rotate(-12deg) translateY(-8%)}}
+.kdog.trick-stand .kayra{animation:tStand 1.5s ease;transform-origin:50% 100%}
+@keyframes tStand{30%,70%{transform:scaleY(1.18) translateY(-6%)}}
+.kdog.trick-sing .kayra{animation:tSing .35s ease 4 alternate;transform-origin:50% 100%}
+@keyframes tSing{to{transform:scale(1.06) rotate(-4deg)}}
+.kdog.trick-flip .kayra{animation:tFlip 1.2s ease-in-out;transform-origin:50% 50%}
+@keyframes tFlip{40%{transform:translateY(-50%) rotate(-180deg)}80%{transform:translateY(-20%) rotate(-360deg)}100%{transform:none}}
