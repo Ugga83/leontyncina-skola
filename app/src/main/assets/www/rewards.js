@@ -343,10 +343,14 @@ function renderAdvent(msg){
 // ====================================================================================
 // FRIENDS from the journey come to visit the kennel (a different one every day)
 // ====================================================================================
+// the newest friend comes straight away and stays for 3 days; then they take turns
 function visitor(){
   const st = get('stk', {got:0}), friends = (A.STICKERS || []).slice(0, st.got);
   if (!friends.length) return null;
-  const d = dayNo(); if (d % 3 === 1) return null;                      // some days Ayra is alone
+  const d = dayNo(), nf = get('newFriend', null);
+  if (!nf || nf.i !== st.got){ set('newFriend', {i: st.got, day: d}); return friends[friends.length-1]; }
+  if (d - nf.day < 3) return friends[friends.length-1];
+  if (d % 3 === 1) return null;                                          // some days Ayra is alone
   return friends[d % friends.length];
 }
 
