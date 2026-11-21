@@ -68,7 +68,8 @@ class CloudSpeech {
         worker.start();
     }
 
-    /** Records until ~1.3 s of silence after speech, max 10 s (children read slowly). Returns null if no speech at all. */
+    /** Records until ~0.8 s of silence after speech, max 10 s. Only the speech (plus a little before it) is kept, so
+     *  less audio goes to Google and the answer comes back sooner. Returns null if no speech at all. */
     @SuppressWarnings("MissingPermission")
     private byte[] record(Callback cb) throws Exception {
         int min = AudioRecord.getMinBufferSize(RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
@@ -80,7 +81,8 @@ class CloudSpeech {
         ar.startRecording();
         cb.ready();
         boolean spoke = false;
-        int silentMs = 0, totalMs = 0;
+        int silentMs = 0, totalMs = 0, startByte = 0;
+        java.util.ArrayDeque<Integer> recent = new java.util.ArrayDeque<>();   // byte offsets of the last chunks
         double noise = 300;                                       // running noise floor
         try {
             while (!cancelled && totalMs < 10000) {
@@ -93,21 +95,24 @@ class CloudSpeech {
                     b[2 * i] = (byte) (buf[i] & 0xff);
                     b[2 * i + 1] = (byte) ((buf[i] >> 8) & 0xff);
                 }
+                recent.addLast(out.size()); if (recent.size() > 8) recent.removeFirst();   // ~0.4 s back
                 out.write(b);
                 double rms = Math.sqrt(sum / n);
                 int ms = n * 1000 / RATE;
                 totalMs += ms;
                 if (!spoke && totalMs < 300) noise = Math.max(150, (noise + rms) / 2);
                 boolean loud = rms > Math.max(700, noise * 3);
-                if (loud) { spoke = true; silentMs = 0; }
-                else if (spoke) { silentMs += ms; if (silentMs >= 1300) break; }
+                if (loud) { if (!spoke) startByte = recent.peekFirst(); spoke = true; silentMs = 0; }
+                else if (spoke) { silentMs += ms; if (silentMs >= 800) break; }
                 if (!spoke && totalMs >= 8000) break;             // nobody said anything
             }
         } finally {
             try { ar.stop(); } catch (Exception ignored) { }
             ar.release();
         }
-        return spoke ? out.toByteArray() : null;
+        if (!spoke) return null;
+        byte[] all = out.toByteArray();
+        return java.util.Arrays.copyOfRange(all, startByte, all.length);
     }
 
     private ArrayList<String> recognize(byte[] pcm, ArrayList<String> hints) throws Exception {
