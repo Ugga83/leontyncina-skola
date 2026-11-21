@@ -439,3 +439,10 @@
 .enprize{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:999;background:#fff;border-radius:22px;padding:14px 22px;text-align:center;
   box-shadow:0 8px 0 #f0b44a,0 10px 30px #0003;animation:toastIn 3.2s ease both;pointer-events:none;min-width:240px}
 .enprize b{display:block;font-size:22px}.enprize span{display:block;font-size:20px;font-weight:800;margin-top:4px}
+/* Ze všeho: small question card, big answer tiles in a 2×2 grid */
+#endless .encard{flex:0 0 auto;min-height:0;padding:10px}
+#endless .encard .enq{font-size:clamp(48px,14vw,84px)}
+#endless .encard .enq.ear{font-size:clamp(54px,15vw,90px)}
+#endless .enans{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:720px;align-content:center}
+#endless .enans .ans{width:100%;height:auto;min-height:clamp(96px,20vh,170px);font-size:clamp(46px,13vw,72px)}
+#endless .enans.cursive .ans{font-size:clamp(56px,16vw,88px)}
