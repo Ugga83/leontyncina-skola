@@ -446,3 +446,5 @@
 #endless .enans{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:720px;align-content:center}
 #endless .enans .ans{width:100%;height:auto;min-height:clamp(96px,20vh,170px);font-size:clamp(46px,13vw,72px)}
 #endless .enans.cursive .ans{font-size:clamp(56px,16vw,88px)}
+#endless .enans .ans.encont{font-size:clamp(24px,6.5vw,34px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+#endless .enans .ans.encont small{font-size:18px;font-weight:800;color:var(--ink-soft)}

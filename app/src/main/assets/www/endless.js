@@ -8,7 +8,7 @@ const E_SAY = {
   start:'Hra ze všeho! Máš tři srdíčka. Čím dál dojdeš, tím lepší odměny!',
   find:'Najdi slabiku.', findW:'Najdi psanou slabiku.', findV:'Najdi písmenko.',
   wrong:'To nebylo ono. Ztrácíš srdíčko.', last:'Pozor, máš poslední srdíčko!',
-  over:'Konec hry! To byl skvělý výkon!', record:'Haf haf! Nový rekord!',
+  over:'Konec hry! To byl skvělý výkon!', cont:'Pokračujeme! Kde jsme skončily?', ask:'Chceš pokračovat v rozehrané hře?', record:'Haf haf! Nový rekord!',
   prize:'Haf! Odměna!',
   praise:['Výborně!','Správně!','Super!','Paráda!','Jsi šikulka!'],
 };
@@ -40,11 +40,26 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
 const ES = {n:0, hearts:3, task:null, busy:false, run:0, last:''};
 const isOn = () => document.getElementById('endless').classList.contains('active');
 
-function start(){
-  ES.n = 0; ES.hearts = 3; ES.run++; ES.last = '';
-  A.go('endless'); speak(E_SAY.start); next(true);
+// a game in progress is kept, so she can stop and continue later (hearts and count stay)
+const save = () => store.set('enSave', ES.hearts > 0 && ES.n > 0 ? {n:ES.n, hearts:ES.hearts} : null);
+function start(cont){
+  const sv = cont ? store.get('enSave', null) : null;
+  ES.n = sv ? sv.n : 0; ES.hearts = sv ? sv.hearts : 3; ES.run++; ES.last = '';
+  if (!sv) store.set('enSave', null);
+  A.go('endless'); speak(sv ? E_SAY.cont : E_SAY.start); next(true);
 }
-document.querySelector('#hub [data-go="endless"]').addEventListener('click', ()=>setTimeout(start, 0));
+function offer(){
+  const sv = store.get('enSave', null);
+  if (!sv) return start(false);
+  ES.task = null; ES.busy = false; ES.n = sv.n; ES.hearts = sv.hearts; render();
+  $('#enBubble').textContent = `Máš rozehranou hru: 🔥 ${sv.n}. Pokračovat?`;
+  $('#enCard').innerHTML = '<div class="enq">🎲</div>';
+  $('#enAns').className = 'answers enans';
+  $('#enAns').innerHTML = `<button class="ans encont" data-act="cont">▶️ Pokračovat<small>🔥 ${sv.n} · ${'❤️'.repeat(sv.hearts)}</small></button>
+    <button class="ans encont" data-act="new">🔄 Nová hra</button>`;
+  speak(E_SAY.ask);
+}
+document.querySelector('#hub [data-go="endless"]').addEventListener('click', ()=>setTimeout(offer, 0));
 
 // ---------- tasks ----------
 const shuffle = a => a.sort(()=>Math.random()-.5);
@@ -99,18 +114,20 @@ $('#enSay').addEventListener('click', ()=>{ sfx.tap(); sayTask(); });
 $('#enCard').addEventListener('click', ()=>{ if (ES.task && ES.task.sayX) sayTask(); });
 
 $('#enAns').addEventListener('click', async e=>{
-  const b = e.target.closest('.ans'); if (!b || ES.busy) return;
+  const act = e.target.closest('[data-act]');
+  if (act){ sfx.tap(); return start(act.dataset.act === 'cont'); }
+  const b = e.target.closest('.ans'); if (!b || ES.busy || !ES.task) return;
   ES.busy = true; const t = ES.task, my = ES.run, ok = String(t.ans) === b.dataset.v;
   if (A.progress && t.key) A.progress.track(t.key, t.key==='math' ? t.t.type+'|'+t.t.a+'|'+t.t.b : t.ans, ok);
   $('#enAns').classList.add('locked');
   if (ok){
-    b.classList.add('right'); sfx.good(); ES.n++; render();
+    b.classList.add('right'); sfx.good(); ES.n++; render(); save();
     if (t.t){ const sl = $('#enCard .slot'); if (sl){ sl.textContent = t.ans; sl.classList.add('filled'); } }
     const pr = prizeAt(ES.n);
     if (pr){ await givePrize(pr); }
     else { confetti(12); await speak(pick(E_SAY.praise)); }
   } else {
-    b.classList.add('wrong'); sfx.bad(); ES.hearts--; render();
+    b.classList.add('wrong'); sfx.bad(); ES.hearts--; render(); save();
     const right = [...document.querySelectorAll('#enAns .ans')].find(x=>x.dataset.v===String(t.ans)); if (right) right.classList.add('right');
     if (navigator.vibrate) try{ navigator.vibrate(80); }catch(e){}
     await speak(ES.hearts === 1 ? E_SAY.last : E_SAY.wrong);
@@ -141,15 +158,16 @@ async function givePrize(p){
 }
 
 function gameOver(){
+  store.set('enSave', null);
   const best = store.get('enBest', 0), rec = ES.n > best;
   if (rec){ store.set('enBest', ES.n); if (best > 0){ store.set('wallet', store.get('wallet',0) + 5); } }
   speak(rec && best > 0 ? E_SAY.record : E_SAY.over);
-  A.finishRound(Math.min(ES.n, 20), start, 'hub', 20);
+  A.finishRound(Math.min(ES.n, 20), ()=>start(false), 'hub', 20);
   const extra = `<div class="rewline">🔥 Došla jsi až na <b>${ES.n}</b>. ${rec ? (best > 0 ? '🏆 Nový rekord! +5 ⭐' : '🏆 Tvůj první rekord!') : `Rekord: ${best}`}</div>`;
   const ns = document.getElementById('newStk'); if (ns) ns.insertAdjacentHTML('afterbegin', extra);
   const sc = document.querySelector('#endStars .score'); if (sc) sc.textContent = `došla jsi až na ${ES.n} správně`;
 }
 A.onLeave(id=>{ if (id !== 'endless') ES.run++; });
 
-A.phraseSources.push(()=>[E_SAY.start, E_SAY.find, E_SAY.findW, E_SAY.findV, E_SAY.wrong, E_SAY.last, E_SAY.over, E_SAY.record, E_SAY.prize, ...E_SAY.praise]);
+A.phraseSources.push(()=>[E_SAY.cont, E_SAY.ask, E_SAY.start, E_SAY.find, E_SAY.findW, E_SAY.findV, E_SAY.wrong, E_SAY.last, E_SAY.over, E_SAY.record, E_SAY.prize, ...E_SAY.praise]);
 })();
