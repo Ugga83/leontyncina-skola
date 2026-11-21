@@ -9,7 +9,7 @@ const SAY = {
   treasure:'Tady je tvoje album sbírek a odznaky.', journey:'Tohle je naše cesta. Na konci jsou prázdniny!', paws:'Za každý den s procvičováním dostaneš tlapku.',
   week:'Haf haf! Pět tlapek za týden! Tady máš bonus.', gift:'Haf! Máš dárek! Otevři ho.', gold:'Haf haf! Zlatý poklad!', yay:'Paráda!',
   night:'Psst, Ayra už spinká. Ťukni na ni a probudí se.', night2:'Dobrý večer! Ayra je ospalá. Kup jí pelíšek, ať má kde spát.',
-  lockAlbum:'Tohle nejde koupit. Dostaneš to, když dokončíš sbírku v albu.', lockAdvent:'Tohle je z adventního kalendáře.',
+  lockAlbum:'Tohle nejde koupit. Dostaneš to, když dokončíš sbírku v albu.', lockAdvent:'Tohle je z adventního kalendáře.', lockEndless:'Tohle získáš ve hře Ze všeho, když dojdeš hodně daleko.',
   album:'Hurá! Máš celou sbírku! Tady máš deset hvězdiček a něco speciálního pro Ayru!',
   badge:'Haf haf! Máš nový odznak!', trick:'Haf! Naučila jsem se nový trik! Pojď se podívat do boudy.',
   wheelWin:'Haf! Kolo štěstí se zastavilo!', spin:'Pět tlapek za týden! Můžeš zatočit kolem štěstí!',
@@ -102,6 +102,9 @@ const SHOP = [
   {id:'cl_tales', e:'👸', n:'Princeznovská korunka',   p:0, slot:'head', from:'album:tales'},
   {id:'cl_rain',  e:'☂️', n:'Deštník',            p:0, slot:'room', from:'album:weather', wall:[33,10,.4]},
   {id:'cl_race',  e:'🏎️', n:'Závodní auto',       p:0, slot:'room', from:'album:trans',  pos:[90,.99,.36]},
+  {id:'en_cup',   e:'🏆', n:'Pohár šampiona',     p:0, slot:'room', from:'endless', wall:[50,7,.42]},
+  {id:'en_medal', e:'🥇', n:'Medaile šampiona',   p:0, slot:'neck', from:'endless'},
+  {id:'en_crown', e:'👑', n:'Koruna šampiona',    p:0, slot:'head', from:'endless'},
   {id:'w_snow',   e:'🌨️', n:'Sníh za oknem',      p:0, slot:'snow', from:'advent'},
   {id:'w_stock',  e:'🧦', n:'Vánoční punčocha',   p:0, slot:'room', from:'advent', winter:true, wall:[88,40,.35]},
   {id:'w_snowman',e:'⛄', n:'Sněhulák',           p:0, slot:'room', from:'advent', winter:true, pos:[3,.75,.6]},
@@ -194,16 +197,16 @@ function finishCollection(c){
 // BADGES: real learning milestones, bronze / silver / gold
 // ====================================================================================
 const BADGES = [
-  {id:'read',   e:'📖', n:'Čtenářka',    t:'přečtené slabiky',     at:[100, 500, 1000]},
-  {id:'math',   e:'🔢', n:'Počtářka',    t:'příklady napoprvé',    at:[50, 200, 500]},
-  {id:'write',  e:'✏️', n:'Písařka',     t:'obtažená písmena',     at:[20, 100, 300]},
-  {id:'streak', e:'🔥', n:'Vytrvalost',  t:'dní v řadě',           at:[3, 7, 30]},
-  {id:'perfect',e:'🌟', n:'Bez chyby',   t:'kola za 3 hvězdičky',  at:[10, 50, 150]},
-  {id:'stars',  e:'⭐', n:'Hvězdička',   t:'hvězdiček celkem',     at:[100, 300, 1000]},
-  {id:'album',  e:'📒', n:'Sběratelka',  t:'obrázků v albu',       at:[20, 60, 120]},
-  {id:'chall',  e:'🎯', n:'Výzvy',       t:'splněné výzvy dne',    at:[5, 20, 60]},
+  {id:'read',   e:'📖', n:'Čtenářka',    t:'přečtené slabiky',     at:[200, 1000, 2500, 5000, 8000]},
+  {id:'math',   e:'🔢', n:'Počtářka',    t:'příklady napoprvé',    at:[100, 400, 1000, 2000, 3500]},
+  {id:'write',  e:'✏️', n:'Písařka',     t:'obtažená písmena',     at:[50, 200, 500, 1000, 2000]},
+  {id:'streak', e:'🔥', n:'Vytrvalost',  t:'dní v řadě',           at:[3, 7, 14, 30, 60]},
+  {id:'perfect',e:'🌟', n:'Bez chyby',   t:'kola za 3 hvězdičky',  at:[10, 40, 100, 200, 350]},
+  {id:'stars',  e:'⭐', n:'Hvězdička',   t:'hvězdiček celkem',     at:[300, 700, 1200, 2000, 3000]},
+  {id:'album',  e:'📒', n:'Sběratelka',  t:'obrázků v albu',       at:[20, 50, 80, 100, 120]},
+  {id:'chall',  e:'🎯', n:'Výzvy',       t:'splněné výzvy dne',    at:[5, 20, 50, 100, 150]},
 ];
-const TIERS = ['🥉','🥈','🥇'], TIER_N = ['bronzový','stříbrný','zlatý'];
+const TIERS = ['🥉','🥈','🥇','💎','👑'], TIER_N = ['bronzový','stříbrný','zlatý','diamantový','královský'];
 function badgeValue(id){
   const st = store.get('stats', {}) || {}, days = Object.values(st.days || {});
   const sum = (sec, i) => days.reduce((a,d)=>a + (d[sec] ? d[sec][i] : 0), 0);
@@ -217,7 +220,7 @@ function badgeValue(id){
   if (id==='chall') return get('chCount', 0);
   return 0;
 }
-const badgeLevel = b => b.at.filter(x=>badgeValue(b.id) >= x).length;     // 0..3
+const badgeLevel = b => b.at.filter(x=>badgeValue(b.id) >= x).length;     // 0..5
 function checkBadges(){
   const got = get('badges', {}), out = [];
   BADGES.forEach(b=>{
@@ -374,6 +377,8 @@ const NECK = {
   hibis: along(5, .1, .9).map(([x,y])=>`<text x="${x}" y="${y+7}" font-size="15" text-anchor="middle">🌺</text>`).join(''),
   ribbon:`<text x="76" y="44" font-size="20" text-anchor="middle">🎗️</text>`,     // pinned on the chest, her left side
 };
+NECK.en_medal = `<path d="M30 12 L46 46 L54 46 L40 14 Z" fill="#e2453c"/><path d="M70 12 L54 46 L46 46 L60 14 Z" fill="#3f8fd2"/>
+    <circle cx="50" cy="54" r="13" fill="#ffc21a" stroke="#d99400" stroke-width="2.5"/><text x="50" y="60" font-size="15" text-anchor="middle">⭐</text>`;
 // winter scarf: the knitted one in green and white
 NECK.w_scarf = NECK.scarf.replace(/#e2574c/g,'#2f9e5b').replace(/#f47f73/g,'#ffffff').replace(/#d94a40/g,'#278a4e').replace(/#f4a29a/g,'#ffffff').replace(/#c43d33/g,'#1f7a43');
 const NECK_SVG = id => NECK[id] ? `<svg viewBox="0 0 100 64" overflow="visible">${NECK[id]}</svg>` : null;
@@ -392,6 +397,11 @@ const HEAD = {
     <circle cx="50" cy="16" r="5" fill="#ff6fa8"/><circle cx="16" cy="32" r="4" fill="#5ab8ff"/><circle cx="84" cy="32" r="4" fill="#5ab8ff"/>
     <rect x="12" y="52" width="76" height="6" rx="3" fill="#ffe680"/><circle cx="50" cy="42" r="5" fill="#9a7bff"/>`,
 };
+HEAD.en_crown = `<path d="M6 60 L10 22 L28 40 L50 6 L72 40 L90 22 L94 60 Z" fill="#ffc21a" stroke="#d99400" stroke-width="3" stroke-linejoin="round"/>
+    <rect x="6" y="50" width="88" height="10" rx="3" fill="#ffdb5c" stroke="#d99400" stroke-width="2"/>
+    <circle cx="50" cy="8" r="6" fill="#e2453c"/><circle cx="10" cy="22" r="5" fill="#3f8fd2"/><circle cx="90" cy="22" r="5" fill="#3f8fd2"/>
+    <circle cx="30" cy="55" r="3.5" fill="#e2453c"/><circle cx="50" cy="55" r="3.5" fill="#5fb36b"/><circle cx="70" cy="55" r="3.5" fill="#e2453c"/>
+    <text x="50" y="40" font-size="16" text-anchor="middle">⭐</text>`;
 const HATS = ['cap','hat','tophat','grad','crown'];                     // proper hats are as wide as the head
 const HEAD_SVG = id => HEAD[id] ? `<svg viewBox="0 0 100 64" overflow="visible">${HEAD[id]}</svg>` : null;
 // put the worn things on every Ayra; only owls whose outfit changed are touched
@@ -485,7 +495,7 @@ const needs = it => it.on && !owned().includes(it.on) ? SHOP.find(f=>f.id===it.o
 function itemHTML(it){
   const have = owned().includes(it.id), on = wear()[it.slot]===it.id, togg = !['room','furn'].includes(it.slot);
   const need = !have && needs(it), lockedSpecial = !have && it.from;
-  const label = lockedSpecial ? (it.from==='advent' ? '🔒 z adventu' : `🔒 sbírka ${COLL.find(c=>'album:'+c.id===it.from).n}`)
+  const label = lockedSpecial ? (it.from==='advent' ? '🔒 z adventu' : it.from==='endless' ? '🔒 ze hry Ze všeho' : `🔒 sbírka ${COLL.find(c=>'album:'+c.id===it.from).n}`)
     : need ? `nejdřív ${need.n.toLowerCase()}` : !have ? `⭐ ${it.p}` : !togg ? 'máš' : on ? (WEAR_SLOTS.includes(it.slot)?'nosí':'je tam') : (WEAR_SLOTS.includes(it.slot)?'obléct':'použít');
   const icon = it.svg ? `<svg viewBox="0 0 ${FURN[it.svg].w} ${FURN[it.svg].h}">${FURN[it.svg].draw(true)}</svg>` : it.e;
   return `<button class="item ${have?'have':''} ${on?'on':''} ${need||lockedSpecial?'need':''} ${it.from?'special':''} ${!have && !need && !lockedSpecial && wallet()<it.p?'poor':''}" data-it="${it.id}">
@@ -711,7 +721,7 @@ document.getElementById('shop').addEventListener('click', e=>{
   const it = SHOP.find(i=>i.id===b.dataset.it), own = owned();
   if (!own.includes(it.id)){
     if (it.from){ sfx.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
-      speak(it.from==='advent' ? SAY.lockAdvent : SAY.lockAlbum); return; }
+      speak(it.from==='advent' ? SAY.lockAdvent : it.from==='endless' ? SAY.lockEndless : SAY.lockAlbum); return; }
     const need = needs(it);
     if (need){ sfx.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); speak(need.say); return; }
     if (wallet() < it.p){ sfx.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); speak(SAY.poor); return; }
@@ -855,7 +865,9 @@ document.addEventListener('click', e=>{ if (e.target.closest('#spinBtn')) spinWh
 document.addEventListener('click', e=>{ const w = e.target.closest('[data-adv]'); if (w){ sfx.tap(); openAdvent(+w.dataset.adv); } });
 document.addEventListener('click', e=>{ if (e.target.closest('#openGift')){ sfx.tap(); openGift(); } });
 
-A.rewards = {afterRound, renderHub, decorate, PLACES};
+// gives a special thing for keeps (true if it was new)
+function giveItem(id){ const own = owned(); if (own.includes(id)) return false; own.push(id); set('owned', own); return true; }
+A.rewards = {afterRound, renderHub, decorate, PLACES, addPicture, drawPicture, giveItem, SHOP};
 A.phraseSources.push(()=>[...Object.values(SAY).flat(), ...SHOP.filter(i=>i.say).map(i=>i.say)]);
 renderHub(); decorate();
 mo.observe(document.body,{childList:true,subtree:true});

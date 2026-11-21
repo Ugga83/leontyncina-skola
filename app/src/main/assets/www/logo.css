@@ -368,7 +368,7 @@
 .badge{background:#f3f6ff;border-radius:14px;padding:8px;display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;column-gap:8px;align-items:center}
 .badge .be{grid-row:span 2;font-size:28px}.badge .bt{grid-row:span 2;font-size:26px}
 .badge b{font-size:15px}.badge small{font-size:12px;font-weight:700;color:var(--ink-soft)}
-.badge.lv0{opacity:.7}.badge.lv1{background:#f7e3d0}.badge.lv2{background:#eceff5}.badge.lv3{background:#fff1b8}
+.badge.lv0{opacity:.7}.badge.lv1{background:#f7e3d0}.badge.lv2{background:#eceff5}.badge.lv3{background:#fff1b8}.badge.lv4{background:#dff3ff;box-shadow:0 0 0 2px #7fd3ff inset}.badge.lv5{background:#fff1b8;box-shadow:0 0 0 2px #ffb02e inset}
 
 /* ---------- lucky wheel ---------- */
 .wheelbox{position:relative;width:min(70vw,280px);margin:12px auto 6px}
@@ -427,3 +427,15 @@
 @keyframes tSing{to{transform:scale(1.06) rotate(-4deg)}}
 .kdog.trick-flip .kayra{animation:tFlip 1.2s ease-in-out;transform-origin:50% 50%}
 @keyframes tFlip{40%{transform:translateY(-50%) rotate(-180deg)}80%{transform:translateY(-20%) rotate(-360deg)}100%{transform:none}}
+
+/* ---------- Ze všeho (endless) ---------- */
+.tile.t-endless{--c:linear-gradient(135deg,#ff7b7b,#ffad3b 40%,#2fc7a0 70%,#9a7bff);--d:#b3567e;background:linear-gradient(120deg,#ff7b7b,#ffad3b 35%,#2fc7a0 65%,#9a7bff)}
+.hearts{display:flex;gap:2px;font-size:26px;margin-left:8px}.hearts .lost{filter:grayscale(1);opacity:.3}
+.ennext{width:100%;max-width:720px;display:flex;flex-direction:column;gap:4px;font-weight:800;font-size:15px;color:#fff;text-shadow:0 1px 2px #0005}
+.ennext i{display:block;height:10px;border-radius:5px;background:#ffffff66;overflow:hidden}.ennext b{display:block;height:100%;background:#ffd447}
+.encard .enq{font-size:clamp(56px,17vw,96px);font-weight:900;color:var(--ink)}
+.encard .enq.ear{font-size:clamp(70px,22vw,120px);cursor:pointer}
+.enans.cursive .ans{font-family:'Slabikar',cursive;font-weight:400;-webkit-text-stroke:.04em currentColor;font-size:clamp(46px,13vw,64px)}
+.enprize{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:999;background:#fff;border-radius:22px;padding:14px 22px;text-align:center;
+  box-shadow:0 8px 0 #f0b44a,0 10px 30px #0003;animation:toastIn 3.2s ease both;pointer-events:none;min-width:240px}
+.enprize b{display:block;font-size:22px}.enprize span{display:block;font-size:20px;font-weight:800;margin-top:4px}

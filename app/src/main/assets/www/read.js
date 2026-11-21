@@ -391,4 +391,6 @@ A.phraseSources.push(()=>{
   });
   return out;
 });
+// all syllables of the school tasks (used by the endless game)
+A.syllables = () => [...new Set(R_LESSONS.flatMap(l=>l.days.flatMap(d=>d.cols.flat())))];
 })();
