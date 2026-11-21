@@ -49,17 +49,19 @@ def first_part(name, data):
 
 
 os.makedirs(OUT, exist_ok=True)
-# round 2: long syllables (pí sounded like "tý") – the chosen voice E (Wavenet-A) in several ways
-LONG = {"pí": "piː", "pá": "paː", "pů": "puː", "má": "maː", "sí": "siː"}
-for s, ipa in LONG.items():
-    def wa(ssml, rate):
-        return tts({"input": {"ssml": ssml}, "voice": {"languageCode": "cs-CZ", "name": "cs-CZ-Wavenet-A"},
-                    "audioConfig": {"audioEncoding": "MP3", "speakingRate": rate}})
+# round 3: long vowels made clearly longer (má still sounded short)
+def wa(ssml, rate=0.8):
+    return tts({"input": {"ssml": ssml}, "voice": {"languageCode": "cs-CZ", "name": "cs-CZ-Wavenet-A"},
+                "audioConfig": {"audioEncoding": "MP3", "speakingRate": rate}})
+def stretch(src, dst, tempo):
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", os.path.join(OUT, src + ".mp3"), "-af", f"atempo={tempo}",
+                    "-ac", "1", "-b:a", "48k", os.path.join(OUT, dst + ".mp3")], check=True)
+for s, c, v in [("má", "m", "a"), ("pí", "p", "i"), ("sů", "s", "u")]:
     jobs = {
-        "1": lambda: save(f"1_{s}", wa(f'<speak><phoneme alphabet="ipa" ph="{ipa}">{s}</phoneme></speak>', 0.8)),
-        "2": lambda: save(f"2_{s}", wa(f'<speak><phoneme alphabet="ipa" ph="{ipa}">{s}</phoneme></speak>', 0.7)),
-        "3": lambda: save(f"3_{s}", wa(f'<speak>{s}</speak>', 0.8)),
-        "4": lambda: save(f"4_{s}", wa(f'<speak><phoneme alphabet="ipa" ph="{ipa[0]}{ipa[1:].replace("ː", "")}ː">{s}</phoneme><break time="10ms"/></speak>', 0.75)),
+        "a": lambda: save(f"a_{s}", wa(f'<speak><phoneme alphabet="ipa" ph="{c}{v}ːː">{s}</phoneme></speak>')),
+        "b": lambda: save(f"b_{s}", wa(f'<speak><phoneme alphabet="ipa" ph="{c}{v}{v}">{s}</phoneme></speak>')),
+        "c": lambda: (save(f"t_{s}", wa(f'<speak><phoneme alphabet="ipa" ph="{c}{v}ː">{s}</phoneme></speak>')), stretch(f"t_{s}", f"c_{s}", 0.7)),
+        "d": lambda: save(f"d_{s}", wa(f'<speak><prosody rate="x-slow"><phoneme alphabet="ipa" ph="{c}{v}ː">{s}</phoneme></prosody></speak>')),
     }
     for k, f in jobs.items():
         try:
