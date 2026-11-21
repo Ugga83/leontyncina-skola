@@ -65,7 +65,7 @@ document.querySelector('#hub [data-go="endless"]').addEventListener('click', ()=
 const shuffle = a => a.sort(()=>Math.random()-.5);
 function makeTask(){
   const lvl = ES.n, max = lvl < 15 ? 5 : 10, nOpt = lvl < 10 ? 3 : 4;
-  const kinds = ['add','sub','cmp','syl','syl','cur'];
+  const kinds = ['add','sub','cmp','syl','syl'];          // cursive is only traced in Psaní, not guessed here
   let kind;
   do { kind = pick(kinds); } while (kind === ES.last && Math.random() < .7);
   ES.last = kind;
@@ -73,7 +73,8 @@ function makeTask(){
     const t = M.genTask(kind, max);
     if (kind==='cmp') return {kind, t, say:M.prompt(t), show:`${t.a} <span class="slot">?</span> ${t.b}`, ans:t.answer, opts:['<','=','>'], key:'math'};
     const opts = new Set([t.answer]);
-    while (opts.size < nOpt){ const x = t.answer + Math.floor(Math.random()*5) - 2; if (x >= 0 && x <= max) opts.add(x); }
+    let guard = 0;
+    while (opts.size < nOpt && guard++ < 100){ const x = t.answer + Math.floor(Math.random()*5) - 2; if (x >= 1 && x <= max) opts.add(x); }          // no zero, like in Matematika
     return {kind, t, say:M.prompt(t), show:`${t.a} ${kind==='add'?'+':'−'} ${t.b} = <span class="slot">?</span>`, ans:t.answer, opts:shuffle([...opts]), key:'math'};
   }
   const pool = A.syllables ? A.syllables().map(s=>s.toLowerCase()) : ['ma','me','mi','mo','mu'];

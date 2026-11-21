@@ -454,3 +454,7 @@
 .gtalk .owl.full{font-size:68px}
 .owl.full.big{font-size:140px}
 .owl.full.tiny{font-size:46px;top:-18px}
+/* Ze všeho: the example always in one row, e.g. 1 ? 4 or 3 + 2 = ? */
+#endless .encard .enq{display:flex;align-items:center;justify-content:center;gap:.22em;white-space:nowrap;font-size:clamp(40px,11.5vw,72px);line-height:1}
+#endless .encard .enq .slot{display:inline-grid;place-items:center;width:1.15em;height:1.15em;min-width:0;font-size:1em;margin:0;padding:0;flex:0 0 auto}
+#endless .encard .enq.ear{display:block}
