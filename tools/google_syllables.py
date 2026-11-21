@@ -33,10 +33,12 @@ for p in phrases:
         ipa = C[s[0]] + V[s[1]]
     else:
         continue
-    # a long vowel (má, sů) is said slower, so it really sounds long and not like ma, su
-    synth(f'<speak><phoneme alphabet="ipa" ph="{ipa}">{s}</phoneme></speak>', '/tmp/syl.mp3', 0.6 if 'ː' in ipa else 0.8)
+    # a long vowel (má, sů): normal tempo, then the recording is stretched (variant C, picked by listening),
+    # so it really sounds long and not like ma, su – and pí does not turn into "tý" as when spoken slowly
+    long = 'ː' in ipa
+    synth(f'<speak><phoneme alphabet="ipa" ph="{ipa}">{s}</phoneme></speak>', '/tmp/syl.mp3', 0.8)
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', '/tmp/syl.mp3', '-af',
-                    'silenceremove=start_periods=1:start_threshold=-50dB,areverse,'
+                    ('atempo=0.7,' if long else '') + 'silenceremove=start_periods=1:start_threshold=-50dB,areverse,'
                     'silenceremove=start_periods=1:start_threshold=-50dB,areverse,loudnorm=I=-17:TP=-1.5:LRA=7,aresample=24000,adelay=60,apad=pad_dur=0.15',
                     '-ac', '1', '-b:a', '48k', os.path.join(fixed, p['k'] + '.mp3')], check=True)
     print(s)
