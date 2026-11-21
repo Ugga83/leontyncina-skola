@@ -341,9 +341,10 @@ function startFind(){
 function sayFind(s, queue){ return speak(say(s), {queue:!!queue}); }
 function showFind(first){
   const s = RF.items[RF.idx]; RF.wrong = 0; RF.busy = false;
-  const pool = [...new Set(day().cols.flat())].filter(x=>x.toLowerCase()!==s.toLowerCase());
+  const base = x => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');   // ma = má = MA by ear
+  const pool = [...new Set(day().cols.flat())].filter(x=>base(x)!==base(s));
   const opts = [s];
-  while (opts.length < 4 && pool.length){ const x = pool.splice(Math.floor(Math.random()*pool.length),1)[0]; if (!opts.some(o=>o.toLowerCase()===x.toLowerCase())) opts.push(x); }
+  while (opts.length < 4 && pool.length){ const x = pool.splice(Math.floor(Math.random()*pool.length),1)[0]; if (!opts.some(o=>base(o)===base(x))) opts.push(x); }
   opts.sort(()=>Math.random()-.5);
   $('#rfDots').innerHTML = RF.items.map((_,i)=>`<div class="dot ${i===RF.idx?'cur':''} ${RF.res[i]===1?'gold':RF.res[i]===2?'ok':''}"></div>`).join('');
   $('#rfStars').textContent = '✓ ' + RF.stars;

@@ -46,7 +46,7 @@ function start(cont){
   const sv = cont ? store.get('enSave', null) : null;
   ES.n = sv ? sv.n : 0; ES.hearts = sv ? sv.hearts : 3; ES.run++; ES.last = ''; ES.task = null;
   if (!sv) store.set('enSave', null);
-  A.go('endless'); speak(sv ? E_SAY.cont : E_SAY.start); next(true);
+  blank(); A.go('endless'); speak(sv ? E_SAY.cont : E_SAY.start); next(true);
 }
 function offer(){
   const sv = store.get('enSave', null);
@@ -80,11 +80,16 @@ function makeTask(){
   if (kind==='write') return {kind, x: pick(A.write ? A.write.items() : ['a'])};
   const s = pick(uniq);
   if (kind==='read') return {kind, say:E_SAY.read, ans:s, key:'read', tries:0};
-  const opts = new Set([s]);
+  // never two that differ only by length or a mark (ma / má, su / sů): by ear they are too alike
+  const base = x => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const opts = [s], used = new Set([base(s)]);
   // similar syllables are the useful distractors: same consonant or same vowel
-  const near = uniq.filter(x=>x!==s && (x[0]===s[0] || x[1]===s[1]));
-  while (opts.size < nOpt) opts.add(near.length && Math.random() < .75 ? pick(near) : pick(uniq));
-  return {kind, say:E_SAY.find, sayX:s, ans:s, opts:shuffle([...opts]), key:'read'};
+  const near = uniq.filter(x=>!used.has(base(x)) && (base(x)[0]===base(s)[0] || base(x)[1]===base(s)[1]));
+  for (let g = 0; opts.length < nOpt && g < 200; g++){
+    const x = near.length && Math.random() < .75 ? pick(near) : pick(uniq);
+    if (!used.has(base(x))){ used.add(base(x)); opts.push(x); }
+  }
+  return {kind, say:E_SAY.find, sayX:s, ans:s, opts:shuffle(opts), key:'read'};
 }
 function sayTask(queue){
   const t = ES.task; if (!t || t.kind==='write') return;
@@ -106,7 +111,7 @@ function next(first){
   render();
   $('#endless').classList.toggle('mathmode', t.kind==='math'); $('#endless').classList.toggle('readmode', t.kind==='read');
   $('#enAns').className = 'answers enans';
-  $('#enCard').classList.remove('nopics');
+  $('#enCard').classList.toggle('nopics', t.kind==='math' && !enPics());     // set before drawing: no flash
   if (t.kind==='write'){                                         // tracing in the Psaní screen, then back here
     $('#enBubble').textContent = 'Teď budeme psát!';
     return A.write.traceOne(t.x, first => written(first));
@@ -190,8 +195,13 @@ async function loseHeart(){
   speak(ES.hearts === 1 ? E_SAY.last : E_SAY.wrong);          // she may answer again straight away
   return false;
 }
+// nothing old may flash for a moment when the screen comes back
+function blank(msg){
+  $('#endless').classList.remove('mathmode','readmode');
+  $('#enCard').innerHTML = `<div class="enq">${msg || ''}</div>`; $('#enAns').innerHTML = ''; $('#enAns').className = 'answers enans';
+}
 function written(first){                                         // back from tracing
-  A.go('endless'); ES.run++;
+  blank(first ? '✏️ ✅' : ''); A.go('endless'); ES.run++;
   if (first === null) return next();                             // she left the tracing: just go on
   success();
 }
