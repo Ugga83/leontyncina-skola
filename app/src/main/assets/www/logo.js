@@ -242,9 +242,7 @@ $('#logoOwl').addEventListener('click',()=>{
   $('#logoBubble').textContent=t; speak(t);
 });
 // greet on entering
-document.querySelector('#hub [data-go="logopedie"]').addEventListener('click',()=>{
-  setTimeout(()=>speak('Vyber si lekci.'), 60);
-});
+A.onLeave(id=>{ if (id==='logopedie' && document.querySelector('.screen.active') && document.querySelector('.screen.active').id==='parent') setTimeout(()=>speak('Vyber si lekci.'), 60); });
 
 // ---------- sound detail ----------
 let cur = 'S', showing = 0;

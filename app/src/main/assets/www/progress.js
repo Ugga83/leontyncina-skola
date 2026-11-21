@@ -43,7 +43,6 @@ const CH = [
   {sec:'write', go:'write', t:'Obtáhni písmenka v Psaní', say:'Dnešní výzva: obtáhni písmenka v psaní. Dostaneš tři hvězdičky navíc!'},
   {sec:'math',  go:'home',  t:'Zahraj si jedno kolo počítání', say:'Dnešní výzva: zahraj si jedno kolo počítání. Dostaneš tři hvězdičky navíc!'},
   {sec:'read',  go:'read',  t:'Přečti slabiky ve Čtení', say:'Dnešní výzva: přečti slabiky ve čtení. Dostaneš tři hvězdičky navíc!'},
-  {sec:'logo',  go:'logopedie', t:'Zahraj si hru v Logopedii', say:'Dnešní výzva: zahraj si hru v logopedii. Dostaneš tři hvězdičky navíc!'},
 ];
 const CH_DONE = 'Haf haf! Splnila jsi dnešní výzvu! Tady máš tři hvězdičky navíc.';
 const dayIndex = () => { const d = new Date(); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); };
@@ -86,6 +85,7 @@ document.body.insertAdjacentHTML('beforeend', `
 <section id="parent" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Pro rodiče</h1></div>
   <div class="lcard" id="pSum"></div>
+  <button class="lesson" style="--c:var(--teal);--d:var(--teal-d)" id="pLogo"><span class="le">👄</span><span class="lt"><b>Logopedie</b><small>cvičení C S Z a Č Š Ž – hrajte spolu</small></span></button>
   <div class="lcard"><h4>Posledních 14 dní <small>(počet odehraných kol)</small></h4><div class="pchart" id="pChart"></div></div>
   <div class="lcard"><h4>Úspěšnost napoprvé <small>(posledních 7 dní)</small></h4><div class="ptiles" id="pAcc"></div></div>
   <div class="lcard"><h4>Co ještě nejde <small>(opakuje se, dokud to nezvládne)</small></h4><div id="pWeak"></div>
@@ -132,6 +132,7 @@ function renderParent(){
   $('#pHeard').innerHTML = hd.length ? hd.map(([t,r,d])=>`<div class="pheard"><b>${t}</b><span>${r}</span><i>${d.slice(8)}.${d.slice(5,7)}.</i></div>`).join('')
     : '<p class="pnone">Zatím nic.</p>';
 }
+$('#pLogo').addEventListener('click', ()=>{ sfx.tap(); A.go('logopedie'); });
 $('#pClear').addEventListener('click', ()=>{
   if (!confirm('Opravdu vymazat seznam chyb k opakování?')) return;
   const st = stats(); st.weak = {}; store.set('stats', st); renderParent();
