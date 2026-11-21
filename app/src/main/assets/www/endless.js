@@ -147,6 +147,7 @@ function gameOver(){
   A.finishRound(Math.min(ES.n, 20), start, 'hub', 20);
   const extra = `<div class="rewline">🔥 Došla jsi až na <b>${ES.n}</b>. ${rec ? (best > 0 ? '🏆 Nový rekord! +5 ⭐' : '🏆 Tvůj první rekord!') : `Rekord: ${best}`}</div>`;
   const ns = document.getElementById('newStk'); if (ns) ns.insertAdjacentHTML('afterbegin', extra);
+  const sc = document.querySelector('#endStars .score'); if (sc) sc.textContent = `došla jsi až na ${ES.n} správně`;
 }
 A.onLeave(id=>{ if (id !== 'endless') ES.run++; });
 
