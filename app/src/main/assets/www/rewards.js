@@ -412,6 +412,7 @@ const HEAD_SVG = id => HEAD[id] ? `<svg viewBox="0 0 100 64" overflow="visible">
 function decorate(){
   const w = wear(), sig = [w.head, w.eyes, w.neck].join('|');
   document.querySelectorAll('.owl').forEach(o=>{
+    o.classList.add('full');                                     // Ayra is shown whole everywhere
     if (o.dataset.acc === sig) return;
     o.dataset.acc = sig;
     o.querySelectorAll('.acc').forEach(x=>x.remove());
