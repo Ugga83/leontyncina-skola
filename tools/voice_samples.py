@@ -49,29 +49,20 @@ def first_part(name, data):
 
 
 os.makedirs(OUT, exist_ok=True)
-for s in SYL:
-    ipa = C[s[0]] + V[s[1]]
+# round 2: long syllables (pí sounded like "tý") – the chosen voice E (Wavenet-A) in several ways
+LONG = {"pí": "piː", "pá": "paː", "pů": "puː", "má": "maː", "sí": "siː"}
+for s, ipa in LONG.items():
+    def wa(ssml, rate):
+        return tts({"input": {"ssml": ssml}, "voice": {"languageCode": "cs-CZ", "name": "cs-CZ-Wavenet-A"},
+                    "audioConfig": {"audioEncoding": "MP3", "speakingRate": rate}})
     jobs = {
-        "A": lambda: save(f"A_{s}", tts({"input": {"ssml": f'<speak><phoneme alphabet="ipa" ph="{ipa}">{s}</phoneme></speak>'},
-                                         "voice": {"languageCode": "cs-CZ", "name": "cs-CZ-Wavenet-B"},
-                                         "audioConfig": {"audioEncoding": "MP3", "speakingRate": 0.72}})),
-        "B": lambda: save(f"B_{s}", tts({"input": {"text": s + "."}, "voice": {"languageCode": "cs-CZ", "name": CHIRP},
-                                         "audioConfig": {"audioEncoding": "MP3"}})),
-        "C": lambda: first_part(f"C_{s}", tts({"input": {"text": f"{s.capitalize()}, {s}, {s}."},
-                                               "voice": {"languageCode": "cs-CZ", "name": CHIRP},
-                                               "audioConfig": {"audioEncoding": "MP3"}})),
-        "D": lambda: save(f"D_{s}", tts({"input": {"text": s + ".", "customPronunciations": {"pronunciations": [
-                                             {"phrase": s, "phoneticEncoding": "PHONETIC_ENCODING_IPA", "pronunciation": ipa}]}},
-                                         "voice": {"languageCode": "cs-CZ", "name": CHIRP},
-                                         "audioConfig": {"audioEncoding": "MP3"}})),
-        "E": lambda: save(f"E_{s}", tts({"input": {"ssml": f'<speak><phoneme alphabet="ipa" ph="{ipa}">{s}</phoneme></speak>'},
-                                         "voice": {"languageCode": "cs-CZ", "name": "cs-CZ-Wavenet-A"},
-                                         "audioConfig": {"audioEncoding": "MP3", "speakingRate": 0.8}})),
+        "1": lambda: save(f"1_{s}", wa(f'<speak><phoneme alphabet="ipa" ph="{ipa}">{s}</phoneme></speak>', 0.8)),
+        "2": lambda: save(f"2_{s}", wa(f'<speak><phoneme alphabet="ipa" ph="{ipa}">{s}</phoneme></speak>', 0.7)),
+        "3": lambda: save(f"3_{s}", wa(f'<speak>{s}</speak>', 0.8)),
+        "4": lambda: save(f"4_{s}", wa(f'<speak><phoneme alphabet="ipa" ph="{ipa[0]}{ipa[1:].replace("ː", "")}ː">{s}</phoneme><break time="10ms"/></speak>', 0.75)),
     }
     for k, f in jobs.items():
         try:
             f(); print("ok", k, s)
-        except urllib.error.HTTPError as e:
-            print("fail", k, s, e.code, e.read()[:300])
         except Exception as e:
             print("fail", k, s, e)

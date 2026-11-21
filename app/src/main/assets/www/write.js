@@ -252,7 +252,7 @@ A.write = {
     A.go('wtrace');
     document.fonts.load(`100px ${FONT()}`).then(()=>{ setup(true); });
   },
-  items: () => [...new Set(W_LESSONS.flatMap(l=>l.items))],
+  items: () => [...W_LESSONS[2].items, ...W_LESSONS[5].items],     // Ze všeho: only syllables and numbers
 };
 document.querySelector('#wtrace [data-back]').addEventListener('click', e=>{
   if (!WS.ext) return;
