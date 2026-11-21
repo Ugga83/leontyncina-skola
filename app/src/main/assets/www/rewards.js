@@ -6,7 +6,7 @@ const {sfx, confetti, store, speak, pick} = A;
 const SAY = {
   wear:['Haf! Děkuju, to mi sluší!','Haf haf! Moc se mi to líbí!'], room:'Haf! To je pro mě? Děkuju!',
   poor:'Na tohle ještě nemáme dost hvězdiček.', shop:'Vítej v mojí boudě! Co mi koupíš?',
-  journey:'Tohle je naše cesta. Na konci jsou prázdniny!', paws:'Za každý den s procvičováním dostaneš tlapku.',
+  treasure:'Tady jsou všechny tvoje poklady.', journey:'Tohle je naše cesta. Na konci jsou prázdniny!', paws:'Za každý den s procvičováním dostaneš tlapku.',
   week:'Haf haf! Pět tlapek za týden! Tady máš bonus.', gift:'Haf! Máš dárek! Otevři ho.', gold:'Haf haf! Zlatý poklad!', yay:'Paráda!',
   night:'Psst, Ayra už spinká. Ťukni na ni a probudí se.', night2:'Dobrý večer! Ayra je ospalá. Kup jí pelíšek, ať má kde spát.',
   yum:'Mňam, mňam! Děkuju!', ball:'Haf haf! Hodíš mi ho ještě?', teddy:'Můj plyšáček!', bed:'Jdu si na chvilku lehnout.'
@@ -155,8 +155,14 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
 <section id="shop" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Ayřina bouda</h1><div class="wallet" id="shopWallet"></div></div>
   <div class="kennel" id="kennel"></div>
-  <div class="tabs" id="shopTabs"><button data-tab="wear" class="on">👒 Na sebe</button><button data-tab="room">🧸 Do boudy</button><button data-tab="furn">🪑 Nábytek</button><button data-tab="house">🎨 Vylepšení</button><button data-tab="tr">🎁 Poklady</button></div>
+  <div class="tabs" id="shopTabs"><button data-tab="wear" class="on">👒 Na sebe</button><button data-tab="room">🧸 Do boudy</button><button data-tab="furn">🪑 Nábytek</button><button data-tab="house">🎨 Vylepšení</button></div>
   <div class="lcard"><div class="items" id="shopItems"></div></div>
+</section>
+<section id="treasure" class="screen scroll">
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Moje poklady</h1></div>
+  <div class="hero"><div class="owl"></div><div class="bubble" id="trBubble">Za každých 10 hvězdiček dostaneš dárek. Je v něm poklad, nebo hvězdičky navíc!</div></div>
+  <div class="lcard" id="trGifts"></div>
+  <div class="lcard"><h4 id="trCount"></h4><div id="trAll"></div></div>
 </section>
 <section id="journey" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Ayřina cesta</h1></div>
@@ -178,16 +184,18 @@ if (stkPanel) stkPanel.outerHTML = `
       <button class="rewbtn" data-rgo="shop"><span>🏠</span>Bouda</button>
       <button class="rewbtn" data-rgo="journey"><span>🗺️</span>Cesta</button>
       <button class="rewbtn" data-rgo="paws"><span>🐾</span>Tlapky</button>
+      <button class="rewbtn" data-rgo="treasure"><span>🎁</span>Poklady<i class="rbadge" id="giftBadge"></i></button>
     </div>
     <div class="stknext" id="rewNext"></div>
   </div>`;
 document.querySelectorAll('[data-rgo]').forEach(b=>b.addEventListener('click',()=>{ sfx.tap(); open(b.dataset.rgo); }));
-function open(id){ A.go(id); if (id==='shop') renderShop(); if (id==='journey') renderJourney(); if (id==='paws') renderPaws();
+function open(id){ A.go(id); if (id==='shop') renderShop(); if (id==='journey') renderJourney(); if (id==='paws') renderPaws(); if (id==='treasure') renderTreasure();
   speak(id==='shop' && phase()==='night' ? (owned().includes('bed') ? SAY.night : SAY.night2) : SAY[id]); }
 
 function renderHub(){
   const st = get('stk', {got:0,have:0,cost:5});
   const w = $('#rewWallet'); if (w) w.textContent = '⭐ ' + wallet();
+  const gb = $('#giftBadge'); if (gb){ const n = get('boxes',0); gb.textContent = n || ''; gb.style.display = n ? '' : 'none'; }
   const n = $('#rewNext'); if (!n) return;
   n.innerHTML = st.got < PLACES.length
     ? `<div class="stkbar"><div style="width:${Math.round(100*Math.min(1,st.have/st.cost))}%"></div></div><span>${PLACES[st.got][0]} ${st.have}/${st.cost}</span>`
@@ -392,16 +400,7 @@ function renderKennel(){
 function renderShop(){
   $('#shopWallet').textContent = '⭐ ' + wallet();
   document.querySelectorAll('#shopTabs button').forEach(b=>b.classList.toggle('on', b.dataset.tab===shopTab));
-  if (shopTab==='tr'){
-    const tr = get('treasures', {});
-    const all = [...TREASURES.common, ...TREASURES.rare, ...TREASURES.gold];
-    $('#shopItems').innerHTML = '<div class="treasures">' + all.map(t=>{
-      const c = tr[t]||0, cls = TREASURES.gold.includes(t)?'gold':TREASURES.rare.includes(t)?'rare':'';
-      return `<span class="tr ${cls} ${c?'':'lock'}">${c?t:'?'}</span>`;
-    }).join('') + '</div>';
-  } else {
-    $('#shopItems').innerHTML = SHOP.filter(inTab).sort((a,b)=>a.p-b.p).map(itemHTML).join('');
-  }
+  $('#shopItems').innerHTML = SHOP.filter(inTab).sort((a,b)=>a.p-b.p).map(itemHTML).join('');
   renderKennel();
 }
 document.getElementById('shopTabs').addEventListener('click', e=>{
@@ -487,6 +486,18 @@ function afterRound(add){
   renderHub();
   return out.map(x=>`<div class="rewline">${x}</div>`).join('');
 }
+// ---------- treasures: all collected things and unopened gifts ----------
+const TIER = {common:'Běžné poklady', rare:'Vzácné poklady 💜', gold:'Zlaté poklady ✨'};
+function renderTreasure(){
+  const tr = get('treasures', {}), n = get('boxes', 0);
+  const all = [...TREASURES.common, ...TREASURES.rare, ...TREASURES.gold], have = all.filter(t=>tr[t]).length;
+  $('#trGifts').innerHTML = n > 0
+    ? `<div class="rewline"><button class="giftbtn" id="openGift">🎁 Otevři dárek${n>1?' ('+n+')':''}</button></div>`
+    : `<div class="trnext">🎁 Další dárek za <b>${Math.max(1, get('boxAt', A.S.total + BOX_EVERY) - A.S.total)} ⭐</b></div>`;
+  $('#trCount').textContent = `Máš ${have} z ${all.length} pokladů`;
+  $('#trAll').innerHTML = Object.entries(TIER).map(([k, name])=>`<div class="trtier"><small>${name}</small><div class="treasures">${
+    TREASURES[k].map(t=>`<span class="tr ${k==='common'?'':k} ${tr[t]?'':'lock'}">${tr[t]?t:'?'}</span>`).join('')}</div></div>`).join('');
+}
 function openGift(){
   let n = get('boxes',0); if (n<=0) return; set('boxes', n-1);
   let txt;
@@ -497,13 +508,17 @@ function openGift(){
     const t = TREASURES[tier][Math.floor(Math.random()*TREASURES[tier].length)];
     const tr = get('treasures', {});
     if (tr[t]){ set('wallet', wallet()+2); txt = `${t} tenhle poklad už máš, tak ⭐ 2 navíc!`; }
-    else { tr[t] = 1; set('treasures', tr); txt = `${t} nový ${tier==='gold'?'ZLATÝ ':tier==='rare'?'vzácný ':''}poklad!`; }
+    else { tr[t] = 1; set('treasures', tr); txt = `${t} nový ${tier==='gold'?'ZLATÝ ':tier==='rare'?'vzácný ':''}poklad! Najdeš ho v Pokladech 🎁`; }
   }
   sfx.win(); confetti(60); speak(/ZLATÝ/.test(txt) ? SAY.gold : SAY.yay);
   const b = $('#openGift');
   if (b){ const d = document.createElement('div'); d.className='giftres'; d.textContent = txt; b.parentNode.insertBefore(d, b);
     const left = get('boxes',0); if (left>0) b.textContent = '🎁 Otevři další dárek ('+left+')'; else b.remove(); }
   renderHub();
+  if (document.getElementById('treasure').classList.contains('active')){       // keep the result visible
+    const keep = $('#trGifts').querySelectorAll('.giftres'); renderTreasure();
+    keep.forEach(d=>$('#trGifts').prepend(d));
+  }
 }
 document.addEventListener('click', e=>{ if (e.target.closest('#openGift')){ sfx.tap(); openGift(); } });
 

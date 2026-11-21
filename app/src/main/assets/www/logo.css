@@ -139,7 +139,7 @@
 #sndL{cursor:pointer}
 
 /* rewards */
-.rewbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.rewbtns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
 .rewbtn{border:0;font:inherit;font-weight:900;font-size:16px;color:var(--ink);background:#fff7d6;border-radius:18px;padding:10px 4px;box-shadow:0 5px 0 #efd08a;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
 .rewbtn span{font-size:34px;line-height:1.1}
 .rewbtn:active{transform:translateY(4px);box-shadow:0 1px 0 #efd08a}
@@ -333,3 +333,9 @@
 .owl,.cloud,.sun,.trophy,.conf{will-change:transform}
 .pheard{display:flex;gap:10px;align-items:baseline;padding:3px 0;border-bottom:1px solid #eef1fa}
 .pheard b{min-width:2.4em;font-size:18px}.pheard span{flex:1;color:var(--ink-soft);font-weight:700}.pheard i{font-style:normal;font-size:12px;color:var(--ink-soft)}
+
+.rewbtn{position:relative;font-size:15px}
+.rbadge{position:absolute;top:-6px;right:-4px;min-width:24px;height:24px;border-radius:12px;background:#ff5d5d;color:#fff;font:900 14px/24px 'Nunito',sans-serif;font-style:normal;box-shadow:0 2px 0 #c43d33;animation:pulse 1.2s infinite}
+.trtier{margin:8px 0}.trtier small{display:block;font-weight:800;color:var(--ink-soft);margin-bottom:4px}
+.trnext{font-weight:800;text-align:center;font-size:18px}
+#trGifts .giftres{font-weight:900;font-size:20px;text-align:center;margin-bottom:8px}
