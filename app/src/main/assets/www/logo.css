@@ -341,9 +341,12 @@
 #trGifts .giftres{font-weight:900;font-size:20px;text-align:center;margin-bottom:8px}
 
 /* ---------- drawn hats ---------- */
-.owl .acc-head.wrap{font-size:1em;width:.62em;left:52%;top:-14%;transform:translateX(-50%) rotate(-8deg)}
+.owl .acc-head.wrap{font-size:1em;width:.84em;left:51%;top:-27%;transform:translateX(-50%) rotate(-6deg)}
 .owl .acc-head.wrap svg{display:block;width:100%;height:auto;overflow:visible}
-.owl.full .acc-head.wrap{width:.5em;top:-4%;left:49%;transform:translateX(-50%) rotate(-8deg)}
+.owl.full .acc-head.wrap{width:.56em;top:-12%;left:47%;transform:translateX(-50%) rotate(-6deg)}
+/* hats as wide as the head */
+.owl .acc-head.hat{font-size:.58em;top:-28%;transform:translateX(-50%) rotate(-6deg)}
+.owl.full .acc-head.hat{font-size:.44em;top:20%;transform:translate(-50%,-100%) rotate(-5deg)}
 
 /* ---------- album ---------- */
 .coll{border-radius:16px;background:#f7f8ff;padding:8px 10px;margin:8px 0}

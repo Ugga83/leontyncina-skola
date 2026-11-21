@@ -93,13 +93,13 @@ const SHOP = [
   {id:'cl_sea',   e:'🤿', n:'Potápěčská maska',  p:0, slot:'eyes', from:'album:sea'},
   {id:'cl_tent',  e:'🏕️', n:'Stan',              p:0, slot:'room', from:'album:forest', pos:[33,.38,.75]},
   {id:'cl_tract', e:'🚜', n:'Traktůrek',          p:0, slot:'room', from:'album:farm',   pos:[70,1,.32]},
-  {id:'cl_space', e:'🌠', n:'Hvězdná čelenka',    p:0, slot:'head', from:'album:space'},
+  {id:'cl_space', e:'🌟', n:'Hvězdná čelenka',    p:0, slot:'head', from:'album:space'},
   {id:'cl_dino',  e:'🦕', n:'Plyšový dinosaurus', p:0, slot:'room', from:'album:dino',   pos:[19,.96,.45]},
   {id:'cl_lolly', e:'🍭', n:'Obří lízátko',       p:0, slot:'room', from:'album:sweet',  pos:[97,.88,.55]},
   {id:'cl_fruit', e:'🧺', n:'Košík s ovocem',     p:0, slot:'room', from:'album:fruit',  pos:[42,.62,.32]},
   {id:'cl_bugs',  e:'🔍', n:'Lupa na broučky',    p:0, slot:'room', from:'album:bugs',   pos:[60,.78,.22]},
   {id:'cl_music', e:'🎤', n:'Mikrofon',           p:0, slot:'room', from:'album:music',  pos:[76,.62,.4]},
-  {id:'cl_tales', e:'💫', n:'Kouzelná čelenka',   p:0, slot:'head', from:'album:tales'},
+  {id:'cl_tales', e:'👸', n:'Princeznovská korunka',   p:0, slot:'head', from:'album:tales'},
   {id:'cl_rain',  e:'☂️', n:'Deštník',            p:0, slot:'room', from:'album:weather', wall:[33,10,.4]},
   {id:'cl_race',  e:'🏎️', n:'Závodní auto',       p:0, slot:'room', from:'album:trans',  pos:[90,.99,.36]},
   {id:'w_snow',   e:'🌨️', n:'Sníh za oknem',      p:0, slot:'snow', from:'advent'},
@@ -378,11 +378,21 @@ const NECK = {
 NECK.w_scarf = NECK.scarf.replace(/#e2574c/g,'#2f9e5b').replace(/#f47f73/g,'#ffffff').replace(/#d94a40/g,'#278a4e').replace(/#f4a29a/g,'#ffffff').replace(/#c43d33/g,'#1f7a43');
 const NECK_SVG = id => NECK[id] ? `<svg viewBox="0 0 100 64" overflow="visible">${NECK[id]}</svg>` : null;
 // drawn hats (an emoji face would not fit): Santa's cap sits on the head, slightly tilted
+// drawn head things: the white fur band (y 46–60) sits on the top of the head between the ears
 const HEAD = {
-  w_santa:`<path d="M10 52 Q22 10 64 8 Q86 10 92 34 L80 36 Q70 22 58 26 Q40 34 34 52 Z" fill="#e2453c"/>
-    <path d="M58 26 Q74 18 80 36" fill="none" stroke="#c43a32" stroke-width="2"/>
-    <rect x="4" y="46" width="66" height="14" rx="7" fill="#fff"/><circle cx="88" cy="38" r="9" fill="#fff"/>`,
+  w_santa:`<path d="M6 50 Q14 6 60 4 Q86 6 94 30 L82 34 Q72 18 58 22 Q36 30 30 50 Z" fill="#e2453c"/>
+    <path d="M58 22 Q74 14 82 34" fill="none" stroke="#c43a32" stroke-width="2"/>
+    <rect x="0" y="44" width="100" height="17" rx="8.5" fill="#fff"/><rect x="0" y="44" width="100" height="5" rx="2.5" fill="#eef1f6"/>
+    <circle cx="89" cy="34" r="10" fill="#fff"/>`,
+  cl_space:`<path d="M8 60 Q50 30 92 60" fill="none" stroke="#3b4a9c" stroke-width="7" stroke-linecap="round"/>
+    <path d="M30 46 Q22 32 26 16 M70 46 Q78 32 74 16" fill="none" stroke="#6c7bd9" stroke-width="3"/>
+    <text x="26" y="20" font-size="24" text-anchor="middle">⭐</text><text x="74" y="20" font-size="24" text-anchor="middle">⭐</text>
+    <text x="50" y="40" font-size="14" text-anchor="middle">🌙</text>`,
+  cl_tales:`<path d="M10 60 L16 32 L32 46 L50 14 L68 46 L84 32 L90 60 Z" fill="#ffd447" stroke="#e0a800" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="50" cy="16" r="5" fill="#ff6fa8"/><circle cx="16" cy="32" r="4" fill="#5ab8ff"/><circle cx="84" cy="32" r="4" fill="#5ab8ff"/>
+    <rect x="12" y="52" width="76" height="6" rx="3" fill="#ffe680"/><circle cx="50" cy="42" r="5" fill="#9a7bff"/>`,
 };
+const HATS = ['cap','hat','tophat','grad','crown'];                     // proper hats are as wide as the head
 const HEAD_SVG = id => HEAD[id] ? `<svg viewBox="0 0 100 64" overflow="visible">${HEAD[id]}</svg>` : null;
 // put the worn things on every Ayra; only owls whose outfit changed are touched
 function decorate(){
@@ -396,6 +406,7 @@ function decorate(){
       const s = document.createElement('span'); s.className='acc acc-'+slot;
       const svg = (slot==='neck' && NECK_SVG(it.id)) || (slot==='head' && HEAD_SVG(it.id));
       if (svg){ s.className += ' wrap'; s.innerHTML = svg; } else s.textContent = it.e;
+      if (HATS.includes(it.id)) s.className += ' hat';
       o.appendChild(s);
     });
   });
