@@ -460,3 +460,9 @@
 #endless .encard .enq.ear{display:block}
 #endless .encard .enreplay{margin-top:6px;font-size:clamp(22px,6vw,30px);padding:10px 22px}
 #endless:not(.mathmode) .encard{display:flex;flex-direction:column;align-items:center}
+/* Ze všeho: reading one syllable */
+#endless .enread{font-size:clamp(110px,34vw,190px);font-weight:900;line-height:1;color:var(--ink)}
+#endless .enread.good{color:var(--good)}
+#endless .enreadbtns{display:flex;justify-content:center;gap:14px;width:100%;flex:0 0 auto}
+#endless.readmode .encard{flex:1}
+#endless .encard .heard{min-height:1.2em}

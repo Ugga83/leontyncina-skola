@@ -391,6 +391,8 @@ A.phraseSources.push(()=>{
   });
   return out;
 });
+// for the endless game: speech recognition of one syllable
+A.stt = {available: ()=>sttAvailable() && !!micWanted, listenOnce, matches, stop: ()=>stopListen(), error: sttError};
 // all syllables of the school tasks (used by the endless game)
 A.syllables = () => [...new Set(R_LESSONS.flatMap(l=>l.days.flatMap(d=>d.cols.flat())))];
 })();

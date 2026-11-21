@@ -551,8 +551,8 @@ async function countItems(items){
   setTimeout(()=>{ if (my===counting) document.querySelectorAll('.badge').forEach(b=>b.remove()); }, 1500);
 }
 
-function hint(t){
-  const card=$('#card');
+function hint(t, card){
+  card = card || $('#card');
   if (t.type==='add') return countItems([...card.querySelectorAll('.it')]);
   if (t.type==='sub') return countItems([...card.querySelectorAll('.it:not(.gone)')]);
   // compare: count left, then right
@@ -774,7 +774,7 @@ const phraseSources = [()=>{
 // every sentence the app can say, for pre-recording the voice (tools/gen_voice.py)
 window.__allPhrases = ()=>[...new Set(phraseSources.flatMap(f=>f()).map(t=>t.trim()))].sort();
 window.__vkey = vkey;
-window.App = {STICKERS, BARKS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, awardRound, toastStars, math:{genTask, prompt, solution, solutionShort, draw:drawMath, EMOJI}, leaveHooks, phraseSources,
+window.App = {STICKERS, BARKS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, awardRound, toastStars, math:{genTask, prompt, solution, solutionShort, draw:drawMath, EMOJI, hint, HINT_HIDDEN, HINT_SHOWN}, leaveHooks, phraseSources,
   onLeave:f=>leaveHooks.push(f)};
 
 // sticker state {got, have, cost, earned, first}; first run: keep every sticker already earned (old rule: one per 10 stars)

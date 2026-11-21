@@ -220,6 +220,7 @@ async function check(){
     $('#wBubble').innerHTML = `${p} <b class="wcur">${x}</b>`; $('#wStars').textContent = '✓ ' + WS.stars;
     await speak(p); await sayWritten(x); await new Promise(r=>setTimeout(r, 500));
     if (my !== WS.run || !isOn('wtrace')) return;
+    if (WS.ext){ const cb = WS.ext; WS.ext = null; return cb(first); }     // one item for the game Ze všeho
     WS.idx++;
     if (WS.idx >= WS.items.length){
       if (!WS.lesson.endless) return A.finishRound(WS.stars, ()=>start(WS.lesson.id), 'write', WS.items.length);
@@ -244,6 +245,19 @@ $('#wUndo').addEventListener('click', ()=>{               // takes back the last
 $('#wSay').addEventListener('click', ()=>{ sfx.tap(); sayItem(WS.items[WS.idx]); });
 
 WS.demo = 0;
+// the game Ze všeho borrows this screen for one item: done(firstTry), or done(null) when she goes back
+A.write = {
+  traceOne(x, done){
+    WS.lesson = {id:'ext', items:[x]}; WS.items = [x]; WS.idx = 0; WS.stars = 0; WS.res = []; WS.ext = done;
+    A.go('wtrace');
+    document.fonts.load(`100px ${FONT()}`).then(()=>{ setup(true); });
+  },
+  items: () => [...new Set(W_LESSONS.flatMap(l=>l.items))],
+};
+document.querySelector('#wtrace [data-back]').addEventListener('click', e=>{
+  if (!WS.ext) return;
+  e.stopPropagation(); const cb = WS.ext; WS.ext = null; sfx.tap(); cb(null);
+});
 A.onLeave(()=>{ WS.run++; WS.demo++; });
 
 A.phraseSources.push(()=>[...W_LESSONS.flatMap(l=>l.items).flatMap(x=>[...promptParts(x), ...writtenParts(x)]), W_SAY.pick, W_SAY.start, W_SAY.slow, W_SAY.rest, ...W_SAY.praise]);
