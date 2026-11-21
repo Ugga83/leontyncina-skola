@@ -1,0 +1,31 @@
+name: Ukázky hlasu slabik
+
+# Makes test recordings of syllables in several ways (tools/voice_samples.py) and commits them to samples/
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - tools/voice_samples.py
+
+permissions:
+  contents: write
+
+jobs:
+  samples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null
+      - name: Namluvit ukázky
+        env:
+          GOOGLE_TTS_KEY: ${{ secrets.GOOGLE_TTS_KEY || secrets.SPEECH_API_KEY }}
+        run: python tools/voice_samples.py
+      - name: Uložit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add samples
+          if git diff --cached --quiet; then echo "Nic"; exit 0; fi
+          git commit -m "Ukázky hlasu slabik"
+          git push

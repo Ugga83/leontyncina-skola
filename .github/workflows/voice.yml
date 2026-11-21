@@ -1,0 +1,42 @@
+name: Namluvit věty
+
+# Records new sentences with the Google voice whenever the list of sentences changes
+# (or on demand) and commits the mp3 files. Needs the repository secret GOOGLE_TTS_KEY.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - app/src/main/assets/www/voice/phrases.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: voice-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Namluvit nové věty (Google, hlas Sulafat)
+        env:
+          GOOGLE_TTS_KEY: ${{ secrets.GOOGLE_TTS_KEY || secrets.SPEECH_API_KEY }}
+        run: |
+          if [ -z "$GOOGLE_TTS_KEY" ]; then echo "::warning::Chybí secret GOOGLE_TTS_KEY"; exit 0; fi
+          python tools/gen_voice.py
+
+      - name: Uložit namluvené věty
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/assets/www/voice
+          if git diff --cached --quiet; then echo "Nic nového"; exit 0; fi
+          git commit -m "Namluvené nové věty"
+          git push
