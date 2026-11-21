@@ -72,6 +72,7 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
   <div class="gtalk"><div class="owl"></div><div class="bubble" id="wBubble"></div></div>
   <div class="card wcard" id="wCard"><canvas id="wGuide"></canvas><canvas id="wInk"></canvas></div>
   <div class="btns" style="padding-bottom:6px">
+    <button class="bigbtn" style="--c:var(--teal);--d:var(--teal-d)" id="wUndo">↩️ Zpět</button>
     <button class="bigbtn" style="--c:var(--violet);--d:var(--violet-d)" id="wClear">🧽 Smazat</button>
   </div>
 </section>`);
@@ -126,7 +127,7 @@ function layout(ctx, x){
 }
 function glyph(ctx, x, L){ ctx.font = `${L.fs}px ${FONT()}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; }
 function draw(){
-  const x = WS.items[WS.idx], g = sizeCanvas($('#wGuide')); sizeCanvas($('#wInk'));
+  const x = WS.items[WS.idx], g = sizeCanvas($('#wGuide')); sizeCanvas($('#wInk')); undo.length = 0; activeId = null; drawing = false;
   const L = layout(g, x); WS.fs = L.fs; WS.L = L;
   const W = g.canvas.width, H = g.canvas.height;
   // school lines: baseline, x-height and a faint top line
@@ -155,20 +156,40 @@ window.addEventListener('resize', ()=>{ if (isOn('wtrace') && WS.items.length) d
 
 // ---------- finger ----------
 const ink = $('#wInk');
-let drawing = false, last = null, checkT = null;
+let drawing = false, last = null, checkT = null, activeId = null, penAt = 0;
+const undo = [];
 function pos(e){ const r = ink.getBoundingClientRect(); return [(e.clientX - r.left) * ink.width / r.width, (e.clientY - r.top) * ink.height / r.height]; }
+// palm rejection: only one pointer draws at a time; a big contact (a resting hand) is ignored;
+// once a real pen was used, finger/palm touches are ignored for a while
+function isPalm(e){
+  if (e.pointerType === 'pen'){ penAt = Date.now(); return false; }
+  if (e.pointerType === 'touch' && Date.now() - penAt < 60000) return true;
+  return Math.max(e.width || 0, e.height || 0) > 42;
+}
 ink.addEventListener('pointerdown', e=>{
-  if (WS.done) return; e.preventDefault(); ink.setPointerCapture(e.pointerId);
+  e.preventDefault();
+  if (WS.done || activeId !== null || isPalm(e)) return;
+  activeId = e.pointerId; try{ ink.setPointerCapture(e.pointerId); }catch(err){}
+  const c = ink.getContext('2d');
+  undo.push(c.getImageData(0, 0, ink.width, ink.height)); if (undo.length > 15) undo.shift();
   drawing = true; last = pos(e); clearTimeout(checkT); dot(last);
 });
 ink.addEventListener('pointermove', e=>{
-  if (!drawing) return; const p = pos(e), c = ink.getContext('2d');
+  if (!drawing || e.pointerId !== activeId) return;
+  if (e.pointerType === 'touch' && Math.max(e.width || 0, e.height || 0) > 60){ cancelStroke(); return; }   // turned out to be a palm
+  const p = pos(e), c = ink.getContext('2d');
   c.strokeStyle = '#2f6fd8'; c.lineWidth = WS.fs * .075; c.lineCap = c.lineJoin = 'round';
   c.beginPath(); c.moveTo(last[0], last[1]); c.lineTo(p[0], p[1]); c.stroke(); last = p;
 });
-['pointerup','pointercancel'].forEach(ev=>ink.addEventListener(ev, ()=>{
+['pointerup','pointercancel'].forEach(ev=>ink.addEventListener(ev, e=>{
+  if (e.pointerId !== activeId) return;
+  activeId = null;
   if (!drawing) return; drawing = false; clearTimeout(checkT); checkT = setTimeout(check, 450);
 }));
+function cancelStroke(){
+  drawing = false; activeId = null;
+  const snap = undo.pop(); if (snap) ink.getContext('2d').putImageData(snap, 0, 0);
+}
 function dot(p){ const c = ink.getContext('2d'); c.fillStyle = '#2f6fd8'; c.beginPath(); c.arc(p[0], p[1], WS.fs*.0375, 0, 7); c.fill(); }
 
 function measure(){
@@ -215,7 +236,11 @@ function recolor(){                                    // the finished letter tu
   c.fillStyle = '#20b37a'; c.fillRect(0, 0, ink.width, ink.height); c.globalCompositeOperation = 'source-over';
 }
 function clearInk(){ const c = ink.getContext('2d'); c.clearRect(0, 0, ink.width, ink.height); WS.restSaid = false; }
-$('#wClear').addEventListener('click', ()=>{ sfx.tap(); if (!WS.done) clearInk(); });
+$('#wClear').addEventListener('click', ()=>{ sfx.tap(); if (!WS.done){ clearInk(); undo.length = 0; } });
+$('#wUndo').addEventListener('click', ()=>{               // takes back the last stroke (e.g. a hand touched the screen)
+  sfx.tap(); if (WS.done || !undo.length) return;
+  ink.getContext('2d').putImageData(undo.pop(), 0, 0); clearTimeout(checkT);
+});
 $('#wSay').addEventListener('click', ()=>{ sfx.tap(); sayItem(WS.items[WS.idx]); });
 
 WS.demo = 0;
