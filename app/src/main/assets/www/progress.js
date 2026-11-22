@@ -147,6 +147,16 @@ $('#pClear').addEventListener('click', ()=>{
   h.addEventListener('contextmenu', e=>e.preventDefault());
 })();
 
+// the app may stay open in the background overnight: when a new day starts, refresh the challenge & hub
+let shownDay = todayISO();
+function refreshDay(){
+  if (todayISO() === shownDay) return;
+  shownDay = todayISO(); renderChallenge(); if (A.rewards) A.rewards.renderHub();
+}
+document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) refreshDay(); });
+setInterval(refreshDay, 60000);
+A.onLeave(id=>{ if (id === 'hub') setTimeout(()=>{ refreshDay(); renderChallenge(); }, 0); });
+
 A.progress = {track, weak, heard, roundDone, renderChallenge};
 A.phraseSources.push(()=>[...CH.map(c=>c.say), CH_DONE, CH_DONE.split('!')[0] + '!']);
 renderChallenge();

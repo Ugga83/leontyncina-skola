@@ -2,8 +2,11 @@
 (() => {
 const A = window.App, {speak, sfx, confetti, pick} = A;
 const $ = s => document.querySelector(s);
-// Slabikář: Czech school cursive (shapes by Petr Olšák)
-const FONT = () => 'Slabikar';
+// Slabikář: Czech school cursive (shapes by Petr Olšák); print letters: the app's rounded font
+const isPrint = () => !!(WS.lesson && WS.lesson.font === 'print');
+const FSPEC = size => isPrint() ? `400 ${size}px Nunito` : `${size}px Slabikar`;
+const PEN = () => isPrint() ? .15 : .075;                    // print letters are thicker: a thicker pen
+const FCLASS = () => isPrint() ? 'wprint' : 'wcur';
 
 const W_LESSONS = [
   {id:'vow',  c:'orange', t:'Samohlásky',     items:['a','e','i','o','u']},
@@ -12,9 +15,13 @@ const W_LESSONS = [
   {id:'word', c:'coral',  t:'Slova',          items:['máma','mele','Ema','lama','pila','pes','osel','Pepa','lupa','sele']},
   {id:'cap',  c:'teal',   t:'Velká písmena',  items:['A','E','I','O','U','M','L','S','P']},
   {id:'num',  c:'orange', t:'Číslice',        items:['1','2','3','4','5','6','7','8','9','0']},
+  // ---- tiskací písmo ----
+  {id:'pcap', c:'coral',  t:'Velká tiskací',  items:['A','E','I','O','U','M','L','S','P'], font:'print'},
+  {id:'plow', c:'teal',   t:'Malá tiskací',   items:['a','e','i','o','u','m','l','s','p'], font:'print'},
+  {id:'psyl', c:'violet', t:'Tiskací slabiky', items:['MA','ME','MI','MO','MU','LA','LE','LI','LO','LU','SA','SE','SI','SO','SU','PA','PE','PI','PO','PU'], font:'print'},
 ];
 // endless mode: everything mixed, it never ends – stars after every 10
-const ALL = {id:'all', c:'violet', t:'Ze všeho – bez konce', items:[...new Set(W_LESSONS.flatMap(l=>l.items))], endless:true};
+const ALL = {id:'all', c:'violet', t:'Ze všeho – bez konce', items:[...new Set(W_LESSONS.filter(l=>!l.font).flatMap(l=>l.items))], endless:true};
 const NUM = {'0':'nula','1':'jedna','2':'dva','3':'tři','4':'čtyři','5':'pět','6':'šest','7':'sedm','8':'osm','9':'devět'};
 const isNum = x => /^[0-9]$/.test(x);
 // how a letter is said: consonants by name (em, el…), always with a word, so it can't be misheard.
@@ -31,7 +38,7 @@ const W_SAY = {
   rest:'Ještě obtáhni zbytek.',
   praise:['Krásně!','Paráda, to je hezké!','Výborně!','Haf! To se ti povedlo!','Jako ve škole!'],
 };
-const isSyl = x => W_LESSONS[2].items.includes(x);
+const isSyl = x => W_LESSONS[2].items.includes(x.toLowerCase());
 const big = x => x.length===1 && !isNum(x) && x===x.toUpperCase();
 function promptParts(x){
   if (isNum(x)) return [`Obtáhni číslo ${NUM[x]}.`];
@@ -39,7 +46,7 @@ function promptParts(x){
     const k = x.toLowerCase(), head = big(x) ? 'Obtáhni velké písmeno' : 'Obtáhni písmenko';
     return isVowel(k) ? [head, k, `jako ${LIKE[k]}.`] : [`${head} ${NAME[k]}, jako ${LIKE[k]}.`];
   }
-  return isSyl(x) ? ['Obtáhni slabiku.', x] : [`Obtáhni slovo ${x}.`];     // a syllable alone: recorded sound
+  return isSyl(x) ? ['Obtáhni slabiku.', x.toLowerCase()] : [`Obtáhni slovo ${x}.`];     // a syllable alone: recorded sound
 }
 // after tracing Ayra says what is written there
 function writtenParts(x){
@@ -48,7 +55,7 @@ function writtenParts(x){
     const k = x.toLowerCase(), head = big(x) ? 'To je velké' : 'To je';
     return isVowel(k) ? [head, k, `jako ${LIKE[k]}.`] : [`${head} ${NAME[k]}, jako ${LIKE[k]}.`];
   }
-  return isSyl(x) ? [x] : [`Napsala jsi ${x}.`];
+  return isSyl(x) ? [x.toLowerCase()] : [`Napsala jsi ${x}.`];
 }
 const sayParts = (parts, queue) => parts.reduce((p, t, i)=>speak(t, {queue: i>0 || !!queue}), null);
 const sayWritten = x => sayParts(writtenParts(x), true);
@@ -58,8 +65,12 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
 <section id="write" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Psaní</h1></div>
   <div class="hero"><div class="owl" id="writeOwl"></div><div class="bubble">Vyber si, co budeme psát!</div></div>
+  <div class="lsec"><h3>🔤 Tiskací písmo</h3><div class="lessons">
+    ${W_LESSONS.filter(l=>l.font==='print').map(l=>`<button class="lesson" style="--c:var(--${l.c});--d:var(--${l.c}-d)" data-wl="${l.id}">
+      <span class="le wprint">${l.items.slice(0, l.id==='psyl'?3:5).join(' ')}</span><span class="lt"><b>${l.t}</b></span></button>`).join('')}
+  </div></div>
   <div class="lsec"><h3>✏️ Psací písmo</h3><div class="lessons">
-    ${W_LESSONS.map(l=>`<button class="lesson" style="--c:var(--${l.c});--d:var(--${l.c}-d)" data-wl="${l.id}">
+    ${W_LESSONS.filter(l=>!l.font).map(l=>`<button class="lesson" style="--c:var(--${l.c});--d:var(--${l.c}-d)" data-wl="${l.id}">
       <span class="le wcur">${l.items.slice(0, l.id==='word'?2:5).join(' ')}</span><span class="lt"><b>${l.t}</b></span></button>`).join('')}
     <button class="lesson" style="--c:var(--violet);--d:var(--violet-d)" data-wl="all">
       <span class="le">🎲</span><span class="lt"><b>${ALL.t}</b><small>všechno dohromady, hvězdičky po každých 10</small></span></button>
@@ -95,15 +106,15 @@ function start(id){
   WS.lesson = id==='all' ? ALL : W_LESSONS.find(l=>l.id===id);
   batch();
   A.go('wtrace');
-  document.fonts.load(`100px ${FONT()}`).then(()=>{ setup(true); });
+  document.fonts.load(FSPEC(100)).then(()=>{ setup(true); });
 }
 
 function setup(first){
   const x = WS.items[WS.idx]; WS.miss = 0; WS.done = false; WS.restSaid = false; WS.run++;
   $('#wDots').innerHTML = WS.items.map((_,i)=>`<div class="dot ${i===WS.idx?'cur':''} ${WS.res[i]===1?'gold':WS.res[i]===2?'ok':''}"></div>`).join('');
   $('#wStars').textContent = '✓ ' + WS.stars;
-  const what = isNum(x) ? 'číslo' : x.length===1 ? (x===x.toUpperCase() ? 'velké písmeno' : 'písmenko') : W_LESSONS[2].items.includes(x) ? 'slabiku' : 'slovo';
-  $('#wBubble').innerHTML = `Obtáhni ${what} <b class="wcur">${x}</b>`;
+  const what = isNum(x) ? 'číslo' : x.length===1 ? (x===x.toUpperCase() ? 'velké písmeno' : 'písmenko') : isSyl(x) ? 'slabiku' : 'slovo';
+  $('#wBubble').innerHTML = `Obtáhni ${what} <b class="${FCLASS()}">${x}</b>`;
   draw();
   if (first){ speak(W_SAY.start); sayItem(x, true); } else sayItem(x);
 }
@@ -117,7 +128,7 @@ function sizeCanvas(c){
 }
 function layout(ctx, x){
   const W = ctx.canvas.width, H = ctx.canvas.height;
-  ctx.font = `100px ${FONT()}`; ctx.textAlign = 'center';
+  ctx.font = FSPEC(100); ctx.textAlign = 'center';
   // the school font has lead-in and lead-out strokes outside the letter box: fit the real ink box
   const m = ctx.measureText(x), Lx = m.actualBoundingBoxLeft, Rx = m.actualBoundingBoxRight;
   const asc = Math.max(m.actualBoundingBoxAscent, 70), desc = Math.max(m.actualBoundingBoxDescent, 30);
@@ -125,13 +136,13 @@ function layout(ctx, x){
   const base = H * .5 + (asc - desc) / 100 * fs / 2;
   return {fs, base, cx: W / 2 - (Rx - Lx) / 2 * fs / 100};
 }
-function glyph(ctx, x, L){ ctx.font = `${L.fs}px ${FONT()}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; }
+function glyph(ctx, x, L){ ctx.font = FSPEC(L.fs); ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; }
 function draw(){
   const x = WS.items[WS.idx], g = sizeCanvas($('#wGuide')); sizeCanvas($('#wInk')); undo.length = 0; activeId = null; drawing = false;
   const L = layout(g, x); WS.fs = L.fs; WS.L = L;
   const W = g.canvas.width, H = g.canvas.height;
   // school lines: baseline, x-height and a faint top line
-  g.font = `${L.fs}px ${FONT()}`;
+  g.font = FSPEC(L.fs);
   const xh = g.measureText('m').actualBoundingBoxAscent, top = g.measureText('l').actualBoundingBoxAscent;
   g.lineWidth = Math.max(1, L.fs * .008);
   [[L.base, '#c9d2ee', []], [L.base - xh, '#dfe5f6', [L.fs*.04, L.fs*.04]], [L.base - top, '#eef1fa', []]].forEach(([y, c, d])=>{
@@ -178,7 +189,7 @@ ink.addEventListener('pointermove', e=>{
   if (!drawing || e.pointerId !== activeId) return;
   if (e.pointerType === 'touch' && Math.max(e.width || 0, e.height || 0) > 60){ cancelStroke(); return; }   // turned out to be a palm
   const p = pos(e), c = ink.getContext('2d');
-  c.strokeStyle = '#2f6fd8'; c.lineWidth = WS.fs * .075; c.lineCap = c.lineJoin = 'round';
+  c.strokeStyle = '#2f6fd8'; c.lineWidth = WS.fs * PEN(); c.lineCap = c.lineJoin = 'round';
   c.beginPath(); c.moveTo(last[0], last[1]); c.lineTo(p[0], p[1]); c.stroke(); last = p;
 });
 ['pointerup','pointercancel'].forEach(ev=>ink.addEventListener(ev, e=>{
@@ -190,7 +201,7 @@ function cancelStroke(){
   drawing = false; activeId = null;
   const snap = undo.pop(); if (snap) ink.getContext('2d').putImageData(snap, 0, 0);
 }
-function dot(p){ const c = ink.getContext('2d'); c.fillStyle = '#2f6fd8'; c.beginPath(); c.arc(p[0], p[1], WS.fs*.0375, 0, 7); c.fill(); }
+function dot(p){ const c = ink.getContext('2d'); c.fillStyle = '#2f6fd8'; c.beginPath(); c.arc(p[0], p[1], WS.fs*PEN()/2, 0, 7); c.fill(); }
 
 function measure(){
   const c = ink.getContext('2d'), W = ink.width, H = ink.height, d = c.getImageData(0, 0, W, H).data;
@@ -213,11 +224,11 @@ async function check(){
   }
   if (cover >= .78){
     WS.done = true; const first = WS.miss === 0;
-    if (A.progress) A.progress.track('write', WS.items[WS.idx], first);
+    if (A.progress) A.progress.track('write', (isPrint() ? 'tiskací ' : '') + WS.items[WS.idx], first);
     if (first){ WS.stars++; WS.res[WS.idx] = 1; } else WS.res[WS.idx] = 2;
     recolor(); sfx.good(); confetti(first ? 35 : 15);
     const p = pick(W_SAY.praise), x = WS.items[WS.idx];
-    $('#wBubble').innerHTML = `${p} <b class="wcur">${x}</b>`; $('#wStars').textContent = '✓ ' + WS.stars;
+    $('#wBubble').innerHTML = `${p} <b class="${FCLASS()}">${x}</b>`; $('#wStars').textContent = '✓ ' + WS.stars;
     await speak(p); await sayWritten(x); await new Promise(r=>setTimeout(r, 500));
     if (my !== WS.run || !isOn('wtrace')) return;
     if (WS.ext){ const cb = WS.ext; WS.ext = null; return cb(first); }     // one item for the game Ze všeho
@@ -247,12 +258,14 @@ $('#wSay').addEventListener('click', ()=>{ sfx.tap(); sayItem(WS.items[WS.idx]);
 WS.demo = 0;
 // the game Ze všeho borrows this screen for one item: done(firstTry), or done(null) when she goes back
 A.write = {
-  traceOne(x, done){
-    WS.lesson = {id:'ext', items:[x]}; WS.items = [x]; WS.idx = 0; WS.stars = 0; WS.res = []; WS.ext = done;
+  traceOne(x, done, font){
+    WS.lesson = {id:'ext', items:[x], font}; WS.items = [x]; WS.idx = 0; WS.stars = 0; WS.res = []; WS.ext = done;
     A.go('wtrace');
-    document.fonts.load(`100px ${FONT()}`).then(()=>{ setup(true); });
+    document.fonts.load(FSPEC(100)).then(()=>{ setup(true); });
   },
-  items: () => [...W_LESSONS[2].items, ...W_LESSONS[5].items],     // Ze všeho: only syllables and numbers
+  // Ze všeho: only syllables and numbers – half in print letters, half in cursive
+  item: () => Math.random() < .5 ? {x: pick([...W_LESSONS[8].items, ...W_LESSONS[5].items]), font:'print'}
+                                 : {x: pick([...W_LESSONS[2].items, ...W_LESSONS[5].items])},
 };
 document.querySelector('#wtrace [data-back]').addEventListener('click', e=>{
   if (!WS.ext) return;

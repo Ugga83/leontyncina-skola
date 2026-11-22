@@ -467,3 +467,6 @@
 #endless.readmode .encard{flex:1}
 #endless .encard .heard{min-height:1.2em}
 #endless .top{gap:6px}#endless .hearts{font-size:22px;margin-left:2px}
+.wprint{font-family:'Nunito',sans-serif;font-weight:700}
+.lesson .le.wprint{font-size:clamp(26px,7vw,38px);min-width:3.4em;text-align:center}
+#wBubble .wprint{font-size:1.5em;line-height:.8;margin-left:.15em}

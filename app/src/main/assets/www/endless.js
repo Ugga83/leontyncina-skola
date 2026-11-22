@@ -77,7 +77,7 @@ function makeTask(){
     return {kind, t, say:M.prompt(t), ans:t.answer, key:'math'};
   }
   const uniq = [...new Set((A.syllables ? A.syllables() : ['ma','me','mi','mo','mu']).map(s=>s.toLowerCase()))];
-  if (kind==='write') return {kind, x: pick(A.write ? A.write.items() : ['a'])};
+  if (kind==='write') return {kind, ...A.write.item()};
   const s = pick(uniq);
   if (kind==='read') return {kind, say:E_SAY.read, ans:s, key:'read', tries:0};
   // never two that differ only by length or a mark (ma / má, su / sů): by ear they are too alike
@@ -113,8 +113,7 @@ function next(first){
   $('#enAns').className = 'answers enans';
   $('#enCard').classList.toggle('nopics', t.kind==='math' && !enPics());     // set before drawing: no flash
   if (t.kind==='write'){                                         // tracing in the Psaní screen, then back here
-    $('#enBubble').textContent = 'Teď budeme psát!';
-    return A.write.traceOne(t.x, first => written(first));
+    return A.write.traceOne(t.x, first => written(first), t.font);
   }
   if (t.kind==='math'){
     $('#enBubble').textContent = t.t.type==='cmp' ? `Je ${t.t.a} větší, menší, nebo stejně jako ${t.t.b}?` : `Kolik je ${t.t.a} ${t.t.type==='add'?'+':'−'} ${t.t.b}?`;
@@ -200,10 +199,13 @@ function blank(msg){
   $('#endless').classList.remove('mathmode','readmode');
   $('#enCard').innerHTML = `<div class="enq">${msg || ''}</div>`; $('#enAns').innerHTML = ''; $('#enAns').className = 'answers enans';
 }
-function written(first){                                         // back from tracing
-  blank(first ? '✏️ ✅' : ''); A.go('endless'); ES.run++;
-  if (first === null) return next();                             // she left the tracing: just go on
-  success();
+async function written(first){                                   // back from tracing: straight to the next task
+  blank(); A.go('endless'); ES.run++;
+  if (first !== null){                                           // she was already praised while writing
+    ES.n++; render(); save();
+    const pr = prizeAt(ES.n); if (pr) await givePrize(pr);
+  }
+  next();
 }
 $('#enAns').addEventListener('click', async e=>{
   const act = e.target.closest('[data-act]');
