@@ -263,8 +263,8 @@ A.write = {
     A.go('wtrace');
     document.fonts.load(FSPEC(100)).then(()=>{ setup(true); });
   },
-  // Ze všeho: only syllables and numbers – half in print letters, half in cursive
-  item: () => Math.random() < .5 ? {x: pick([...W_LESSONS[8].items, ...W_LESSONS[5].items]), font:'print'}
+  // Ze všeho: only syllables and numbers – mostly print letters, cursive only now and then
+  item: () => Math.random() < .8 ? {x: pick([...W_LESSONS[8].items, ...W_LESSONS[5].items]), font:'print'}
                                  : {x: pick([...W_LESSONS[2].items, ...W_LESSONS[5].items])},
 };
 document.querySelector('#wtrace [data-back]').addEventListener('click', e=>{
