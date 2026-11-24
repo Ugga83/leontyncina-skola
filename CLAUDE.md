@@ -7,7 +7,7 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
 - **Novou verzi vydávat JEN když rodič napíše „vydej“.** Číslo verze se mění až při vydání.
   Vydání: spustit workflow `android.yml` (workflow_dispatch) na větvi s prací; vytvoří release `v1.0.N` na GitHubu
   (repo `Ugga83/leontyncina-skola`, dřív `Ugga83/Matematika-`). Aplikace si aktualizaci najde sama při spuštění.
-- Pracovní větev: `ccr-3a338e93-m9ciu6` (pokud nová konverzace dostane jinou, pracovat na ní – workflow běží z libovolné větve).
+- Veškerá práce je sloučená v `main` (k 24. 11. 2026). Nová konverzace pracuje na větvi, kterou dostane – workflow běží z libovolné větve.
 - Nevytvářet pull requesty, pokud o to rodič nepožádá.
 - Klíče jsou jen v GitHub secrets (`SPEECH_API_KEY` = rozpoznávání řeči, vkládá se do aplikace; `GOOGLE_TTS_KEY` = namlouvání,
   jen pro workflow). Nikdy nežádat o vložení klíče do chatu, nic nedávat do repa.
