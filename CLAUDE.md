@@ -7,7 +7,7 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
 - **Novou verzi vydávat JEN když rodič napíše „vydej“.** Číslo verze se mění až při vydání.
   Vydání: spustit workflow `android.yml` (workflow_dispatch) na větvi s prací; vytvoří release `v1.0.N` na GitHubu
   (repo `Ugga83/leontyncina-skola`, dřív `Ugga83/Matematika-`). Aplikace si aktualizaci najde sama při spuštění.
-- Veškerá práce je sloučená v `main` (k 25. 11. 2026, v1.0.60). Nová konverzace pracuje na větvi, kterou dostane – workflow běží z libovolné větve.
+- Veškerá práce je sloučená v `main` (k 25. 11. 2026, v1.0.61). Nová konverzace pracuje na větvi, kterou dostane – workflow běží z libovolné větve.
 - Nevytvářet pull requesty, pokud o to rodič nepožádá.
 - Klíče jsou jen v GitHub secrets (`SPEECH_API_KEY` = rozpoznávání řeči, vkládá se do aplikace; `GOOGLE_TTS_KEY` = namlouvání,
   jen pro workflow). Nikdy nežádat o vložení klíče do chatu, nic nedávat do repa.
@@ -43,7 +43,7 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
   `voice_samples.yml` (ukázky hlasu k poslechu).
 - Nové věty, které Ayra říká, se musí dostat do `phrases.json` (spustit `node tools/collect_phrases.js` před commitem).
 
-## Stav k poslední verzi (v1.0.60)
+## Stav k poslední verzi (v1.0.61)
 Hotové vše výše. v1.0.58: úkol „Slabiky s T“ (23.–25. 11.) – poprvé i celá slova (dny „… – slova“,
 Ayra říká „slovo“, rozpoznání chce téměř celé slovo, do hry Ze všeho jdou jen slabiky); slabiky s T v `google_syllables.py`. v1.0.59: rodič chtěl pryč mikrofon – Čtení jen s potvrzením rodiče, ze hry Ze všeho čtení nahlas úplně pryč;
 Psaní uzná písmeno až při pokrytí ≥ 85 % a bez neobtaženého kousku (kontrola po částech).
@@ -53,5 +53,5 @@ Také v1.0.60 (inspirace hrou bystrohra.cz – vlastní provedení s Ayrou): Her
 mapa cesty šedá před Ayrou.
 Rozcvička ruky, Skládám slova, probraná písmena a délka kola – také v1.0.60.
 Nápady na později: Kolik má slovo slabik (tleskání), Na co to začíná, krátká/dlouhá slabika, doplň číslo, slovní úlohy, krátké věty.
-Po v1.0.60 (nevydáno): Herna pokračuje v rozehrané hře bez další tlapky, nová kreslená Zahrádka, „Do kolika počítáme“ jen v nastavení rodiče.
+v1.0.61: Herna pokračuje v rozehrané hře bez další tlapky, nová kreslená Zahrádka, „Do kolika počítáme“ jen v nastavení rodiče.
 Otevřené / k ověření s rodičem: zda je obtahování teď přísné akorát, adventní kalendář od 1. 12.
