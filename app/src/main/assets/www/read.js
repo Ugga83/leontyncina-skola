@@ -494,5 +494,8 @@ A.phraseSources.push(()=>{
 // for the endless game: speech recognition of one syllable
 A.stt = {available: ()=>sttAvailable() && !!micWanted, listenOnce, matches, stop: ()=>stopListen(), error: sttError};
 // all syllables of the school tasks, without whole words (used by the endless game)
+// words of the school tasks that have a picture: [[word, emoji], …] (Herna, Ayřina cesta)
+A.wordPics = () => R_LESSONS.flatMap(picWords).map(w=>[w, WORD_PICS[w.toLowerCase()]]);
+A.allPics = () => Object.values(WORD_PICS);
 A.syllables = () => [...new Set(R_LESSONS.flatMap(l=>l.days.flatMap(d=>d.cols.flat())).filter(s=>s.length<=2))];
 })();

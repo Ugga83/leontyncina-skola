@@ -711,7 +711,7 @@ function renderHome(){
     : '<span>Máš celou sbírku! 🎉</span>';
 }
 function goHome(){ go('home'); }
-const PARENT = {endless:'hub', advent:'hub', treasure:'hub', write:'hub', wtrace:'write', parent:'hub', shop:'hub', journey:'hub', paws:'hub', read:'hub', rlesson:'read', rread:'rlesson', rfind:'rlesson', rpic:'rlesson', home:'hub', logopedie:'parent', logo:'logopedie', game:'home', sound:'logo', lgame:'logo', warm:'logopedie'};
+const PARENT = {endless:'hub', advent:'hub', treasure:'hub', write:'hub', wtrace:'write', parent:'hub', shop:'hub', journey:'hub', paws:'hub', read:'hub', rlesson:'read', rread:'rlesson', rfind:'rlesson', rpic:'rlesson', herna:'hub', hgame:'herna', jvisit:'journey', home:'hub', logopedie:'parent', logo:'logopedie', game:'home', sound:'logo', lgame:'logo', warm:'logopedie'};
 const leaveHooks = [];
 function go(id){
   counting++; hush(); leaveHooks.forEach(f=>{try{f(id)}catch(e){}});
@@ -788,7 +788,7 @@ const phraseSources = [()=>{
 // every sentence the app can say, for pre-recording the voice (tools/gen_voice.py)
 window.__allPhrases = ()=>[...new Set(phraseSources.flatMap(f=>f()).map(t=>t.trim()))].sort();
 window.__vkey = vkey;
-window.App = {STICKERS, BARKS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, awardRound, toastStars, math:{genTask, prompt, solution, solutionShort, draw:drawMath, EMOJI, hint, HINT_HIDDEN, HINT_SHOWN}, leaveHooks, phraseSources,
+window.App = {STICKERS, addStars, starsSay, W, BARKS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, awardRound, toastStars, math:{genTask, prompt, solution, solutionShort, draw:drawMath, EMOJI, hint, HINT_HIDDEN, HINT_SHOWN}, leaveHooks, phraseSources,
   onLeave:f=>leaveHooks.push(f)};
 
 // sticker state {got, have, cost, earned, first}; first run: keep every sticker already earned (old rule: one per 10 stars)
@@ -814,5 +814,6 @@ if (native) setTimeout(()=>speak(GREETING), 600);
 <script src="write.js"></script>
 <script src="endless.js"></script>
 <script src="progress.js"></script>
+<script src="play.js"></script>
 </body>
 </html>

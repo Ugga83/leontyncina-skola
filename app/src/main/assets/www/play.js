@@ -1,0 +1,325 @@
+/* Herna (tři klidné hry za tlapky) a návštěvy kamarádů na Ayřině cestě */
+(function(){
+'use strict';
+const A = window.App; if (!A) return;
+const {speak, sfx, confetti, store, pick} = A;
+const $ = s => document.querySelector(s);
+const isOn = id => document.getElementById(id).classList.contains('active');
+const shuffle = a => a.sort(()=>Math.random()-.5);
+const wait = ms => new Promise(r=>setTimeout(r, ms));
+const dayNo = () => { const d = new Date(); return Math.floor(d.getTime()/86400000 - d.getTimezoneOffset()/1440); };
+
+// names of the journey friends (A.STICKERS, same order) – for what Ayra and the friend say
+const FRIEND = ['pejsek','kočička','zajíček','veverka','ježek','želva','kachnička','kuřátko','tučňák','sova','papoušek',
+  'plameňák','včelka','motýlek','beruška','delfín','velryba','krab','chobotnice','vydra','klokan','lenochod','koník',
+  'ovečka','kozička','jelen','slon','tygr','dinosaurus','dráček'];
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+const SAY = {
+  herna:'Vítej v herně! Za každou tlapku si zahraješ jednu hru.',
+  noPaw:'Na hru potřebuješ tlapku. Tlapku dostaneš, když si zahraješ kolo počítání, čtení nebo psaní.',
+  garden:'Zahrádka! Za každou správnou odpověď zaliješ kytičku a ona povyroste.',
+  gardenDone:'Kytička vykvetla! Zasadíme ji do zahrádky.',
+  feed:'Kamarádi mají hlad. Dej každému tolik, kolik chce, a ťukni na fajfku.',
+  feedWrong:'To není tolik, kolik chci. Spočítej to znovu.',
+  feedDone:'Všichni kamarádi jsou najedení. Děkujeme!',
+  bones:'Pozor, veverky chtějí odnést Ayře kostičky! Každá správná odpověď jednu veverku zažene.',
+  bonesGone:'Ťap! Jedna veverka utekla!', bonesTaken:'Jejda, tahle veverka si vzala kostičku.',
+  bonesDone:'Veverky jsou pryč! Ubránila jsi kostičky.',
+  again:'Zkus to znovu.', listen:'Poslouchej.', find:'Najdi slabiku.', pic:'Přečti slovo a ukaž správný obrázek.',
+  ok:['Výborně!','Správně!','Super!','Paráda!'],
+  visitWin:'Hurá! Kamarád jde s námi na cestu!',
+  fork:'Rozcestí! Kudy půjdeme? Vyber si cestičku.', treasure:'Haf haf! Na téhle cestičce byl poklad!',
+  berries:'Mňam! Na téhle cestičce rostly jahůdky.',
+  journeyBtn:'Na zastávce na nás čeká kamarád. Pojď ho pozdravit!'
+};
+const greet = n => `Ahoj, tady ${n}! Vyřeš se mnou tři úkoly a půjdu s vámi.`;
+// numbers with a noun: jablíčko (neuter), kostička (feminine)
+const NUM_N = ['','jedno','dvě','tři','čtyři','pět','šest','sedm','osm','devět','deset'];
+const NUM_F = ['','jednu','dvě','tři','čtyři','pět','šest','sedm','osm','devět','deset'];
+const FOOD = [
+  {e:'🍎', say:n => `Dej mi ${NUM_N[n]} ${n===1?'jablíčko':n<5?'jablíčka':'jablíček'}.`},
+  {e:'🦴', say:n => `Dej mi ${NUM_F[n]} ${n===1?'kostičku':n<5?'kostičky':'kostiček'}.`},
+];
+
+// ---------- paws are tickets for the Herna: one paw for every day of practice ----------
+const pawsAll = () => store.get('paws', []).length;
+const pawBal = () => Math.max(0, pawsAll() - store.get('pawSpent', 0));
+function givePrize(n){                     // stars for the shop and for the journey
+  store.set('wallet', store.get('wallet', 0) + n);
+  const won = A.addStars(n);
+  return A.toastStars(n, won);
+}
+
+// ---------- one small task: math, "find the syllable" or "read the word, show the picture" ----------
+function makeTask(){
+  const words = A.wordPics ? A.wordPics() : [], syl = A.syllables ? A.syllables() : [];
+  const kinds = ['math','math'];
+  if (syl.length >= 3) kinds.push('syl');
+  if (words.length >= 3) kinds.push('pic');
+  const kind = pick(kinds), max = A.S.max || 5;
+  if (kind === 'math'){
+    const t = A.math.genTask(pick(['add','sub','cmp']), max);
+    if (t.type === 'cmp') return {q:`${t.a} ? ${t.b}`, say:[A.math.prompt(t)], opts:['<','=','>'], ans:t.answer, after:A.math.solution(t)};
+    const opts = new Set([t.answer]);
+    while (opts.size < 3){ const v = t.answer + pick([-2,-1,1,2]); if (v >= 1 && v <= max) opts.add(v); }
+    return {q:`${t.a} ${t.type==='add'?'+':'−'} ${t.b} = ?`, say:[A.math.prompt(t)], opts:shuffle([...opts].map(String)), ans:String(t.answer), after:A.math.solution(t)};
+  }
+  if (kind === 'syl'){
+    const base = x => x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const s = pick(syl).toLowerCase(), opts = [s];
+    for (let g = 0; opts.length < 3 && g < 200; g++){ const x = pick(syl).toLowerCase(); if (!opts.some(o=>base(o)===base(x))) opts.push(x); }
+    return {q:'👂', say:[SAY.find, s], opts:shuffle(opts), ans:s, after:s};
+  }
+  const [w, e] = pick(words), all = A.allPics();
+  const opts = [e]; while (opts.length < 3){ const x = pick(all); if (!opts.includes(x)) opts.push(x); }
+  return {q:w, say:[SAY.pic], opts:shuffle(opts), ans:e, after:w.toLowerCase(), pics:true};
+}
+const sayAll = (parts, queue) => parts.reduce((p, t, i)=>speak(t, {queue: i > 0 || !!queue}), null);
+// shows a task in box/answers, resolves with true (first try) or false; she can't fail: after 2 misses Ayra shows it
+function runTask(box, ans, bubble, scr){
+  return new Promise(done=>{
+    const t = makeTask(); let miss = 0, busy = false;
+    bubble.textContent = t.pics ? 'Přečti slovo a ukaž obrázek.' : t.q === '👂' ? 'Najdi slabiku, kterou říkám.' : 'Vyber správnou odpověď.';
+    box.innerHTML = `<div class="pq ${t.pics?'word':''}">${t.q.replace('<','&lt;')}</div><button class="round-btn psay" aria-label="Zopakovat">🔊</button>`;
+    box.querySelector('.psay').onclick = ()=>{ sfx.tap(); sayAll(t.say); };
+    ans.classList.remove('locked');
+    const esc = o => o.replace('<','&lt;').replace('>','&gt;');
+    ans.innerHTML = t.opts.map(o=>`<button class="ans ${t.pics?'pimg':''}" data-v="${esc(o)}">${esc(o)}</button>`).join('');
+    sayAll(t.say);
+    ans.onclick = async e=>{
+      const b = e.target.closest('.ans'); if (!b || busy || !isOn(scr)) return;
+      if (b.dataset.v === t.ans){
+        busy = true; ans.classList.add('locked'); b.classList.add('right'); sfx.good();
+        const p = pick(SAY.ok); bubble.textContent = p; speak(p); await speak(t.after, {queue:true});
+        await wait(350); done(miss === 0);
+      } else {
+        miss++; sfx.bad(); b.classList.add('wrong');
+        if (miss === 1){ bubble.textContent = 'Zkus to znovu!'; speak(SAY.again); }
+        else { const r = [...ans.querySelectorAll('.ans')].find(x=>x.dataset.v === t.ans); if (r) r.classList.add('hint'); bubble.textContent = 'Tady je to správně.'; speak(SAY.listen); speak(t.after, {queue:true}); }
+      }
+    };
+  });
+}
+
+// ---------- screens ----------
+document.getElementById('end').insertAdjacentHTML('beforebegin', `
+<section id="herna" class="screen scroll">
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Herna</h1>
+    <div style="flex:1"></div><div class="scount" id="hPaws"></div></div>
+  <div class="hero"><div class="owl" id="hOwl"></div><div class="bubble" id="hBubble">Za každou tlapku si zahraješ jednu hru!</div></div>
+  <div class="lsec"><div class="lessons">
+    <button class="lesson" style="--c:var(--teal);--d:var(--teal-d)" data-hg="garden"><span class="le">🌱</span><span class="lt"><b>Zahrádka</b><small>správná odpověď zalije kytičku</small></span></button>
+    <button class="lesson" style="--c:var(--orange);--d:var(--orange-d)" data-hg="feed"><span class="le">🍎</span><span class="lt"><b>Nakrm kamarády</b><small>dej každému tolik, kolik chce</small></span></button>
+    <button class="lesson" style="--c:var(--violet);--d:var(--violet-d)" data-hg="bones"><span class="le">🐿️</span><span class="lt"><b>Ubraň kostičky</b><small>zažeň veverky správnými odpověďmi</small></span></button>
+  </div></div>
+  <div class="lcard"><h4>🌷 Moje zahrádka</h4><div class="hgarden" id="hGarden"></div></div>
+</section>
+<section id="hgame" class="screen">
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div><div class="scount" id="hgCount"></div></div>
+  <div class="gtalk"><div class="owl"></div><div class="bubble" id="hgBubble"></div></div>
+  <div class="hscene" id="hgScene"></div>
+  <div class="card pcard" id="hgBox"></div>
+  <div class="answers pans" id="hgAns"></div>
+</section>
+<section id="jvisit" class="screen">
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div><div class="scount" id="jvCount"></div></div>
+  <div class="gtalk"><div class="vfriend" id="jvFriend"></div><div class="bubble" id="jvBubble"></div></div>
+  <div class="hscene" id="jvScene"></div>
+  <div class="card pcard" id="jvBox"></div>
+  <div class="answers pans" id="jvAns"></div>
+</section>`);
+
+// hub: the Herna card under the reward buttons
+const adv = document.getElementById('advCard');
+if (adv) adv.insertAdjacentHTML('beforebegin', `<button class="advcard hernacard" id="hernaCard">🎮 <b>Herna</b><span id="hernaTxt"></span></button>`);
+$('#hernaCard').addEventListener('click', ()=>{ sfx.tap(); openHerna(); speak(SAY.herna); });
+function renderCard(){ const t = $('#hernaTxt'); if (t) t.textContent = `🐾 ${pawBal()} ${pawBal()===1?'tlapka':pawBal()>=2&&pawBal()<=4?'tlapky':'tlapek'} na hraní`; }
+renderCard();
+A.onLeave(id=>{ if (id !== 'hgame' && id !== 'jvisit') RUN++; if (id === 'hub') setTimeout(renderCard, 0); });
+document.addEventListener('visibilitychange', renderCard);
+setInterval(()=>{ if (isOn('hub')) renderCard(); }, 2000);
+
+function openHerna(){
+  A.go('herna');
+  $('#hPaws').textContent = '🐾 ' + pawBal();
+  const g = store.get('garden', []);
+  $('#hGarden').innerHTML = g.length ? g.map(e=>`<span>${e}</span>`).join('') : '<small>Zatím prázdná. Zahraj si Zahrádku!</small>';
+}
+$('#hOwl').addEventListener('click', ()=>speak(SAY.herna));
+document.querySelectorAll('[data-hg]').forEach(b=>b.addEventListener('click', ()=>{
+  sfx.tap();
+  if (pawBal() < 1){ $('#hBubble').textContent = 'Na hru potřebuješ tlapku 🐾. Dostaneš ji za den s procvičováním.'; speak(SAY.noPaw); return; }
+  store.set('pawSpent', store.get('pawSpent', 0) + 1);
+  ({garden, feed, bones})[b.dataset.hg]();
+}));
+
+let RUN = 0;
+const ROUNDS = 8;
+async function finishGame(score, of, msg){
+  const my = RUN;
+  await speak(msg);
+  if (my !== RUN || !isOn('hgame')) return;
+  const add = score/of >= .9 ? 3 : score/of >= .6 ? 2 : 1;
+  await givePrize(add);
+  await wait(1200);
+  if (my === RUN && isOn('hgame')) openHerna();
+}
+
+// 🌱 garden: every correct answer waters the flower, it grows; the flower goes to the garden
+async function garden(){
+  A.go('hgame'); const my = ++RUN;
+  const STAGE = ['🟫','🌱','🌱','🌿','🌿','🪴','🪴','🌷','🌷'], flower = pick(['🌷','🌻','🌼','🌸','🌹','🪻']);
+  let first = 0;
+  const draw = (k, water) => { $('#hgScene').innerHTML = `<div class="gplant">${k >= ROUNDS ? flower : STAGE[k]}${water?'<i class="gwater">💧</i>':''}</div><div class="gpot">🪣</div>`; };
+  draw(0); $('#hgBubble').textContent = 'Odpověz a zalij kytičku.';
+  await speak(SAY.garden);
+  for (let i = 0; i < ROUNDS; i++){
+    if (my !== RUN || !isOn('hgame')) return;
+    $('#hgCount').textContent = `💧 ${i} / ${ROUNDS}`;
+    if (await runTask($('#hgBox'), $('#hgAns'), $('#hgBubble'), 'hgame')) first++;
+    if (my !== RUN) return;
+    draw(i + 1, true); confetti(10); await wait(700); draw(i + 1);
+  }
+  $('#hgCount').textContent = `💧 ${ROUNDS} / ${ROUNDS}`;
+  const g = store.get('garden', []); g.push(flower); store.set('garden', g);
+  $('#hgBox').innerHTML = ''; $('#hgAns').innerHTML = ''; confetti(40);
+  finishGame(first, ROUNDS, SAY.gardenDone);
+}
+
+// 🍎 feed the friends: count the right number of apples/bones into the bowl
+async function feed(){
+  A.go('hgame'); const my = ++RUN;
+  const got = Math.max(3, (store.get('stk', {got:0}).got || 0));
+  const friends = A.STICKERS.slice(0, Math.min(got, A.STICKERS.length));
+  const max = A.S.max || 5, N = 5;
+  let first = 0;
+  $('#hgBubble').textContent = 'Dej kamarádovi tolik, kolik chce.';
+  await speak(SAY.feed);
+  for (let i = 0; i < N; i++){
+    if (my !== RUN || !isOn('hgame')) return;
+    $('#hgCount').textContent = `${i} / ${N}`;
+    const f = pick(friends), food = pick(FOOD), n = 1 + Math.floor(Math.random() * max);
+    let put = 0, miss = 0;
+    $('#hgScene').innerHTML = `<div class="ffriend">${f}</div><div class="fwant">${food.e} × ${n}</div>`;
+    $('#hgBubble').textContent = food.say(n);
+    const render = () => { $('#hgBox').innerHTML = `<div class="fbowl">${food.e.repeat(put) || '<small>miska</small>'}</div>`; };
+    render();
+    $('#hgAns').classList.remove('locked');
+    $('#hgAns').innerHTML = `<button class="ans fput">${food.e}</button><button class="ans fundo">↩️</button><button class="ans fok">✓</button>`;
+    speak(food.say(n));
+    const ok = await new Promise(res=>{
+      $('#hgAns').onclick = async e=>{
+        const b = e.target.closest('.ans'); if (!b || my !== RUN) return;
+        if (b.classList.contains('fput')){ if (put < 10){ put++; sfx.tap(); render(); } return; }
+        if (b.classList.contains('fundo')){ if (put > 0){ put--; sfx.tap(); render(); } return; }
+        if (put === n){ $('#hgAns').classList.add('locked'); sfx.good(); confetti(14); $('#hgBubble').textContent = 'Mňam, děkuju!'; await speak('Mňam, mňam! Děkuju!'); res(miss === 0); }
+        else { miss++; sfx.bad(); put = 0; render(); $('#hgBubble').textContent = food.say(n); speak(SAY.feedWrong); speak(food.say(n), {queue:true}); }
+      };
+    });
+    if (ok) first++;
+    await wait(300);
+  }
+  $('#hgCount').textContent = `${N} / ${N}`; $('#hgBox').innerHTML = ''; $('#hgAns').innerHTML = '';
+  finishGame(first, N, SAY.feedDone);
+}
+
+// 🐿️ squirrels want Ayra's bones: a right answer chases one away (on the first try), else it takes a bone
+async function bones(){
+  A.go('hgame'); const my = ++RUN;
+  let left = ROUNDS, saved = 0;
+  const draw = () => { $('#hgScene').innerHTML = `<div class="bline"><span class="bsq">${'🐿️'.repeat(left)}</span><span class="bhome">🏠</span></div><div class="bbones">${'🦴'.repeat(saved)}</div>`; };
+  draw(); $('#hgBubble').textContent = 'Zažeň veverky!';
+  await speak(SAY.bones);
+  for (let i = 0; i < ROUNDS; i++){
+    if (my !== RUN || !isOn('hgame')) return;
+    $('#hgCount').textContent = `🦴 ${saved}`;
+    const first = await runTask($('#hgBox'), $('#hgAns'), $('#hgBubble'), 'hgame');
+    if (my !== RUN) return;
+    left--; if (first) saved++;
+    draw(); $('#hgBubble').textContent = first ? 'Veverka utekla!' : 'Veverka si vzala kostičku.';
+    if (!first) await speak(SAY.bonesTaken);
+    await wait(400);
+  }
+  $('#hgCount').textContent = `🦴 ${saved}`; $('#hgBox').innerHTML = ''; $('#hgAns').innerHTML = '';
+  finishGame(saved, ROUNDS, SAY.bonesDone);
+}
+
+// ---------- Ayřina cesta: a friend waits at every new stop (3 tasks), sometimes a fork with a treasure ----------
+const visited = () => {
+  const st = store.get('stk', {got:0});
+  let v = store.get('jvisit', null);
+  if (v === null){ v = st.got; store.set('jvisit', v); }       // stops reached before this version: already greeted
+  return v;
+};
+A.play = {
+  journey(){
+    const st = store.get('stk', {got:0}), v = visited();
+    const old = $('#jVisitBtn'); if (old) old.remove();
+    if (v >= st.got || v >= A.STICKERS.length) return;
+    $('#jNext').insertAdjacentHTML('afterbegin', `<button class="advcard ready jvisitbtn" id="jVisitBtn">${A.STICKERS[v]} <b>Kamarád čeká na zastávce!</b><span>pojď ho pozdravit</span></button>`);
+    $('#jVisitBtn').addEventListener('click', ()=>{ sfx.tap(); visit(v); });
+    setTimeout(()=>speak(SAY.journeyBtn, {queue:true}), 400);
+  }
+};
+async function visit(i){
+  A.go('jvisit'); const my = ++RUN;
+  const place = A.rewards.PLACES[i] || ['🌳',''], name = FRIEND[i] || 'kamarád';
+  $('#jvFriend').textContent = A.STICKERS[i];
+  $('#jvScene').innerHTML = `<div class="vplace">${place[0]} <b>${place[1]}</b></div>`;
+  $('#jvBubble').textContent = greet(name);
+  await speak(greet(name));
+  let first = 0;
+  for (let k = 0; k < 3; k++){
+    if (my !== RUN || !isOn('jvisit')) return;
+    $('#jvCount').textContent = `${k} / 3`;
+    if (await runTask($('#jvBox'), $('#jvAns'), $('#jvBubble'), 'jvisit')) first++;
+  }
+  if (my !== RUN) return;
+  $('#jvCount').textContent = '3 / 3';
+  store.set('jvisit', i + 1);
+  $('#jvBox').innerHTML = `<div class="pq">${A.STICKERS[i]} 🐶</div>`; $('#jvAns').innerHTML = '';
+  $('#jvBubble').textContent = cap(name) + ' jde s námi!'; confetti(40); sfx.win();
+  await speak(SAY.visitWin);
+  if (my !== RUN || !isOn('jvisit')) return;
+  if (i % 3 === 2) return fork(my);
+  await givePrize(first === 3 ? 2 : 1);
+  await wait(1200); if (my === RUN && isOn('jvisit')) A.go('journey');
+}
+// the fork: one path has a treasure (3 stars), the other strawberries (1 star) – nothing is ever lost
+async function fork(my){
+  $('#jvBubble').textContent = 'Rozcestí! Kudy půjdeme?';
+  $('#jvBox').innerHTML = '<div class="pq">🪧</div>';
+  $('#jvAns').classList.remove('locked');
+  $('#jvAns').innerHTML = `<button class="ans pimg" data-v="l">🌲⬅️</button><button class="ans pimg" data-v="r">➡️🌻</button>`;
+  speak(SAY.fork);
+  const lucky = Math.random() < .5 ? 'l' : 'r';
+  const ch = await new Promise(res=>{ $('#jvAns').onclick = e=>{ const b = e.target.closest('.ans'); if (b) res(b); }; });
+  if (my !== RUN) return;
+  $('#jvAns').classList.add('locked'); sfx.tap();
+  const win = ch.dataset.v === lucky;
+  $('#jvBox').innerHTML = `<div class="pq">${win ? '🎁' : '🍓'}</div>`;
+  $('#jvBubble').textContent = win ? 'Poklad!' : 'Jahůdky!';
+  await speak(win ? SAY.treasure : SAY.berries);
+  await givePrize(win ? 3 : 1);
+  await wait(1200); if (my === RUN && isOn('jvisit')) A.go('journey');
+}
+
+// paws screen: what the paws are for
+const pw = $('#pWeek');
+if (pw) pw.closest('.lcard').insertAdjacentHTML('beforebegin', `<div class="lcard pawuse"><b>🐾 Tlapky na hraní: <span id="pBal"></span></b>
+  <small>Za každý den s procvičováním dostaneš tlapku. Za tlapku si zahraješ jednu hru v Herně.</small>
+  <button class="advcard hernacard" id="pToHerna">🎮 <b>Do Herny</b></button></div>`);
+const pb = $('#pToHerna'); if (pb) pb.addEventListener('click', ()=>{ sfx.tap(); openHerna(); speak(SAY.herna); });
+document.querySelectorAll('[data-rgo="paws"]').forEach(b=>b.addEventListener('click', ()=>{ const e = $('#pBal'); if (e) e.textContent = pawBal(); }));
+
+// for automated tests
+window.__playTest = {pawBal, makeTask, visit, garden, feed, bones};
+
+A.phraseSources.push(()=>{
+  const out = [...Object.values(SAY).flat(), 'Mňam, mňam! Děkuju!'];
+  FRIEND.forEach(n=>out.push(greet(n)));
+  FOOD.forEach(f=>{ for (let n = 1; n <= 10; n++) out.push(f.say(n)); });
+  return out;
+});
+})();

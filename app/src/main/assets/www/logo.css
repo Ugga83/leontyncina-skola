@@ -477,3 +477,37 @@
 #rpic .rpword.good{color:var(--good)}
 #rpic .rpans{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:720px;align-content:center;margin-bottom:10px}
 #rpic .rpans .rpimg{font-size:clamp(54px,17vw,110px);line-height:1;aspect-ratio:1;width:100%;height:auto;padding:0}
+/* ---------- Herna a návštěvy na cestě (play.js) ---------- */
+.advcard.hernacard{background:linear-gradient(135deg,#2fc7a0,#4aa8ff);color:#fff;box-shadow:0 5px 0 #1f9f7e}
+.advcard.hernacard span{color:#fff;opacity:.95}
+.pawuse small{display:block;margin:4px 0 2px;line-height:1.3}
+.hgarden{display:flex;flex-wrap:wrap;gap:4px;font-size:34px;min-height:40px;align-items:center}
+.hscene{width:100%;max-width:720px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-height:0}
+#hgame .pcard,#jvisit .pcard{flex:0 0 auto;min-height:0;padding:12px 10px;position:relative;flex-direction:row;gap:10px}
+.pq{font-size:clamp(46px,14vw,84px);font-weight:900;line-height:1.1;text-align:center}
+.pq.word{letter-spacing:.02em}
+.pcard .psay{position:absolute;right:8px;top:8px;width:44px;height:44px;font-size:22px}
+:is(#hgame,#jvisit) .answers.pans{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:720px;margin-bottom:10px}
+:is(#hgame,#jvisit) .pans .ans{width:100%;height:auto;min-height:clamp(80px,13vh,120px);font-size:clamp(36px,10vw,56px)}
+:is(#hgame,#jvisit) .pans .ans.pimg{font-size:clamp(46px,14vw,80px)}
+.ans.hint{outline:5px solid var(--good);animation:pop .6s 2}
+.gplant{font-size:clamp(110px,32vw,180px);line-height:1;position:relative;animation:pop .5s}
+.gpot{font-size:48px;margin-top:-18px}
+.gwater{position:absolute;left:-30px;top:-10px;font-size:48px;animation:fall .7s linear}
+.ffriend{font-size:clamp(90px,26vw,140px);line-height:1;animation:bob 3s ease-in-out infinite}
+.fwant{font-size:40px;font-weight:900;background:#fff;border-radius:18px;padding:4px 16px;margin-top:6px;box-shadow:0 4px 0 #00000014}
+.fbowl{min-height:70px;font-size:34px;line-height:1.2;text-align:center;flex:1;word-break:break-all}
+.fbowl small{font-size:18px;color:#9aa3c0}
+.bline{display:flex;align-items:center;justify-content:space-between;width:100%;font-size:clamp(30px,8vw,46px)}
+.bsq{letter-spacing:-.15em}
+.bhome{font-size:clamp(56px,16vw,84px)}
+.bbones{font-size:34px;min-height:44px;margin-top:8px}
+.vfriend{font-size:64px;line-height:1;animation:bob 3s ease-in-out infinite;flex:0 0 auto}
+.vplace{font-size:44px;background:#ffffffcc;border-radius:20px;padding:8px 18px}
+.vplace b{font-size:22px;vertical-align:middle}
+.jvisitbtn{margin:0 0 10px}
+/* the journey map: a dotted path, coloured behind Ayra, grey in front of her */
+.map{position:relative}
+.map::before{content:'';position:absolute;left:50%;top:10px;bottom:10px;border-left:6px dotted #d9b97a;transform:translateX(-50%);z-index:0}
+.map .stop{z-index:1}
+.stop:not(.done):not(.here){filter:grayscale(1)}

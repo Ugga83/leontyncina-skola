@@ -758,6 +758,7 @@ function renderJourney(){
       ${here ? '<span class="owl tiny"></span>' : ''}</div>`;
   }).reverse().join('');
   decorate();
+  if (A.play) A.play.journey();
   const h = document.querySelector('#jMap .here'); if (h) setTimeout(()=>h.scrollIntoView({block:'center'}), 50);
 }
 

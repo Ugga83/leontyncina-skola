@@ -26,6 +26,9 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
     odměny 10/20/30/40 pohár/50/60/75 medaile/100 koruna; ukládání rozehrané hry).
   - `rewards.js` – Ayřina bouda (nábytek, předměty, den/noc, triky, návštěvy kamarádů), cesta, tlapky + kolo štěstí,
     album sbírek (12×10), odznaky (5 stupňů), adventní kalendář, ozdoby na Ayře (`NECK`/`HEAD` SVG).
+  - `play.js` – **Herna** (Zahrádka, Nakrm kamarády, Ubraň kostičky; hra stojí 1 🐾 – tlapek je tolik, kolik dní procvičovala,
+    minus `pawSpent`), **návštěvy na Ayřině cestě** (na každé nové zastávce kamarád se 3 úkoly, `jvisit` = počet pozdravených,
+    každá 3. zastávka rozcestí s pokladem), společné úkoly `makeTask` (počítání / najdi slabiku / přečti slovo a ukaž obrázek).
   - `progress.js` – sledování chyb/opakování, výzva dne, Přehled pro rodiče (podržet nadpis 2 s), logopedie tam.
   - `logo.js` – logopedie. `logo.css` – styly.
   - `voice/` – nahrávky: `phrases.json` (generuje `node tools/collect_phrases.js`), mp3 podle FNV-1a klíče,
@@ -42,4 +45,6 @@ Ayra říká „slovo“, rozpoznání chce téměř celé slovo, do hry Ze vše
 Psaní uzná písmeno až při pokrytí ≥ 85 % a bez neobtaženého kousku (kontrola po částech).
 Potom (nevydáno, podle nápadů z bystrohra.cz): hra „Přečti a ukaž obrázek“ ve Čtení, psací písmo se samo napíše + zelený start,
 T v Psaní (t, T, ta–tu, táta, teta, léto, mapa), v Matematice po příkladu s nápovědou přijde o 3 dál podobný „ověřovací“ (max 2 za kolo, bez hvězdy).
+Dále (nevydáno, inspirace hrou bystrohra.cz – vlastní provedení s Ayrou): Herna za tlapky, živá cesta s kamarády a rozcestím,
+mapa cesty šedá před Ayrou.
 Otevřené / k ověření s rodičem: zda je obtahování teď přísné akorát, adventní kalendář od 1. 12.
