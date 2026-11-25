@@ -21,7 +21,8 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
     navigace (`go`, `PARENT`), `window.App` = sdílené API.
   - `read.js` – Čtení (lekce/dny z úkolů ze školy `R_LESSONS`, čtení s rodičem – mikrofon vypnutý, rodič potvrzuje ✓ Správně / ✗ Ještě ne, hra Najdi slabiku, hra „Přečti a ukaž obrázek“ (slova lekce s obrázkem z `WORD_PICS`), Opakování chyb),
     `A.stt` (rozpoznání), `A.syllables()`.
-  - `write.js` – Psaní (obtahování; tiskací písmo Nunito, psací Slabikář; psací tvar se nejdřív sám napíše + zelený bod startu, ✏️ = ukázat znovu), potlačení dlaně, `A.write.traceOne` pro Ze všeho.
+  - `write.js` – Psaní (obtahování; tiskací písmo Nunito, psací Slabikář; psací tvar se nejdřív sám napíše + zelený bod startu, ✏️ = ukázat znovu;
+    **Rozcvička ruky** = tvary `PAT` (vlnky, déšť, pila, kolečka, houpačky, kličky, šnek) jako tahy, animace jede po skutečném tahu), potlačení dlaně, `A.write.traceOne` pro Ze všeho.
   - `endless.js` – hra **Ze všeho** (3 srdíčka, matematika jako v Matematice, najdi slabiku (Ayra říká, Leontýnka hádá), psaní – bez mikrofonu;
     odměny 10/20/30/40 pohár/50/60/75 medaile/100 koruna; ukládání rozehrané hry).
   - `rewards.js` – Ayřina bouda (nábytek, předměty, den/noc, triky, návštěvy kamarádů), cesta, tlapky + kolo štěstí,
@@ -29,6 +30,9 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
   - `play.js` – **Herna** (Zahrádka, Nakrm kamarády, Ubraň kostičky; hra stojí 1 🐾 – tlapek je tolik, kolik dní procvičovala,
     minus `pawSpent`), **návštěvy na Ayřině cestě** (na každé nové zastávce kamarád se 3 úkoly, `jvisit` = počet pozdravených,
     každá 3. zastávka rozcestí s pokladem), společné úkoly `makeTask` (počítání / najdi slabiku / přečti slovo a ukaž obrázek).
+  - `play.js` také **Skládám slova** (v Psaní: Ayra řekne slovo z úkolů ze školy, skládá se z písmenkových kostek).
+  - Nastavení rodiče (Pro rodiče): **probraná písmena** (`letters`, `App.allowed()` – filtruje Psaní, Skládání, Hernu, cestu, Ze všeho;
+    úkoly ze školy ve Čtení zůstávají celé) a **délka kola** (`rlen` short/normal/long → `App.roundLen()`).
   - `progress.js` – sledování chyb/opakování, výzva dne, Přehled pro rodiče (podržet nadpis 2 s), logopedie tam.
   - `logo.js` – logopedie. `logo.css` – styly.
   - `voice/` – nahrávky: `phrases.json` (generuje `node tools/collect_phrases.js`), mp3 podle FNV-1a klíče,

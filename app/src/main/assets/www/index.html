@@ -410,6 +410,17 @@ const sfx = {
   win:()=>tone([523,659,784,1047,784,1047],.2,'triangle',.2)
 };
 
+// ---------- what was already taught at school (parent sets it) and how long a round is ----------
+// letters in the order schools usually teach them; the first ten are already in the app
+const LETTERS = ['a','e','i','o','u','m','l','s','p','t','j','n','v','d','k','z','r','b','y','h','c','š','č','ř','ž','f','g'];
+const LETTERS_DEFAULT = ['a','e','i','o','u','m','l','s','p','t'];
+const unlocked = () => store.get('letters', LETTERS_DEFAULT);
+const LONG = {'á':'a','é':'e','ě':'e','í':'i','ý':'y','ó':'o','ú':'u','ů':'u'};
+// true when every letter of the syllable/word was already taught
+const allowed = s => { const u = unlocked(); return [...String(s).toLowerCase()].every(ch=>{ ch = LONG[ch] || ch; return !LETTERS.includes(ch) || u.includes(ch); }); };
+const RLEN = {short:.6, normal:1, long:1.5};
+const roundLen = base => Math.max(3, Math.round(base * (RLEN[store.get('rlen','normal')] || 1)));
+
 // ---------- helpers ----------
 const rnd = (a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const pick = arr=>arr[Math.floor(Math.random()*arr.length)];
@@ -445,7 +456,7 @@ function genTask(type, max){
 function buildRound(mode){
   const out=[]; let last='';
   const types = mode==='mix'?['add','sub','cmp']:[mode];
-  while(out.length<ROUND){
+  while(out.length<roundLen(ROUND)){
     const t = genTask(pick(types), S.max);
     const key = t.type+t.a+'_'+t.b;
     if (key===last || out.filter(x=>x.type+x.a+'_'+x.b===key).length>=1 && Math.random()<.85) continue;
@@ -641,7 +652,7 @@ const END_TITLES = [`Úžasné, ${VOC}!`, 'Hurá, skvělá práce!', 'Dobrá pr�
 const NEW_STICKER = 'A máš novou nálepku do sbírky!';
 const STATION_SAY = 'Haf! Jsme na nové zastávce a máme nového kamaráda!';
 const starsSay = (n, of)=> `Získala jsi ${starsPhrase(n)}${of?' z deseti':''}.`;
-function finish(){ finishRound(S.stars, ()=>start(S.mode), 'home'); }
+function finish(){ finishRound(S.stars, ()=>start(S.mode), 'home', S.tasks.filter(t=>!t.check).length); }
 let againFn = null;
 // score = correct answers out of `of` (of=0: warm-up) -> 1..3 round stars
 // stars for a finished round (also used by the endless modes, which keep going without the end screen)
@@ -711,7 +722,7 @@ function renderHome(){
     : '<span>Máš celou sbírku! 🎉</span>';
 }
 function goHome(){ go('home'); }
-const PARENT = {endless:'hub', advent:'hub', treasure:'hub', write:'hub', wtrace:'write', parent:'hub', shop:'hub', journey:'hub', paws:'hub', read:'hub', rlesson:'read', rread:'rlesson', rfind:'rlesson', rpic:'rlesson', herna:'hub', hgame:'herna', jvisit:'journey', home:'hub', logopedie:'parent', logo:'logopedie', game:'home', sound:'logo', lgame:'logo', warm:'logopedie'};
+const PARENT = {endless:'hub', advent:'hub', treasure:'hub', write:'hub', wtrace:'write', parent:'hub', shop:'hub', journey:'hub', paws:'hub', read:'hub', rlesson:'read', rread:'rlesson', rfind:'rlesson', rpic:'rlesson', herna:'hub', hgame:'herna', wdict:'write', jvisit:'journey', home:'hub', logopedie:'parent', logo:'logopedie', game:'home', sound:'logo', lgame:'logo', warm:'logopedie'};
 const leaveHooks = [];
 function go(id){
   counting++; hush(); leaveHooks.forEach(f=>{try{f(id)}catch(e){}});
@@ -788,7 +799,7 @@ const phraseSources = [()=>{
 // every sentence the app can say, for pre-recording the voice (tools/gen_voice.py)
 window.__allPhrases = ()=>[...new Set(phraseSources.flatMap(f=>f()).map(t=>t.trim()))].sort();
 window.__vkey = vkey;
-window.App = {STICKERS, addStars, starsSay, W, BARKS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, awardRound, toastStars, math:{genTask, prompt, solution, solutionShort, draw:drawMath, EMOJI, hint, HINT_HIDDEN, HINT_SHOWN}, leaveHooks, phraseSources,
+window.App = {STICKERS, LETTERS, LETTERS_DEFAULT, unlocked, allowed, roundLen, addStars, starsSay, W, BARKS, speak, hush, sfx, confetti, show, go, store, S, pick, VOC, finishRound, awardRound, toastStars, math:{genTask, prompt, solution, solutionShort, draw:drawMath, EMOJI, hint, HINT_HIDDEN, HINT_SHOWN}, leaveHooks, phraseSources,
   onLeave:f=>leaveHooks.push(f)};
 
 // sticker state {got, have, cost, earned, first}; first run: keep every sticker already earned (old rule: one per 10 stars)

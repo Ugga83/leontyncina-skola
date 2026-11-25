@@ -383,7 +383,7 @@ const RP = {items:[], idx:0, stars:0, wrong:0, res:[], busy:false, run:0};
 $('#rlPicGame').addEventListener('click', ()=>{ sfx.tap(); startPic(); });
 function startPic(){
   const pool = picWords(curL); RP.items = [];
-  const n = Math.min(8, Math.max(6, pool.length));
+  const n = A.roundLen(Math.min(8, Math.max(6, pool.length)));
   while (RP.items.length < n){
     const w = pick(pool);
     if (RP.items[RP.items.length-1] !== w && (RP.items.filter(x=>x===w).length < 1 || pool.length < n)) RP.items.push(w);
@@ -432,7 +432,7 @@ let rfRun = 0;
 function startFind(){
   const pool = [...new Set(day().cols.flat())];
   RF.items = []; let last='';
-  while (RF.items.length < 10){ const s = pick(pool); if (s.toLowerCase()===last) continue; RF.items.push(s); last=s.toLowerCase(); }
+  while (RF.items.length < A.roundLen(10)){ const s = pick(pool); if (s.toLowerCase()===last) continue; RF.items.push(s); last=s.toLowerCase(); }
   RF.idx = 0; RF.stars = 0; RF.res = [];
   A.go('rfind'); showFind(true);
 }
@@ -468,7 +468,7 @@ $('#rfAns').addEventListener('click', async e=>{
     await new Promise(r=>setTimeout(r,700));
     if (my!==rfRun || !isOn('rfind')) return;
     RF.idx++;
-    if (RF.idx >= RF.items.length) return A.finishRound(RF.stars, startFind, 'rlesson');
+    if (RF.idx >= RF.items.length) return A.finishRound(RF.stars, startFind, 'rlesson', RF.items.length);
     showFind();
   } else {
     RF.wrong++; b.classList.add('wrong'); sfx.bad();
@@ -495,7 +495,9 @@ A.phraseSources.push(()=>{
 A.stt = {available: ()=>sttAvailable() && !!micWanted, listenOnce, matches, stop: ()=>stopListen(), error: sttError};
 // all syllables of the school tasks, without whole words (used by the endless game)
 // words of the school tasks that have a picture: [[word, emoji], …] (Herna, Ayřina cesta)
-A.wordPics = () => R_LESSONS.flatMap(picWords).map(w=>[w, WORD_PICS[w.toLowerCase()]]);
+A.wordPics = () => R_LESSONS.flatMap(picWords).filter(w=>A.allowed(w)).map(w=>[w, WORD_PICS[w.toLowerCase()]]);
+// all words of the school tasks that use only taught letters (Skládám slova)
+A.words = () => [...new Set(R_LESSONS.flatMap(l=>l.days.flatMap(d=>d.cols.flat())).filter(w=>w.length>2 && A.allowed(w)).map(w=>w.toUpperCase()))];
 A.allPics = () => Object.values(WORD_PICS);
-A.syllables = () => [...new Set(R_LESSONS.flatMap(l=>l.days.flatMap(d=>d.cols.flat())).filter(s=>s.length<=2))];
+A.syllables = () => [...new Set(R_LESSONS.flatMap(l=>l.days.flatMap(d=>d.cols.flat())).filter(s=>s.length<=2 && A.allowed(s)))];
 })();

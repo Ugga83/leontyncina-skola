@@ -155,7 +155,7 @@ document.querySelectorAll('[data-hg]').forEach(b=>b.addEventListener('click', ()
 }));
 
 let RUN = 0;
-const ROUNDS = 8;
+const ROUNDS_BASE = 8; let ROUNDS = 8;
 async function finishGame(score, of, msg){
   const my = RUN;
   await speak(msg);
@@ -168,10 +168,10 @@ async function finishGame(score, of, msg){
 
 // 🌱 garden: every correct answer waters the flower, it grows; the flower goes to the garden
 async function garden(){
-  A.go('hgame'); const my = ++RUN;
+  A.go('hgame'); const my = ++RUN; ROUNDS = A.roundLen(ROUNDS_BASE);
   const STAGE = ['🟫','🌱','🌱','🌿','🌿','🪴','🪴','🌷','🌷'], flower = pick(['🌷','🌻','🌼','🌸','🌹','🪻']);
   let first = 0;
-  const draw = (k, water) => { $('#hgScene').innerHTML = `<div class="gplant">${k >= ROUNDS ? flower : STAGE[k]}${water?'<i class="gwater">💧</i>':''}</div><div class="gpot">🪣</div>`; };
+  const draw = (k, water) => { $('#hgScene').innerHTML = `<div class="gplant">${k >= ROUNDS ? flower : STAGE[Math.min(8, Math.floor(k * 8 / ROUNDS))]}${water?'<i class="gwater">💧</i>':''}</div><div class="gpot">🪣</div>`; };
   draw(0); $('#hgBubble').textContent = 'Odpověz a zalij kytičku.';
   await speak(SAY.garden);
   for (let i = 0; i < ROUNDS; i++){
@@ -189,10 +189,10 @@ async function garden(){
 
 // 🍎 feed the friends: count the right number of apples/bones into the bowl
 async function feed(){
-  A.go('hgame'); const my = ++RUN;
+  A.go('hgame'); const my = ++RUN; ROUNDS = A.roundLen(ROUNDS_BASE);
   const got = Math.max(3, (store.get('stk', {got:0}).got || 0));
   const friends = A.STICKERS.slice(0, Math.min(got, A.STICKERS.length));
-  const max = A.S.max || 5, N = 5;
+  const max = A.S.max || 5, N = A.roundLen(5);
   let first = 0;
   $('#hgBubble').textContent = 'Dej kamarádovi tolik, kolik chce.';
   await speak(SAY.feed);
@@ -226,7 +226,7 @@ async function feed(){
 
 // 🐿️ squirrels want Ayra's bones: a right answer chases one away (on the first try), else it takes a bone
 async function bones(){
-  A.go('hgame'); const my = ++RUN;
+  A.go('hgame'); const my = ++RUN; ROUNDS = A.roundLen(ROUNDS_BASE);
   let left = ROUNDS, saved = 0;
   const draw = () => { $('#hgScene').innerHTML = `<div class="bline"><span class="bsq">${'🐿️'.repeat(left)}</span><span class="bhome">🏠</span></div><div class="bbones">${'🦴'.repeat(saved)}</div>`; };
   draw(); $('#hgBubble').textContent = 'Zažeň veverky!';
@@ -313,11 +313,78 @@ if (pw) pw.closest('.lcard').insertAdjacentHTML('beforebegin', `<div class="lcar
 const pb = $('#pToHerna'); if (pb) pb.addEventListener('click', ()=>{ sfx.tap(); openHerna(); speak(SAY.herna); });
 document.querySelectorAll('[data-rgo="paws"]').forEach(b=>b.addEventListener('click', ()=>{ const e = $('#pBal'); if (e) e.textContent = pawBal(); }));
 
+// ---------- Skládám slova: Ayra says a word, she builds it from letter tiles (in Psaní) ----------
+const D_SAY = {start:'Poslouchej slovo a slož ho z písmenek.', wrong:'Tohle písmenko tam nepatří. Poslouchej ještě jednou.', done:'Všechna slova jsou složená!'};
+document.getElementById('end').insertAdjacentHTML('beforebegin', `
+<section id="wdict" class="screen">
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div>
+    <div class="scount" id="wdStars">✓ 0</div><button class="round-btn" id="wdSay" aria-label="Zopakovat">🔊</button></div>
+  <div class="dots" id="wdDots"></div>
+  <div class="gtalk"><div class="owl"></div><div class="bubble" id="wdBubble"></div></div>
+  <div class="card wdcard"><div class="wdpic" id="wdPic"></div><div class="wdslots" id="wdSlots"></div></div>
+  <div class="wdtiles" id="wdTiles"></div>
+</section>`);
+const ex = $('#wExtra');
+if (ex) ex.outerHTML = `<button class="lesson" style="--c:var(--violet);--d:var(--violet-d)" id="wdStart"><span class="le">🧩</span><span class="lt"><b>Skládám slova</b><small>poslouchej a slož slovo z písmenek</small></span></button>`;
+const WD = {items:[], idx:0, stars:0, res:[], run:0};
+const wdBtn = $('#wdStart');
+if (wdBtn){
+  wdBtn.addEventListener('click', ()=>{ sfx.tap(); startDict(); });
+  document.querySelector('#hub [data-go="write"]').addEventListener('click', ()=>{ wdBtn.style.display = A.words && A.words().length >= 3 ? '' : 'none'; });
+}
+function startDict(){
+  const pool = A.words(); WD.items = [];
+  const n = A.roundLen(6);
+  while (WD.items.length < n){ const w = pick(pool); if (WD.items[WD.items.length-1] !== w && (!WD.items.includes(w) || pool.length < n)) WD.items.push(w); }
+  WD.idx = 0; WD.stars = 0; WD.res = []; A.go('wdict'); showDict(true);
+}
+function showDict(first){
+  const w = WD.items[WD.idx], my = ++WD.run, letters = [...w];
+  let pos = 0, miss = 0, busy = false;
+  const pic = (A.wordPics() || []).find(p=>p[0].toUpperCase() === w);
+  $('#wdPic').textContent = pic ? pic[1] : '👂';
+  $('#wdDots').innerHTML = WD.items.map((_,i)=>`<div class="dot ${i===WD.idx?'cur':''} ${WD.res[i]===1?'gold':WD.res[i]===2?'ok':''}"></div>`).join('');
+  $('#wdStars').textContent = '✓ ' + WD.stars;
+  $('#wdBubble').textContent = 'Slož slovo, které slyšíš.';
+  $('#wdSlots').innerHTML = letters.map(()=>'<span class="wdslot"></span>').join('');
+  // the letters of the word and two more she already knows
+  const extra = [], known = A.unlocked().map(c=>c.toUpperCase()).filter(c=>!letters.includes(c));
+  while (extra.length < 2 && known.length){ extra.push(known.splice(Math.floor(Math.random()*known.length), 1)[0]); }
+  $('#wdTiles').innerHTML = shuffle([...letters, ...extra]).map(c=>`<button class="ans wdtile" data-c="${c}">${c}</button>`).join('');
+  const sayW = q => speak(w.toLowerCase(), {queue:!!q});
+  if (first){ speak(D_SAY.start); sayW(true); } else sayW();
+  $('#wdSay').onclick = ()=>{ sfx.tap(); sayW(); };
+  $('#wdTiles').onclick = async e=>{
+    const b = e.target.closest('.wdtile'); if (!b || busy || b.disabled || my !== WD.run) return;
+    if (b.dataset.c === letters[pos]){
+      sfx.tap(); b.disabled = true; b.classList.add('used');
+      $('#wdSlots').children[pos].textContent = letters[pos]; $('#wdSlots').children[pos].classList.add('full');
+      pos++; document.querySelectorAll('#wdTiles .hint').forEach(x=>x.classList.remove('hint'));
+      if (pos < letters.length) return;
+      busy = true; sfx.good(); confetti(miss ? 12 : 30);
+      if (!miss){ WD.stars++; WD.res[WD.idx] = 1; } else WD.res[WD.idx] = 2;
+      if (A.progress) A.progress.track('write', 'slovo ' + w, miss === 0);
+      $('#wdStars').textContent = '✓ ' + WD.stars;
+      const p = pick(SAY.ok); $('#wdBubble').textContent = p + ' ' + w; speak(p); await sayW(true);
+      await wait(600); if (my !== WD.run || !isOn('wdict')) return;
+      WD.idx++;
+      if (WD.idx >= WD.items.length){ await speak(D_SAY.done); return A.finishRound(WD.stars, startDict, 'write', WD.items.length); }
+      showDict();
+    } else {
+      miss++; sfx.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+      $('#wdBubble').textContent = 'Tohle tam nepatří.';
+      speak(D_SAY.wrong); sayW(true);
+      if (miss >= 2){ const right = [...document.querySelectorAll('#wdTiles .wdtile')].find(x=>!x.disabled && x.dataset.c === letters[pos]); if (right) right.classList.add('hint'); }
+    }
+  };
+}
+A.onLeave(id=>{ if (id !== 'wdict') WD.run++; });
+
 // for automated tests
-window.__playTest = {pawBal, makeTask, visit, garden, feed, bones};
+window.__playTest = {pawBal, makeTask, visit, garden, feed, bones, startDict};
 
 A.phraseSources.push(()=>{
-  const out = [...Object.values(SAY).flat(), 'Mňam, mňam! Děkuju!'];
+  const out = [...Object.values(SAY).flat(), ...Object.values(D_SAY), 'Mňam, mňam! Děkuju!'];
   FRIEND.forEach(n=>out.push(greet(n)));
   FOOD.forEach(f=>{ for (let n = 1; n <= 10; n++) out.push(f.say(n)); });
   return out;

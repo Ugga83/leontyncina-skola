@@ -86,6 +86,13 @@ document.body.insertAdjacentHTML('beforeend', `
 <section id="parent" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Pro rodiče</h1></div>
   <div class="lcard" id="pSum"></div>
+  <div class="lcard"><h4>📚 Co už probrali ve škole</h4>
+    <small class="pnote">Ťukněte na písmena, která už ve škole byla. Ayra pak v Psaní, ve Skládání slov, v Herně, na cestě a ve hře Ze všeho
+    používá jen slabiky a slova z nich. Úkoly ze školy ve Čtení zůstávají celé, jak jsou na papíře.</small>
+    <div class="pletters" id="pLetters"></div></div>
+  <div class="lcard"><h4>⏱️ Délka kola</h4>
+    <small class="pnote">Kolik příkladů, slabik nebo písmenek má jedno kolo (Matematika, Psaní, hry ve Čtení a v Herně).</small>
+    <div class="plen" id="pLen"></div></div>
   <button class="lesson" style="--c:var(--teal);--d:var(--teal-d)" id="pLogo"><span class="le">👄</span><span class="lt"><b>Logopedie</b><small>cvičení C S Z a Č Š Ž – hrajte spolu</small></span></button>
   <div class="lcard"><h4>Posledních 14 dní <small>(počet odehraných kol)</small></h4><div class="pchart" id="pChart"></div></div>
   <div class="lcard"><h4>Úspěšnost napoprvé <small>(posledních 7 dní)</small></h4><div class="ptiles" id="pAcc"></div></div>
@@ -95,10 +102,30 @@ document.body.insertAdjacentHTML('beforeend', `
   <div class="lcard"><h4>Co Ayra slyšela <small>(když slabiku nepoznala)</small></h4><div id="pHeard"></div></div>
 </section>`);
 
+// ---------- settings: taught letters and round length ----------
+const LEN_OPT = [['short','Kratší','asi 6 příkladů'],['normal','Normální','10 příkladů'],['long','Delší','15 příkladů']];
+function renderSettings(){
+  const u = A.unlocked();
+  $('#pLetters').innerHTML = A.LETTERS.map(c=>`<button class="pchip ${u.includes(c)?'on':''}" data-l="${c}">${c.toUpperCase()}</button>`).join('');
+  const cur = A.store.get('rlen', 'normal');
+  $('#pLen').innerHTML = LEN_OPT.map(([k,t,d])=>`<button class="plenb ${k===cur?'on':''}" data-len="${k}"><b>${t}</b><small>${d}</small></button>`).join('');
+}
+A.onLeave(id=>{ if (id === 'parent') setTimeout(renderSettings, 0); });
+document.getElementById('pLetters').addEventListener('click', e=>{
+  const b = e.target.closest('[data-l]'); if (!b) return; sfx.tap();
+  const u = A.unlocked().slice(), c = b.dataset.l, i = u.indexOf(c);
+  if (i >= 0) u.splice(i, 1); else u.push(c);
+  A.store.set('letters', A.LETTERS.filter(x=>u.includes(x))); renderSettings();
+});
+document.getElementById('pLen').addEventListener('click', e=>{
+  const b = e.target.closest('[data-len]'); if (!b) return; sfx.tap(); A.store.set('rlen', b.dataset.len); renderSettings();
+});
+
 function lastDays(n){ const out = []; for (let i=n-1;i>=0;i--){ const d = new Date(); d.setDate(d.getDate()-i); out.push(d); } return out; }
 const keyLabel = (sec, k) => sec==='math' ? (([t,a,b]) => t==='add' ? `${a} + ${b}` : t==='sub' ? `${a} − ${b}` : `${a} ${+a>+b?'>':+a<+b?'<':'='} ${b}`)(k.split('|')) : k;
 
 function renderParent(){
+  renderSettings();
   const st = stats(), days = lastDays(14);
   const rounds = d => Object.values(st.days[iso(d)] || {}).reduce((s,x)=>s + (x[2]||0), 0);
   const played = days.filter(d=>rounds(d) > 0).length;

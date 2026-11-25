@@ -5,7 +5,7 @@ const $ = s => document.querySelector(s);
 // Slabikář: Czech school cursive (shapes by Petr Olšák); print letters: the app's rounded font
 const isPrint = () => !!(WS.lesson && WS.lesson.font === 'print');
 const FSPEC = size => isPrint() ? `400 ${size}px Nunito` : `${size}px Slabikar`;
-const PEN = () => isPrint() ? .15 : .075;                    // print letters are thicker: a thicker pen
+const PEN = () => WS.pat ? .16 : isPrint() ? .15 : .075;                    // print letters are thicker: a thicker pen
 const FCLASS = () => isPrint() ? 'wprint' : 'wcur';
 
 const W_LESSONS = [
@@ -20,8 +20,24 @@ const W_LESSONS = [
   {id:'plow', c:'teal',   t:'Malá tiskací',   items:['a','e','i','o','u','m','l','s','p','t'], font:'print'},
   {id:'psyl', c:'violet', t:'Tiskací slabiky', items:['MA','ME','MI','MO','MU','LA','LE','LI','LO','LU','SA','SE','SI','SO','SU','PA','PE','PI','PO','PU','TA','TE','TI','TO','TU'], font:'print'},
 ];
+// warm-up for the hand: shapes traced from the green dot (always added last: the indexes above are used elsewhere)
+W_LESSONS.push({id:'warm', c:'teal', t:'Rozcvička ruky', items:['~vlnky','~dest','~pila','~kolecka','~houpacky','~klicky','~snek'], pat:true});
+const TAU = Math.PI * 2;
+const curve = (n, f) => Array.from({length:n + 1}, (_, i)=>f(i / n));
+// each shape: name for Ayra, an emoji, strokes in a box bw × bh (px, y down); a stroke starts at its first point
+const PAT = {
+  '~vlnky':   {n:'vlnky', e:'🌊', s:(w,h)=>[curve(160, t=>[t*w, h*.5 - h*.3*Math.sin(TAU*3*t)])]},
+  '~dest':    {n:'kapky deště', e:'🌧️', s:(w,h)=>[.1,.3,.5,.7,.9].map(x=>curve(20, t=>[x*w, h*(.1 + .8*t)]))},
+  '~pila':    {n:'pilku', e:'🪚', s:(w,h)=>[[0,1,2,3,4,5,6].map(i=>[i/6*w, i%2 ? h*.15 : h*.85])]},
+  '~kolecka': {n:'kolečka', e:'⭕', s:(w,h)=>{ const r = Math.min(h*.4, w/7.5); return [w*.18, w*.5, w*.82].map(cx=>curve(80, t=>[cx + r*Math.cos(-Math.PI/2 - TAU*t), h*.5 + r*Math.sin(-Math.PI/2 - TAU*t)])); }},
+  '~houpacky':{n:'houpačky', e:'🎠', s:(w,h)=>[curve(150, t=>[t*w, h*.15 + h*.7*Math.abs(Math.sin(Math.PI*3*t))])]},
+  '~klicky':  {n:'kličky', e:'➰', s:(w,h)=>{ const T = TAU*4, a = 1, b = 2.3, x0 = -b, x1 = a*T + b*0.2;
+                 return [curve(260, t=>{ const u = t*T; return [((a*u - b*Math.sin(u)) - x0)/(x1 - x0)*w, h*.5 + h*.38*Math.cos(u)]; })]; }},
+  '~snek':    {n:'šnečka', e:'🐌', s:(w,h)=>{ const R = Math.min(h*.46, w*.3); return [curve(200, t=>[w*.5 + R*t*Math.cos(TAU*2.6*t), h*.5 + R*t*Math.sin(TAU*2.6*t)])]; }},
+};
+const isPat = x => x.charAt(0) === '~';
 // endless mode: everything mixed, it never ends – stars after every 10
-const ALL = {id:'all', c:'violet', t:'Ze všeho – bez konce', items:[...new Set(W_LESSONS.filter(l=>!l.font).flatMap(l=>l.items))], endless:true};
+const ALL = {id:'all', c:'violet', t:'Ze všeho – bez konce', items:[], endless:true};
 const NUM = {'0':'nula','1':'jedna','2':'dva','3':'tři','4':'čtyři','5':'pět','6':'šest','7':'sedm','8':'osm','9':'devět'};
 const isNum = x => /^[0-9]$/.test(x);
 // how a letter is said: consonants by name (em, el…), always with a word, so it can't be misheard.
@@ -34,6 +50,7 @@ const ROUND = 6;
 const W_SAY = {
   pick:'Vyber si, co budeme psát.',
   start:'Obtáhni prstem šedé písmenko. Jezdi přesně po čáře.',
+  warm:'Rozcvičíme ruku. Jeď prstem po šedé čáře od zeleného bodu.',
   slow:'Jezdi prstem přesně po šedé čáře. Zkus to znovu.',
   rest:'Ještě obtáhni zbytek.',
   praise:['Krásně!','Paráda, to je hezké!','Výborně!','Haf! To se ti povedlo!','Jako ve škole!'],
@@ -41,6 +58,7 @@ const W_SAY = {
 const isSyl = x => W_LESSONS[2].items.includes(x.toLowerCase());
 const big = x => x.length===1 && !isNum(x) && x===x.toUpperCase();
 function promptParts(x){
+  if (isPat(x)) return [`Obtáhni ${PAT[x].n}.`];
   if (isNum(x)) return [`Obtáhni číslo ${NUM[x]}.`];
   if (x.length === 1){
     const k = x.toLowerCase(), head = big(x) ? 'Obtáhni velké písmeno' : 'Obtáhni písmenko';
@@ -50,6 +68,7 @@ function promptParts(x){
 }
 // after tracing Ayra says what is written there
 function writtenParts(x){
+  if (isPat(x)) return [];
   if (isNum(x)) return [`To je ${NUM[x]}.`];
   if (x.length === 1){
     const k = x.toLowerCase(), head = big(x) ? 'To je velké' : 'To je';
@@ -57,7 +76,7 @@ function writtenParts(x){
   }
   return isSyl(x) ? [x.toLowerCase()] : [`Napsala jsi ${x}.`];
 }
-const sayParts = (parts, queue) => parts.reduce((p, t, i)=>speak(t, {queue: i>0 || !!queue}), null);
+const sayParts = (parts, queue) => parts.reduce((p, t, i)=>speak(t, {queue: i>0 || !!queue}), Promise.resolve());
 const sayWritten = x => sayParts(writtenParts(x), true);
 const sayItem = (x, queue) => sayParts(promptParts(x), queue);
 
@@ -65,12 +84,16 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
 <section id="write" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh">Psaní</h1></div>
   <div class="hero"><div class="owl" id="writeOwl"></div><div class="bubble">Vyber si, co budeme psát!</div></div>
+  <div class="lsec"><h3>🤸 Rozcvička</h3><div class="lessons">
+    <button class="lesson" style="--c:var(--teal);--d:var(--teal-d)" data-wl="warm"><span class="le">〰️</span><span class="lt"><b>Rozcvička ruky</b><small>vlnky, kolečka, kličky… od zeleného bodu</small></span></button>
+    <div id="wExtra"></div>
+  </div></div>
   <div class="lsec"><h3>🔤 Tiskací písmo</h3><div class="lessons">
     ${W_LESSONS.filter(l=>l.font==='print').map(l=>`<button class="lesson" style="--c:var(--${l.c});--d:var(--${l.c}-d)" data-wl="${l.id}">
       <span class="le wprint">${l.items.slice(0, l.id==='psyl'?3:5).join(' ')}</span><span class="lt"><b>${l.t}</b></span></button>`).join('')}
   </div></div>
   <div class="lsec"><h3>✏️ Psací písmo</h3><div class="lessons">
-    ${W_LESSONS.filter(l=>!l.font).map(l=>`<button class="lesson" style="--c:var(--${l.c});--d:var(--${l.c}-d)" data-wl="${l.id}">
+    ${W_LESSONS.filter(l=>!l.font && !l.pat).map(l=>`<button class="lesson" style="--c:var(--${l.c});--d:var(--${l.c}-d)" data-wl="${l.id}">
       <span class="le wcur">${l.items.slice(0, l.id==='word'?2:5).join(' ')}</span><span class="lt"><b>${l.t}</b></span></button>`).join('')}
     <button class="lesson" style="--c:var(--violet);--d:var(--violet-d)" data-wl="all">
       <span class="le">🎲</span><span class="lt"><b>${ALL.t}</b><small>všechno dohromady, hvězdičky po každých 10</small></span></button>
@@ -92,11 +115,18 @@ const WS = {lesson:null, items:[], idx:0, stars:0, res:[], miss:0, done:false, f
 const isOn = id => document.getElementById(id).classList.contains('active');
 
 document.querySelectorAll('[data-wl]').forEach(b=>b.addEventListener('click', ()=>{ sfx.tap(); start(b.dataset.wl); }));
-document.querySelector('#hub [data-go="write"]').addEventListener('click', ()=>setTimeout(()=>speak(W_SAY.pick), 60));
+// lessons with nothing taught yet are hidden (the parent sets the letters in Pro rodiče)
+function refreshLessons(){
+  document.querySelectorAll('#write [data-wl]').forEach(b=>{ const l = W_LESSONS.find(x=>x.id===b.dataset.wl);
+    if (l) b.style.display = l.items.some(x=>isPat(x) || isNum(x) || A.allowed(x)) ? '' : 'none'; });
+}
+document.querySelector('#hub [data-go="write"]').addEventListener('click', ()=>{ refreshLessons(); setTimeout(()=>speak(W_SAY.pick), 60); });
 $('#writeOwl').addEventListener('click', ()=>speak(W_SAY.pick));
 
 function batch(){
-  const pool = [...WS.lesson.items], out = [], n = WS.lesson.endless ? 10 : Math.min(ROUND, pool.length);
+  const pool = WS.lesson.items.filter(x=>isPat(x) || isNum(x) || A.allowed(x));
+  if (!pool.length) pool.push(...WS.lesson.items);
+  const out = [], n = WS.lesson.endless ? 10 : Math.min(A.roundLen(ROUND), pool.length);
   // what went wrong lately comes first
   (A.progress ? A.progress.weak('write', 10) : []).filter(x=>pool.includes(x)).slice(0, 2).forEach(x=>out.push(x));
   while (out.length < n){ const x = pick(pool); if (!out.includes(x)) out.push(x); }
@@ -104,6 +134,7 @@ function batch(){
 }
 function start(id){
   WS.lesson = id==='all' ? ALL : W_LESSONS.find(l=>l.id===id);
+  if (id==='all') ALL.items = [...new Set(W_LESSONS.filter(l=>!l.font && !l.pat).flatMap(l=>l.items))];
   batch();
   A.go('wtrace');
   document.fonts.load(FSPEC(100)).then(()=>{ setup(true); });
@@ -113,6 +144,9 @@ function setup(first){
   const x = WS.items[WS.idx]; WS.miss = 0; WS.done = false; WS.restSaid = false; WS.run++;
   $('#wDots').innerHTML = WS.items.map((_,i)=>`<div class="dot ${i===WS.idx?'cur':''} ${WS.res[i]===1?'gold':WS.res[i]===2?'ok':''}"></div>`).join('');
   $('#wStars').textContent = '✓ ' + WS.stars;
+  WS.pat = isPat(x);
+  if (WS.pat){ $('#wBubble').innerHTML = `Obtáhni ${PAT[x].n} ${PAT[x].e}`; draw();
+    if (first){ speak(W_SAY.warm); sayItem(x, true); } else sayItem(x); return; }
   const what = isNum(x) ? 'číslo' : x.length===1 ? (x===x.toUpperCase() ? 'velké písmeno' : 'písmenko') : isSyl(x) ? 'slabiku' : 'slovo';
   $('#wBubble').innerHTML = `Obtáhni ${what} <b class="${FCLASS()}">${x}</b>`;
   draw();
@@ -139,6 +173,7 @@ function layout(ctx, x){
 function glyph(ctx, x, L){ ctx.font = FSPEC(L.fs); ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; }
 function draw(){
   const x = WS.items[WS.idx], g = sizeCanvas($('#wGuide')); sizeCanvas($('#wInk')); undo.length = 0; activeId = null; drawing = false;
+  if (isPat(x)) return drawPat(g, x);
   const L = layout(g, x); WS.fs = L.fs; WS.L = L;
   const W = g.canvas.width, H = g.canvas.height;
   // school lines: baseline, x-height and a faint top line
@@ -168,6 +203,54 @@ function draw(){
   if (cur) demo();
 }
 
+// ---------- shapes of the warm-up: the same checking, the real stroke direction is shown ----------
+function patStrokes(x, W, H){
+  const bw = W * .86, bh = Math.min(H * .6, bw * .6), ox = (W - bw) / 2, oy = (H - bh) / 2;
+  return {bh, strokes: PAT[x].s(bw, bh).map(st=>st.map(([a, b])=>[ox + a, oy + b]))};
+}
+function pathOf(ctx, strokes){ ctx.beginPath(); strokes.forEach(st=>{ ctx.moveTo(st[0][0], st[0][1]); st.slice(1).forEach(p=>ctx.lineTo(p[0], p[1])); }); }
+function drawPat(g, x){
+  const W = g.canvas.width, H = g.canvas.height, {bh, strokes} = patStrokes(x, W, H);
+  WS.fs = bh; WS.L = {fs:bh}; WS.strokes = strokes;
+  g.lineJoin = g.lineCap = 'round';
+  pathOf(g, strokes); g.strokeStyle = '#eef2fd'; g.lineWidth = bh * .24; g.stroke();
+  pathOf(g, strokes); g.strokeStyle = '#b7c0e3'; g.lineWidth = bh * .05; g.stroke();
+  const off = document.createElement('canvas'); off.width = W; off.height = H;
+  const o = off.getContext('2d'); o.lineJoin = o.lineCap = 'round'; o.strokeStyle = '#000';
+  pathOf(o, strokes); o.lineWidth = bh * .32; o.stroke(); WS.mask = o.getImageData(0, 0, W, H).data;
+  o.clearRect(0, 0, W, H); pathOf(o, strokes); o.lineWidth = bh * .04; o.stroke(); WS.target = o.getImageData(0, 0, W, H).data;
+  $('#wShow').style.display = '';
+  demoPat();
+}
+// the pen goes along the real strokes, then a green dot stays at the start of every stroke
+function demoPat(){
+  const my = ++WS.demo, g = $('#wGuide'), W = g.width, H = g.height, strokes = WS.strokes, bh = WS.fs;
+  const d = sizeCanvas($('#wDemo'));
+  const pts = strokes.flatMap((st, si)=>st.map((p, i)=>({p, si, i})));
+  const len = strokes.reduce((a, st)=>a + st.slice(1).reduce((b, p, i)=>b + Math.hypot(p[0] - st[i][0], p[1] - st[i][1]), 0), 0);
+  const dur = Math.min(5000, 1200 + len / bh * 450), t0 = performance.now();
+  WS.demoOn = true;
+  const frame = now=>{
+    if (my !== WS.demo) return;
+    const k = Math.max(0, Math.min(1, (now - t0) / dur)), upto = Math.floor(k * (pts.length - 1));
+    d.clearRect(0, 0, W, H); d.lineJoin = d.lineCap = 'round'; d.strokeStyle = '#ff8a3d'; d.lineWidth = bh * .05;
+    d.beginPath();
+    for (let j = 0; j <= upto; j++){ const q = pts[j]; if (q.i === 0) d.moveTo(q.p[0], q.p[1]); else d.lineTo(q.p[0], q.p[1]); }
+    d.stroke();
+    const pen = pts[upto].p;
+    d.fillStyle = '#ff8a3d'; d.strokeStyle = '#fff'; d.lineWidth = bh * .02;
+    d.beginPath(); d.arc(pen[0], pen[1], bh * .06, 0, 7); d.fill(); d.stroke();
+    if (k < 1) return requestAnimationFrame(frame);
+    setTimeout(()=>{
+      if (my !== WS.demo) return;
+      d.clearRect(0, 0, W, H); WS.demoOn = false;
+      const gc = g.getContext('2d'); gc.fillStyle = '#2fc77a'; gc.strokeStyle = '#fff'; gc.lineWidth = bh * .02;
+      strokes.forEach(st=>{ gc.beginPath(); gc.arc(st[0][0], st[0][1], bh * .07, 0, 7); gc.fill(); gc.stroke(); });
+    }, 450);
+  };
+  requestAnimationFrame(frame);
+}
+
 // ---------- the letter writes itself (cursive only: its strokes really go from left to right) ----------
 function demo(){
   const my = ++WS.demo, g = $('#wGuide'), W = g.width, H = g.height, t = WS.target, L = WS.L, x = WS.items[WS.idx];
@@ -190,7 +273,7 @@ function demo(){
   let py = startY;
   const frame = now=>{
     if (my !== WS.demo) return;
-    const k = Math.min(1, (now - t0) / dur), fx = x0 + (x1 - x0) * k;
+    const k = Math.max(0, Math.min(1, (now - t0) / dur)), fx = x0 + (x1 - x0) * k;
     const ys = cols[Math.round(fx / step)] || [];
     if (ys.length) py = ys.reduce((a, b)=>Math.abs(b - py) < Math.abs(a - py) ? b : a);
     d.clearRect(0, 0, W, H);
@@ -208,7 +291,7 @@ function demo(){
   };
   requestAnimationFrame(frame);
 }
-$('#wShow').addEventListener('click', ()=>{ sfx.tap(); if (!WS.done) demo(); });
+$('#wShow').addEventListener('click', ()=>{ sfx.tap(); if (!WS.done) (WS.pat ? demoPat : demo)(); });
 window.addEventListener('resize', ()=>{ if (isOn('wtrace') && WS.items.length) draw(); });
 
 // ---------- finger ----------
@@ -318,8 +401,9 @@ A.write = {
     document.fonts.load(FSPEC(100)).then(()=>{ setup(true); });
   },
   // Ze všeho: only syllables and numbers – mostly print letters, cursive only now and then
-  item: () => Math.random() < .8 ? {x: pick([...W_LESSONS[8].items, ...W_LESSONS[5].items]), font:'print'}
-                                 : {x: pick([...W_LESSONS[2].items, ...W_LESSONS[5].items])},
+  item: () => { const ok = a => a.filter(x=>isNum(x) || A.allowed(x));
+    return Math.random() < .8 ? {x: pick(ok([...W_LESSONS[8].items, ...W_LESSONS[5].items])), font:'print'}
+                              : {x: pick(ok([...W_LESSONS[2].items, ...W_LESSONS[5].items]))}; },
 };
 document.querySelector('#wtrace [data-back]').addEventListener('click', e=>{
   if (!WS.ext) return;
@@ -329,5 +413,5 @@ A.onLeave(()=>{ WS.run++; WS.demo++; WS.demoOn = false; });
 // for automated tests
 window.__writeTest = {WS, PEN};
 
-A.phraseSources.push(()=>[...W_LESSONS.flatMap(l=>l.items).flatMap(x=>[...promptParts(x), ...writtenParts(x)]), W_SAY.pick, W_SAY.start, W_SAY.slow, W_SAY.rest, ...W_SAY.praise]);
+A.phraseSources.push(()=>[W_SAY.warm, ...W_LESSONS.flatMap(l=>l.items).flatMap(x=>[...promptParts(x), ...writtenParts(x)]), W_SAY.pick, W_SAY.start, W_SAY.slow, W_SAY.rest, ...W_SAY.praise]);
 })();

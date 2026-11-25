@@ -511,3 +511,24 @@
 .map::before{content:'';position:absolute;left:50%;top:10px;bottom:10px;border-left:6px dotted #d9b97a;transform:translateX(-50%);z-index:0}
 .map .stop{z-index:1}
 .stop:not(.done):not(.here){filter:grayscale(1)}
+/* Skládám slova */
+#wdict .wdcard{flex:1;min-height:0;gap:14px}
+.wdpic{font-size:clamp(70px,22vw,120px);line-height:1}
+.wdslots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.wdslot{width:clamp(52px,15vw,74px);height:clamp(62px,18vw,88px);border-radius:14px;border:3px dashed #c9d2ee;display:grid;place-items:center;
+  font-size:clamp(36px,11vw,56px);font-weight:900;color:var(--ink);font-family:'Nunito',sans-serif}
+.wdslot.full{border-style:solid;border-color:var(--good);background:#e7f8ec;animation:pop .35s}
+.wdtiles{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;width:100%;max-width:720px;padding:8px 0 14px}
+#wdict .wdtile{width:clamp(60px,17vw,84px);height:clamp(60px,17vw,84px);font-size:clamp(32px,9vw,48px)}
+.wdtile.used{opacity:.25;pointer-events:none}
+.wdtile.shake{animation:shake .45s}
+.wdtile.hint{outline:5px solid var(--good)}
+/* Pro rodiče: probraná písmena, délka kola */
+.pnote{display:block;color:#6b7391;line-height:1.3;margin:2px 0 8px}
+.pletters{display:flex;flex-wrap:wrap;gap:6px}
+.pchip{border:0;font:inherit;font-weight:900;font-size:20px;width:44px;height:44px;border-radius:12px;background:#eef0f6;color:#9aa3c0;cursor:pointer}
+.pchip.on{background:var(--teal);color:#fff;box-shadow:0 3px 0 var(--teal-d)}
+.plen{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.plenb{border:0;font:inherit;border-radius:14px;padding:8px 4px;background:#eef0f6;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center}
+.plenb small{font-size:12px;opacity:.8}
+.plenb.on{background:var(--orange);color:#fff;box-shadow:0 3px 0 var(--orange-d)}
