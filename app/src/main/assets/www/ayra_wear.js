@@ -92,11 +92,15 @@ const W = {
     <path d="M-24 -12 Q-30 -30 -36 -44 M24 -12 Q30 -30 36 -44" fill="none" stroke="${O}" stroke-width="3" ${T}/>
     ${star(-37, -48, 11, 5, '#ffd447')}${star(37, -48, 11, 5, '#ffd447')}
     <circle cx="-50" cy="-2" r="2.4" fill="#fff"/><circle cx="54" cy="0" r="2" fill="#fff"/></g>`},
-  w_santa:{s:1.15, slot:'head', svg:`<g transform="translate(-4 6) rotate(-10)">
-    <path d="M-56 8 C-50 -40 6 -64 50 -44 C70 -34 82 -8 80 16 L62 16 C60 -6 46 -22 20 -20 C-12 -16 -32 -6 -40 8 Z" fill="#e2453c" ${SW}/>
-    <path d="M-30 -24 C-10 -40 20 -44 40 -36" stroke="#fff" stroke-width="3" opacity=".35" fill="none" ${T}/>
-    <rect x="-64" y="0" width="128" height="20" rx="10" fill="#ffffff" ${SW}/>
-    <circle cx="80" cy="20" r="12" fill="#ffffff" ${SW}/></g>`},
+  w_santa:{s:1.15, slot:'head', svg:`<g transform="translate(-2 6) rotate(-8)">
+    <path d="M-58 6 C-60 -30 -32 -60 4 -62 C34 -63 58 -50 72 -28 C80 -16 85 -2 86 12 C78 4 70 -4 60 -8 C59 -2 58 2 58 6 Z" fill="#e2453c" ${SW}/>
+    <path d="M60 -8 C66 -22 62 -38 52 -48" fill="none" stroke="#b8322b" stroke-width="2.4" ${T}/>
+    <path d="M-40 -26 C-28 -46 -6 -54 16 -54" fill="none" stroke="#fff" stroke-width="4" opacity=".35" ${T}/>
+    <path d="M-66 2 Q-60 -6 -52 -2 Q-44 -8 -36 -3 Q-28 -9 -20 -4 Q-12 -10 -4 -5 Q4 -10 12 -5 Q20 -10 28 -4 Q36 -9 44 -3 Q52 -8 60 -2 Q68 -6 68 4
+      Q72 12 66 18 Q60 26 52 20 Q44 26 36 21 Q28 27 20 21 Q12 27 4 21 Q-4 27 -12 21 Q-20 27 -28 21 Q-36 27 -44 20 Q-52 26 -60 19 Q-70 14 -66 2 Z" fill="#ffffff" ${SW}/>
+    <path d="M-48 8 q3 3 6 0 M-22 10 q3 3 6 0 M6 9 q3 3 6 0 M32 10 q3 3 6 0" fill="none" stroke="#dde3ee" stroke-width="2" ${T}/>
+    <path d="M86 2 Q93 0 96 7 Q103 10 99 17 Q102 25 94 26 Q90 33 83 28 Q75 30 75 22 Q69 16 75 11 Q75 3 83 4 Q84 2 86 2 Z" fill="#ffffff" ${SW}/>
+    <path d="M80 12 q3 -3 6 0" fill="none" stroke="#dde3ee" stroke-width="2" ${T}/></g>`},
   // ---------- na oči ----------
   glass:{slot:'eyes', svg:`
     <path d="M-45 -4 L-72 -10 M45 -4 L72 -10" stroke="${O}" stroke-width="3.4" ${T}/>
