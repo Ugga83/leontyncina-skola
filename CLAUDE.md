@@ -7,7 +7,7 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
 - **Novou verzi vydávat JEN když rodič napíše „vydej“.** Číslo verze se mění až při vydání.
   Vydání: spustit workflow `android.yml` (workflow_dispatch) na větvi s prací; vytvoří release `v1.0.N` na GitHubu
   (repo `Ugga83/leontyncina-skola`, dřív `Ugga83/Matematika-`). Aplikace si aktualizaci najde sama při spuštění.
-- Veškerá práce je sloučená v `main` (k 24. 11. 2026). Nová konverzace pracuje na větvi, kterou dostane – workflow běží z libovolné větve.
+- Veškerá práce do v1.0.57 je sloučená v `main`; v1.0.58 je na větvi `cteni-t` (zatím nesloučená). Nová konverzace pracuje na větvi, kterou dostane – workflow běží z libovolné větve.
 - Nevytvářet pull requesty, pokud o to rodič nepožádá.
 - Klíče jsou jen v GitHub secrets (`SPEECH_API_KEY` = rozpoznávání řeči, vkládá se do aplikace; `GOOGLE_TTS_KEY` = namlouvání,
   jen pro workflow). Nikdy nežádat o vložení klíče do chatu, nic nedávat do repa.
@@ -36,6 +36,7 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
   `voice_samples.yml` (ukázky hlasu k poslechu).
 - Nové věty, které Ayra říká, se musí dostat do `phrases.json` (spustit `node tools/collect_phrases.js` před commitem).
 
-## Stav k poslední verzi (v1.0.57)
-Hotové vše výše. Otevřené / k ověření s rodičem: rozpoznávání slabik na skutečném telefonu (karta „Co Ayra slyšela“
+## Stav k poslední verzi (v1.0.58)
+Hotové vše výše. v1.0.58: úkol „Slabiky s T“ (23.–25. 11.) – poprvé i celá slova (dny „… – slova“,
+Ayra říká „slovo“, rozpoznání chce téměř celé slovo, do hry Ze všeho jdou jen slabiky); slabiky s T v `google_syllables.py`. Otevřené / k ověření s rodičem: rozpoznávání slabik i slov na skutečném telefonu (karta „Co Ayra slyšela“
 v Přehledu pro rodiče), zda jde dobře obtahovat tiskací písmo, adventní kalendář od 1. 12.
