@@ -144,18 +144,32 @@ function openHerna(){
   A.go('herna');
   $('#hPaws').textContent = '🐾 ' + pawBal();
   const g = store.get('garden', []);
-  $('#hGarden').innerHTML = g.length ? g.map(e=>`<span>${e}</span>`).join('') : '<small>Zatím prázdná. Zahraj si Zahrádku!</small>';
+  $('#hGarden').innerHTML = g.length ? g.map(c=>c.charAt(0) === '#' ? `<span class="gmini">${plantSVG(1, c)}</span>` : `<span>${c}</span>`).join('') : '<small>Zatím prázdná. Zahraj si Zahrádku!</small>';
+  // a game she left in the middle goes on for free
+  const open = store.get('hplay', {});
+  document.querySelectorAll('[data-hg]').forEach(b=>{
+    const sm = b.querySelector('small'); if (!b.dataset.sub) b.dataset.sub = sm.textContent;
+    b.classList.toggle('hopen', !!open[b.dataset.hg]);
+    sm.textContent = open[b.dataset.hg] ? '▶ rozehraná hra – pokračuj zdarma' : b.dataset.sub;
+  });
 }
 $('#hOwl').addEventListener('click', ()=>speak(SAY.herna));
 document.querySelectorAll('[data-hg]').forEach(b=>b.addEventListener('click', ()=>{
   sfx.tap();
-  if (pawBal() < 1){ $('#hBubble').textContent = 'Na hru potřebuješ tlapku 🐾. Dostaneš ji za den s procvičováním.'; speak(SAY.noPaw); return; }
-  store.set('pawSpent', store.get('pawSpent', 0) + 1);
-  ({garden, feed, bones})[b.dataset.hg]();
+  const g = b.dataset.hg, open = store.get('hplay', {});
+  if (!open[g]){
+    if (pawBal() < 1){ $('#hBubble').textContent = 'Na hru potřebuješ tlapku 🐾. Dostaneš ji za den s procvičováním.'; speak(SAY.noPaw); return; }
+    store.set('pawSpent', store.get('pawSpent', 0) + 1);
+    open[g] = {i:0, first:0, n:0}; store.set('hplay', open);
+  }
+  ({garden, feed, bones})[g](open[g]);
 }));
+// progress of a game is saved after every task, so leaving does not cost the paw
+const saveG = (g, st) => { const o = store.get('hplay', {}); o[g] = st; store.set('hplay', o); };
+const endG = g => { const o = store.get('hplay', {}); delete o[g]; store.set('hplay', o); };
 
 let RUN = 0;
-const ROUNDS_BASE = 8; let ROUNDS = 8;
+const ROUNDS_BASE = 8;
 async function finishGame(score, of, msg){
   const my = RUN;
   await speak(msg);
@@ -166,39 +180,61 @@ async function finishGame(score, of, msg){
   if (my === RUN && isOn('hgame')) openHerna();
 }
 
-// 🌱 garden: every correct answer waters the flower, it grows; the flower goes to the garden
-async function garden(){
-  A.go('hgame'); const my = ++RUN; ROUNDS = A.roundLen(ROUNDS_BASE);
-  const STAGE = ['🟫','🌱','🌱','🌿','🌿','🪴','🪴','🌷','🌷'], flower = pick(['🌷','🌻','🌼','🌸','🌹','🪻']);
-  let first = 0;
-  const draw = (k, water) => { $('#hgScene').innerHTML = `<div class="gplant">${k >= ROUNDS ? flower : STAGE[Math.min(8, Math.floor(k * 8 / ROUNDS))]}${water?'<i class="gwater">💧</i>':''}</div><div class="gpot">🪣</div>`; };
-  draw(0); $('#hgBubble').textContent = 'Odpověz a zalij kytičku.';
-  await speak(SAY.garden);
-  for (let i = 0; i < ROUNDS; i++){
-    if (my !== RUN || !isOn('hgame')) return;
-    $('#hgCount').textContent = `💧 ${i} / ${ROUNDS}`;
-    if (await runTask($('#hgBox'), $('#hgAns'), $('#hgBubble'), 'hgame')) first++;
-    if (my !== RUN) return;
-    draw(i + 1, true); confetti(10); await wait(700); draw(i + 1);
+// a flower pot drawn in SVG: p = 0 (only soil) … 1 (in bloom); c = colour of the flower
+function plantSVG(p, c, water){
+  const top = 150 - 118 * p, leaf = (y, side, k) => `<ellipse cx="${100 + side*17}" cy="${y}" rx="${16*k}" ry="${7*k}" fill="#4cb860"
+    transform="rotate(${side*-28} ${100 + side*17} ${y})"/>`;
+  let g = '';
+  if (p > 0){
+    g += `<path d="M100 152 C 98 ${(152 + top)/2}, 103 ${(152 + top)/2}, 100 ${top}" stroke="#3d9a4f" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+    [[.2, 132], [.45, 112], [.7, 92]].forEach(([at, y], i)=>{ if (p > at){ const k = Math.min(1, (p - at) / .2); g += leaf(Math.max(y, top + 14), i % 2 ? 1 : -1, k); } });
+    if (p >= .85 && p < 1) g += `<ellipse cx="100" cy="${top - 4}" rx="9" ry="12" fill="${c}"/><path d="M92 ${top + 2} Q100 ${top + 10} 108 ${top + 2}" fill="#4cb860"/>`;
+    if (p >= 1) g += [0,60,120,180,240,300].map(a=>`<ellipse cx="100" cy="${top - 15}" rx="10" ry="16" fill="${c}" transform="rotate(${a} 100 ${top})"/>`).join('')
+      + `<circle cx="100" cy="${top}" r="9" fill="#ffd23f"/>`;
   }
-  $('#hgCount').textContent = `💧 ${ROUNDS} / ${ROUNDS}`;
-  const g = store.get('garden', []); g.push(flower); store.set('garden', g);
+  const drops = water ? `<g class="gdrops"><path d="M70 20 q5 9 0 13 q-5 -4 0 -13z"/><path d="M100 8 q5 9 0 13 q-5 -4 0 -13z"/><path d="M130 22 q5 9 0 13 q-5 -4 0 -13z"/></g>` : '';
+  return `<svg viewBox="0 0 200 220" class="gsvg">${drops}${g}
+    <path d="M52 150 L148 150 L136 212 L64 212 Z" fill="#d9734a"/><rect x="46" y="140" width="108" height="16" rx="5" fill="#e88a5f"/>
+    <ellipse cx="100" cy="148" rx="48" ry="6" fill="#6b4226"/></svg>`;
+}
+
+// 🌱 garden: every correct answer waters the flower, it grows; the flower goes to the garden
+const COLORS = ['#ff6b9a','#ff9f1c','#a66bff','#ff4d4d','#4da3ff','#ffd23f'];
+async function garden(st){
+  A.go('hgame'); const my = ++RUN;
+  if (!st.n){ st.n = A.roundLen(ROUNDS_BASE); st.c = pick(COLORS); saveG('garden', st); }
+  const N = st.n;
+  const draw = (k, water) => { $('#hgScene').innerHTML = `<div class="gplant">${plantSVG(k / N, st.c, water)}</div>`; };
+  draw(st.i); $('#hgBubble').textContent = 'Odpověz a zalij kytičku.';
+  $('#hgBox').innerHTML = ''; $('#hgAns').innerHTML = '';
+  if (!st.i) await speak(SAY.garden);
+  for (; st.i < N; ){
+    if (my !== RUN || !isOn('hgame')) return;
+    $('#hgCount').textContent = `💧 ${st.i} / ${N}`;
+    const ok = await runTask($('#hgBox'), $('#hgAns'), $('#hgBubble'), 'hgame');
+    if (my !== RUN) return;
+    if (ok) st.first++; st.i++; saveG('garden', st);
+    draw(st.i, true); confetti(10); await wait(800); if (my === RUN) draw(st.i);
+  }
+  $('#hgCount').textContent = `💧 ${N} / ${N}`;
+  const g = store.get('garden', []); g.push(st.c); store.set('garden', g); endG('garden');
   $('#hgBox').innerHTML = ''; $('#hgAns').innerHTML = ''; confetti(40);
-  finishGame(first, ROUNDS, SAY.gardenDone);
+  finishGame(st.first, N, SAY.gardenDone);
 }
 
 // 🍎 feed the friends: count the right number of apples/bones into the bowl
-async function feed(){
-  A.go('hgame'); const my = ++RUN; ROUNDS = A.roundLen(ROUNDS_BASE);
-  const got = Math.max(3, (store.get('stk', {got:0}).got || 0));
+async function feed(st){
+  A.go('hgame'); const my = ++RUN;
+  if (!st.n){ st.n = A.roundLen(5); saveG('feed', st); }
+  const N = st.n, got = Math.max(3, (store.get('stk', {got:0}).got || 0));
   const friends = A.STICKERS.slice(0, Math.min(got, A.STICKERS.length));
-  const max = A.S.max || 5, N = A.roundLen(5);
-  let first = 0;
+  const max = A.S.max || 5;
   $('#hgBubble').textContent = 'Dej kamarádovi tolik, kolik chce.';
-  await speak(SAY.feed);
-  for (let i = 0; i < N; i++){
+  $('#hgScene').innerHTML = ''; $('#hgBox').innerHTML = ''; $('#hgAns').innerHTML = '';
+  if (!st.i) await speak(SAY.feed);
+  for (; st.i < N; ){
     if (my !== RUN || !isOn('hgame')) return;
-    $('#hgCount').textContent = `${i} / ${N}`;
+    $('#hgCount').textContent = `${st.i} / ${N}`;
     const f = pick(friends), food = pick(FOOD), n = 1 + Math.floor(Math.random() * max);
     let put = 0, miss = 0;
     $('#hgScene').innerHTML = `<div class="ffriend">${f}</div><div class="fwant">${food.e} × ${n}</div>`;
@@ -217,32 +253,37 @@ async function feed(){
         else { miss++; sfx.bad(); put = 0; render(); $('#hgBubble').textContent = food.say(n); speak(SAY.feedWrong); speak(food.say(n), {queue:true}); }
       };
     });
-    if (ok) first++;
+    if (my !== RUN) return;
+    if (ok) st.first++; st.i++; saveG('feed', st);
     await wait(300);
   }
+  endG('feed');
   $('#hgCount').textContent = `${N} / ${N}`; $('#hgBox').innerHTML = ''; $('#hgAns').innerHTML = '';
-  finishGame(first, N, SAY.feedDone);
+  finishGame(st.first, N, SAY.feedDone);
 }
 
 // 🐿️ squirrels want Ayra's bones: a right answer chases one away (on the first try), else it takes a bone
-async function bones(){
-  A.go('hgame'); const my = ++RUN; ROUNDS = A.roundLen(ROUNDS_BASE);
-  let left = ROUNDS, saved = 0;
-  const draw = () => { $('#hgScene').innerHTML = `<div class="bline"><span class="bsq">${'🐿️'.repeat(left)}</span><span class="bhome">🏠</span></div><div class="bbones">${'🦴'.repeat(saved)}</div>`; };
+async function bones(st){
+  A.go('hgame'); const my = ++RUN;
+  if (!st.n){ st.n = A.roundLen(ROUNDS_BASE); saveG('bones', st); }
+  const N = st.n;
+  const draw = () => { $('#hgScene').innerHTML = `<div class="bline"><span class="bsq">${'🐿️'.repeat(N - st.i)}</span><span class="bhome">🏠</span></div><div class="bbones">${'🦴'.repeat(st.first)}</div>`; };
   draw(); $('#hgBubble').textContent = 'Zažeň veverky!';
-  await speak(SAY.bones);
-  for (let i = 0; i < ROUNDS; i++){
+  $('#hgBox').innerHTML = ''; $('#hgAns').innerHTML = '';
+  if (!st.i) await speak(SAY.bones);
+  for (; st.i < N; ){
     if (my !== RUN || !isOn('hgame')) return;
-    $('#hgCount').textContent = `🦴 ${saved}`;
-    const first = await runTask($('#hgBox'), $('#hgAns'), $('#hgBubble'), 'hgame');
+    $('#hgCount').textContent = `🦴 ${st.first}`;
+    const ok = await runTask($('#hgBox'), $('#hgAns'), $('#hgBubble'), 'hgame');
     if (my !== RUN) return;
-    left--; if (first) saved++;
-    draw(); $('#hgBubble').textContent = first ? 'Veverka utekla!' : 'Veverka si vzala kostičku.';
-    if (!first) await speak(SAY.bonesTaken);
+    st.i++; if (ok) st.first++; saveG('bones', st);
+    draw(); $('#hgBubble').textContent = ok ? 'Veverka utekla!' : 'Veverka si vzala kostičku.';
+    if (!ok) await speak(SAY.bonesTaken);
     await wait(400);
   }
-  $('#hgCount').textContent = `🦴 ${saved}`; $('#hgBox').innerHTML = ''; $('#hgAns').innerHTML = '';
-  finishGame(saved, ROUNDS, SAY.bonesDone);
+  endG('bones');
+  $('#hgCount').textContent = `🦴 ${st.first}`; $('#hgBox').innerHTML = ''; $('#hgAns').innerHTML = '';
+  finishGame(st.first, N, SAY.bonesDone);
 }
 
 // ---------- Ayřina cesta: a friend waits at every new stop (3 tasks), sometimes a fork with a treasure ----------
@@ -381,7 +422,8 @@ function showDict(first){
 A.onLeave(id=>{ if (id !== 'wdict') WD.run++; });
 
 // for automated tests
-window.__playTest = {pawBal, makeTask, visit, garden, feed, bones, startDict};
+document.querySelector('#hgame [data-back]').addEventListener('click', ()=>setTimeout(()=>{ if (isOn('herna')) openHerna(); }, 0));
+window.__playTest = {pawBal, plantSVG, makeTask, visit, garden, feed, bones, startDict};
 
 A.phraseSources.push(()=>{
   const out = [...Object.values(SAY).flat(), ...Object.values(D_SAY), 'Mňam, mňam! Děkuju!'];

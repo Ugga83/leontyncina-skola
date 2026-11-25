@@ -28,11 +28,11 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
   - `rewards.js` – Ayřina bouda (nábytek, předměty, den/noc, triky, návštěvy kamarádů), cesta, tlapky + kolo štěstí,
     album sbírek (12×10), odznaky (5 stupňů), adventní kalendář, ozdoby na Ayře (`NECK`/`HEAD` SVG).
   - `play.js` – **Herna** (Zahrádka, Nakrm kamarády, Ubraň kostičky; hra stojí 1 🐾 – tlapek je tolik, kolik dní procvičovala,
-    minus `pawSpent`), **návštěvy na Ayřině cestě** (na každé nové zastávce kamarád se 3 úkoly, `jvisit` = počet pozdravených,
+    minus `pawSpent`; rozehraná hra se ukládá do `hplay` a pokračuje se v ní zdarma; Zahrádka = SVG květináč `plantSVG`), **návštěvy na Ayřině cestě** (na každé nové zastávce kamarád se 3 úkoly, `jvisit` = počet pozdravených,
     každá 3. zastávka rozcestí s pokladem), společné úkoly `makeTask` (počítání / najdi slabiku / přečti slovo a ukaž obrázek).
   - `play.js` také **Skládám slova** (v Psaní: Ayra řekne slovo z úkolů ze školy, skládá se z písmenkových kostek).
   - Nastavení rodiče (Pro rodiče): **probraná písmena** (`letters`, `App.allowed()` – filtruje Psaní, Skládání, Hernu, cestu, Ze všeho;
-    úkoly ze školy ve Čtení zůstávají celé) a **délka kola** (`rlen` short/normal/long → `App.roundLen()`).
+    úkoly ze školy ve Čtení zůstávají celé) a **do kolika počítáme** (5/10, `max` – dětský přepínač v Matematice je schovaný) a **délka kola** (`rlen` short/normal/long → `App.roundLen()`).
   - `progress.js` – sledování chyb/opakování, výzva dne, Přehled pro rodiče (podržet nadpis 2 s), logopedie tam.
   - `logo.js` – logopedie. `logo.css` – styly.
   - `voice/` – nahrávky: `phrases.json` (generuje `node tools/collect_phrases.js`), mp3 podle FNV-1a klíče,
@@ -53,4 +53,5 @@ Také v1.0.60 (inspirace hrou bystrohra.cz – vlastní provedení s Ayrou): Her
 mapa cesty šedá před Ayrou.
 Rozcvička ruky, Skládám slova, probraná písmena a délka kola – také v1.0.60.
 Nápady na později: Kolik má slovo slabik (tleskání), Na co to začíná, krátká/dlouhá slabika, doplň číslo, slovní úlohy, krátké věty.
+Po v1.0.60 (nevydáno): Herna pokračuje v rozehrané hře bez další tlapky, nová kreslená Zahrádka, „Do kolika počítáme“ jen v nastavení rodiče.
 Otevřené / k ověření s rodičem: zda je obtahování teď přísné akorát, adventní kalendář od 1. 12.

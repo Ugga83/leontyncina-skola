@@ -224,11 +224,11 @@ h1.subh{flex:1;font-size:clamp(26px,7vw,38px);text-align:left}
     <button class="tile t-mix" data-mode="mix"><span class="ic">🎲</span><span class="t">Všechno<br>dohromady</span><span class="s">+ − &lt; &gt;</span></button>
   </div>
   <div class="panel">
-    <div class="row">
+    <div class="row" style="display:none"><!-- the range is set by the parent (Pro rodiče) -->
       <span class="lbl">Počítáme do</span>
       <div class="seg" id="rangeSeg"><button data-max="5">5</button><button data-max="10">10</button></div>
     </div>
-    <div class="row" style="margin-top:10px">
+    <div class="row">
       <span class="lbl">Obrázky</span>
       <div class="seg" id="picsSeg"><button data-pics="1">🍎 ukázat</button><button data-pics="0">🙈 schovat</button></div>
     </div>

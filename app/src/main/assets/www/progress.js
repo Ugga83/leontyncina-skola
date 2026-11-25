@@ -90,6 +90,9 @@ document.body.insertAdjacentHTML('beforeend', `
     <small class="pnote">Ťukněte na písmena, která už ve škole byla. Ayra pak v Psaní, ve Skládání slov, v Herně, na cestě a ve hře Ze všeho
     používá jen slabiky a slova z nich. Úkoly ze školy ve Čtení zůstávají celé, jak jsou na papíře.</small>
     <div class="pletters" id="pLetters"></div></div>
+  <div class="lcard"><h4>🔢 Do kolika počítáme</h4>
+    <small class="pnote">Platí pro Matematiku, hru Ze všeho, Hernu a úkoly kamarádů na cestě.</small>
+    <div class="plen" id="pMax"></div></div>
   <div class="lcard"><h4>⏱️ Délka kola</h4>
     <small class="pnote">Kolik příkladů, slabik nebo písmenek má jedno kolo (Matematika, Psaní, hry ve Čtení a v Herně).</small>
     <div class="plen" id="pLen"></div></div>
@@ -107,6 +110,7 @@ const LEN_OPT = [['short','Kratší','asi 6 příkladů'],['normal','Normální'
 function renderSettings(){
   const u = A.unlocked();
   $('#pLetters').innerHTML = A.LETTERS.map(c=>`<button class="pchip ${u.includes(c)?'on':''}" data-l="${c}">${c.toUpperCase()}</button>`).join('');
+  $('#pMax').innerHTML = [5, 10].map(m=>`<button class="plenb ${A.S.max===m?'on':''}" data-max="${m}"><b>do ${m}</b><small>${m===5?'čísla 1 až 5':'čísla 1 až 10'}</small></button>`).join('');
   const cur = A.store.get('rlen', 'normal');
   $('#pLen').innerHTML = LEN_OPT.map(([k,t,d])=>`<button class="plenb ${k===cur?'on':''}" data-len="${k}"><b>${t}</b><small>${d}</small></button>`).join('');
 }
@@ -116,6 +120,10 @@ document.getElementById('pLetters').addEventListener('click', e=>{
   const u = A.unlocked().slice(), c = b.dataset.l, i = u.indexOf(c);
   if (i >= 0) u.splice(i, 1); else u.push(c);
   A.store.set('letters', A.LETTERS.filter(x=>u.includes(x))); renderSettings();
+});
+document.getElementById('pMax').addEventListener('click', e=>{
+  const b = e.target.closest('[data-max]'); if (!b) return; sfx.tap();
+  A.S.max = +b.dataset.max; A.store.set('max', A.S.max); renderSettings();
 });
 document.getElementById('pLen').addEventListener('click', e=>{
   const b = e.target.closest('[data-len]'); if (!b) return; sfx.tap(); A.store.set('rlen', b.dataset.len); renderSettings();

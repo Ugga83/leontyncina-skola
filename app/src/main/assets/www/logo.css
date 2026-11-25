@@ -532,3 +532,10 @@
 .plenb{border:0;font:inherit;border-radius:14px;padding:8px 4px;background:#eef0f6;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center}
 .plenb small{font-size:12px;opacity:.8}
 .plenb.on{background:var(--orange);color:#fff;box-shadow:0 3px 0 var(--orange-d)}
+/* Zahrádka: drawn flower pot */
+.gplant{font-size:0;animation:none;width:min(62vw,260px)}
+.gsvg{width:100%;height:auto;display:block;overflow:visible}
+.gsvg .gdrops path{fill:#4da3ff;animation:gdrop .8s ease-in forwards}
+@keyframes gdrop{from{transform:translateY(-20px);opacity:0}30%{opacity:1}to{transform:translateY(110px);opacity:0}}
+.gmini{display:inline-block;width:44px}
+.lesson.hopen{outline:4px solid #ffd23f}
