@@ -541,7 +541,8 @@
 .lesson.hopen{outline:4px solid #ffd23f}
 /* ---------- živá Ayra (ayra.js): původní obrázky plynule ohýbané (WebGL) ---------- */
 .owl.live,.owl.full.live,.kennel .kdog.walk .kayra.live,.kennel .kdog.sleep .kayra.live{background-image:none !important}
-.owl .acanvas{position:absolute;left:-8%;top:-8%;width:116%;height:116%;pointer-events:none}
+.owl .acanvas{position:absolute;left:-20%;top:-20%;width:140%;height:140%;pointer-events:none}
+.ayra-wear .owl.live .acc{display:none}
 .owl.live .acc-head,.owl.live .acc-eyes{rotate:var(--ah,0deg);translate:var(--ahx,0) 0}
 .kennel .kdog.walk .kayra.live,.kennel .kdog.sleep .kayra.live,.kennel .kdog.wag .kayra.live,.kennel .kdog.eat .kayra.live{animation:none}
 /* tap: a hop */
