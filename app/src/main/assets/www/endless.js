@@ -6,7 +6,7 @@ const M = A.math;
 
 const E_SAY = {
   start:'Hra ze všeho! Máš tři srdíčka. Čím dál dojdeš, tím lepší odměny!',
-  find:'Najdi slabiku.', read:'Přečti slabiku nahlas.', again:'Zkus to znovu.', listen:'Poslouchej.', later:'Tuhle si přečteme jindy.',
+  find:'Najdi slabiku.',
   wrong:'To nebylo ono. Ztrácíš srdíčko.', last:'Pozor, máš poslední srdíčko!',
   over:'Konec hry! To byl skvělý výkon!', cont:'Pokračujeme! Kde jsme skončily?', ask:'Chceš pokračovat v rozehrané hře?', record:'Haf haf! Nový rekord!',
   prize:'Haf! Odměna!',
@@ -61,16 +61,15 @@ function offer(){
 }
 document.querySelector('#hub [data-go="endless"]').addEventListener('click', ()=>setTimeout(offer, 0));
 
-// ---------- tasks: math (exactly like Matematika), find a syllable, read a syllable, write ----------
+// ---------- tasks: math (exactly like Matematika), find a syllable Ayra says, write (no microphone) ----------
 const shuffle = a => a.sort(()=>Math.random()-.5);
 const enPics = () => store.get('enPics', 0);                   // pictures hidden by default
 function makeTask(){
   const nOpt = ES.n < 10 ? 3 : 4;
-  const kinds = ['math','math','syl','read','write'];
+  const kinds = ['math','math','syl','syl','write'];
   let kind;
   do { kind = pick(kinds); } while (kind === ES.last && Math.random() < .75);
   ES.last = kind;
-  if (kind==='read' && !(A.stt && A.stt.available())) kind = 'syl';    // no microphone: find it instead
   if (kind==='math'){
     const type = pick(['add','sub','cmp']), t = M.genTask(type, A.S.max);   // "počítáme do" from Matematika
     t.emoji = pick(M.EMOJI); t.emoji2 = pick(M.EMOJI.filter(e=>e!==t.emoji));
@@ -79,7 +78,6 @@ function makeTask(){
   const uniq = [...new Set((A.syllables ? A.syllables() : ['ma','me','mi','mo','mu']).map(s=>s.toLowerCase()))];
   if (kind==='write') return {kind, ...A.write.item()};
   const s = pick(uniq);
-  if (kind==='read') return {kind, say:E_SAY.read, ans:s, key:'read', tries:0};
   // never two that differ only by length or a mark (ma / má, su / sů): by ear they are too alike
   const base = x => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const opts = [s], used = new Set([base(s)]);
@@ -109,7 +107,7 @@ function next(first){
   ES.task = makeTask(); ES.busy = false;
   const t = ES.task;
   render();
-  $('#endless').classList.toggle('mathmode', t.kind==='math'); $('#endless').classList.toggle('readmode', t.kind==='read');
+  $('#endless').classList.toggle('mathmode', t.kind==='math');
   $('#enAns').className = 'answers enans';
   $('#enCard').classList.toggle('nopics', t.kind==='math' && !enPics());     // set before drawing: no flash
   if (t.kind==='write'){                                         // tracing in the Psaní screen, then back here
@@ -124,57 +122,13 @@ function next(first){
     $('#enBubble').textContent = 'Najdi slabiku, kterou říkám.';
     $('#enCard').innerHTML = `<div class="enq ear">👂</div><button class="bigbtn enreplay" style="--c:var(--orange);--d:var(--orange-d)">🔊 Znovu</button>`;
     $('#enAns').innerHTML = t.opts.map(o=>`<button class="ans" data-v="${o}">${o}</button>`).join('');
-  } else {                                                       // read one syllable aloud
-    $('#enBubble').textContent = 'Přečti slabiku nahlas.';
-    $('#enCard').innerHTML = `<div class="enread" id="enSyl">${t.ans}</div><div class="mic" id="enMic">🎤</div><div class="heard" id="enHeard"></div>`;
-    $('#enAns').innerHTML = `<button class="bigbtn" style="--c:var(--violet);--d:var(--violet-d)" data-read="again">🎤 Znovu</button>
-      <button class="bigbtn small" style="--c:var(--teal);--d:var(--teal-d)" data-read="ok" title="Pro rodiče: potvrdit ručně">✓</button>`;
-    $('#enAns').className = 'btns enreadbtns';
-    return speak(t.say, {queue:!!first}).then(()=>listen(t));
   }
   sayTask(!!first);
 }
-$('#enSay').addEventListener('click', ()=>{ sfx.tap(); if (ES.task && ES.task.kind==='read') speak(E_SAY.read); else sayTask(); });
+$('#enSay').addEventListener('click', ()=>{ sfx.tap(); sayTask(); });
 $('#enPics').addEventListener('click', ()=>{ sfx.tap(); store.set('enPics', enPics() ? 0 : 1); render(); applyPics(); });
 // "again" says just the syllable, without the whole sentence
 $('#enCard').addEventListener('click', e=>{ if (ES.task && ES.task.sayX){ sfx.tap(); speak(ES.task.sayX); } });
-
-// ---------- reading with the microphone ----------
-async function listen(t){
-  const my = ES.run;
-  if (ES.task !== t || !isOn()) return;
-  const mic = $('#enMic'); mic.className = 'mic busy';
-  await new Promise(r=>setTimeout(r, 250));
-  const r = await A.stt.listenOnce(()=>{ if (my===ES.run && ES.task===t) mic.className = 'mic on'; });
-  if (my !== ES.run || ES.task !== t || !isOn()) return;
-  mic.className = 'mic';
-  if (r.ok && A.stt.matches(t.ans, r.results)) return readDone(t, true);
-  t.tries++;
-  if (r.ok && A.progress && A.progress.heard) A.progress.heard(t.ans, r.results);
-  $('#enHeard').textContent = r.ok ? (r.results.length ? 'slyšela jsem: ' + r.results.slice(0,2).join(' / ') : '') : '⚠️ ' + A.stt.error(r.code);
-  if (t.tries >= 3){                                             // the microphone may be wrong: no heart lost
-    $('#enBubble').textContent = 'Přečteme si ji jindy.';
-    await speak(E_SAY.later); await speak(t.ans, {queue:true});
-    if (my === ES.run && isOn()) next();
-    return;
-  }
-  sfx.bad(); $('#enBubble').textContent = 'Zkus to znovu!';
-  await speak(t.tries === 2 ? E_SAY.listen : E_SAY.again);
-  if (t.tries === 2) await speak(t.ans, {queue:true});
-  listen(t);
-}
-async function readDone(t, ok){
-  if (ES.busy) return; ES.busy = true; A.stt.stop();
-  if (A.progress) A.progress.track('read', t.ans, t.tries === 0);
-  $('#enSyl').classList.add('good'); sfx.good();
-  await success();
-}
-$('#enAns').addEventListener('click', e=>{
-  const r = e.target.closest('[data-read]'); const t = ES.task; if (!r || !t || t.kind!=='read' || ES.busy) return;
-  sfx.tap();
-  if (r.dataset.read === 'ok') return readDone(t, true);
-  A.stt.stop(); ES.run++; t.tries = Math.max(0, t.tries); listen(t);
-});
 
 // ---------- after a task ----------
 async function success(){
@@ -196,7 +150,7 @@ async function loseHeart(){
 }
 // nothing old may flash for a moment when the screen comes back
 function blank(msg){
-  $('#endless').classList.remove('mathmode','readmode');
+  $('#endless').classList.remove('mathmode');
   $('#enCard').innerHTML = `<div class="enq">${msg || ''}</div>`; $('#enAns').innerHTML = ''; $('#enAns').className = 'answers enans';
 }
 async function written(first){                                   // back from tracing: straight to the next task
@@ -267,7 +221,7 @@ function gameOver(){
   const ns = document.getElementById('newStk'); if (ns) ns.insertAdjacentHTML('afterbegin', extra);
   const sc = document.querySelector('#endStars .score'); if (sc) sc.textContent = `došla jsi až na ${ES.n} správně`;
 }
-A.onLeave(id=>{ if (id !== 'endless'){ ES.run++; if (A.stt) A.stt.stop(); } });
+A.onLeave(id=>{ if (id !== 'endless') ES.run++; });
 
-A.phraseSources.push(()=>[E_SAY.cont, E_SAY.ask, E_SAY.start, E_SAY.find, E_SAY.read, E_SAY.again, E_SAY.listen, E_SAY.later, E_SAY.wrong, E_SAY.last, E_SAY.over, E_SAY.record, E_SAY.prize, ...E_SAY.praise]);
+A.phraseSources.push(()=>[E_SAY.cont, E_SAY.ask, E_SAY.start, E_SAY.find, E_SAY.wrong, E_SAY.last, E_SAY.over, E_SAY.record, E_SAY.prize, ...E_SAY.praise]);
 })();

@@ -207,22 +207,30 @@ function measure(){
   const c = ink.getContext('2d'), W = ink.width, H = ink.height, d = c.getImageData(0, 0, W, H).data;
   const step = Math.max(2, Math.round(WS.fs / 60));
   let tN = 0, tHit = 0, iN = 0, iOut = 0;
+  // the letter is also checked piece by piece, so a missing stroke or end is not hidden by the average
+  const B = Math.max(8, Math.round(WS.fs * .1)), bins = new Map();
   for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step){
     const i = (y * W + x) * 4 + 3;
-    if (WS.target[i] > 100){ tN++; if (d[i] > 0) tHit++; }
+    if (WS.target[i] > 100){
+      tN++; const hit = d[i] > 0; if (hit) tHit++;
+      const k = ((y / B) | 0) * 10000 + ((x / B) | 0), b = bins.get(k) || [0, 0];
+      b[0]++; if (hit) b[1]++; bins.set(k, b);
+    }
     if (d[i] > 0){ iN++; if (WS.mask[i] < 50) iOut++; }
   }
   WS.inkN = iN; WS.tN = tN;
-  return {cover: tN ? tHit / tN : 0, out: iN ? iOut / iN : 0};
+  let gaps = 0;                                         // pieces of the letter left (almost) grey
+  bins.forEach(([n, h])=>{ if (n >= 4 && h / n < .3) gaps++; });
+  return {cover: tN ? tHit / tN : 0, out: iN ? iOut / iN : 0, gaps};
 }
 async function check(){
   if (WS.done || !isOn('wtrace')) return;
-  const {cover, out} = measure(), my = WS.run;
+  const {cover, out, gaps} = measure(), my = WS.run;
   if (out > .35 && (cover > .3 || WS.inkN > WS.tN * .6)){                       // scribbled outside the letter
     WS.miss++; sfx.bad(); $('#wBubble').textContent = 'Jezdi přesně po šedé čáře.';
     speak(W_SAY.slow); clearInk(); return;
   }
-  if (cover >= .78){
+  if (cover >= .85 && gaps === 0){
     WS.done = true; const first = WS.miss === 0;
     if (A.progress) A.progress.track('write', (isPrint() ? 'tiskací ' : '') + WS.items[WS.idx], first);
     if (first){ WS.stars++; WS.res[WS.idx] = 1; } else WS.res[WS.idx] = 2;
@@ -272,6 +280,8 @@ document.querySelector('#wtrace [data-back]').addEventListener('click', e=>{
   e.stopPropagation(); const cb = WS.ext; WS.ext = null; sfx.tap(); cb(null);
 });
 A.onLeave(()=>{ WS.run++; WS.demo++; });
+// for automated tests
+window.__writeTest = {WS, PEN};
 
 A.phraseSources.push(()=>[...W_LESSONS.flatMap(l=>l.items).flatMap(x=>[...promptParts(x), ...writtenParts(x)]), W_SAY.pick, W_SAY.start, W_SAY.slow, W_SAY.rest, ...W_SAY.praise]);
 })();

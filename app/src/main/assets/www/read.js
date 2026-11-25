@@ -65,11 +65,11 @@ const sayPic = p => { speak(say(p[1])); return speak(picWord(p), {queue:true}); 
 const R_PRAISE = ['Výborně!','Správně!','Super!','Paráda!'];
 const R_MSG = {
   pick:'Vyber si úkol.', pickDay:'Vyber si den.',
-  readStart:'Čti slabiky nahlas. Já poslouchám.', readManual:'Čti slabiky nahlas. Po každé klepni na fajfku.', again:'Zkus to znovu.', listen:'Poslouchej.',
+  readStart:'Čti slabiky nahlas. Já poslouchám.', readManual:'Čti slabiky nahlas. Maminka nebo tatínek ti řeknou, jestli to bylo správně.', again:'Zkus to znovu.', listen:'Poslouchej.',
   later:'Tuhle si přečteme později.', silent:'Neslyšela jsem tě. Řekni to nahlas.',
   allDone:'Všechny slabiky máš přečtené!', noMic:'Mikrofon nefunguje. Čti nahlas a potvrď tlačítkem.',
   findHelp:'Poslouchej a najdi slabiku.', findWord:'Poslouchej a najdi slovo.',
-  readStartW:'Čti slova nahlas. Já poslouchám.', readManualW:'Čti slova nahlas. Po každém klepni na fajfku.', allDoneW:'Všechna slova máš přečtená!'
+  readStartW:'Čti slova nahlas. Já poslouchám.', readManualW:'Čti slova nahlas. Maminka nebo tatínek ti řeknou, jestli to bylo správně.', allDoneW:'Všechna slova máš přečtená!'
 };
 const todayISO = ()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 
@@ -103,8 +103,8 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
     <div class="rgrid mini" id="rrGrid"></div>
   </div>
   <div class="btns" style="padding-bottom:6px">
-    <button class="bigbtn" style="--c:var(--violet);--d:var(--violet-d)" id="rrMicBtn">🎤 Znovu</button>
-    <button class="bigbtn small" style="--c:var(--teal);--d:var(--teal-d)" id="rrOk" title="Pro rodiče: potvrdit ručně">✓</button>
+    <button class="bigbtn" style="--c:var(--coral);--d:var(--coral-d)" id="rrMicBtn">✗ Ještě ne</button>
+    <button class="bigbtn" style="--c:var(--teal);--d:var(--teal-d)" id="rrOk">✓ Správně</button>
   </div>
 </section>
 
@@ -226,19 +226,15 @@ function matches(target, results){
   });
 }
 
-// ---------- read with the microphone ----------
-const RR = {queue:[], total:0, firstTry:0, silent:0, run:0, manual:false};
-let micWanted = A.store.get('rmic', 1);
+// ---------- reading with a parent: the microphone was not reliable, so a parent confirms ✓ / ✗ ----------
+const RR = {queue:[], total:0, firstTry:0, silent:0, run:0, manual:true};
+const micWanted = 0;
 function applyMode(){
-  RR.manual = !micWanted || !sttAvailable();
-  const b = $('#rrMode');
-  b.textContent = RR.manual ? '🔇 bez poslechu' : '🎤 poslouchám';
-  b.classList.toggle('off', RR.manual);
-  b.style.display = sttAvailable() ? '' : 'none';
-  $('#rrMicBtn').style.display = RR.manual ? 'none' : '';
-  $('#rrOk').classList.toggle('small', !RR.manual);
-  $('#rrOk').textContent = RR.manual ? '✓ Přečetla jsem' : '✓';
-  $('#rrMic').style.visibility = RR.manual ? 'hidden' : '';
+  RR.manual = true;
+  $('#rrMode').style.display = 'none';
+  $('#rrMic').style.display = 'none';
+  $('#rrOk').classList.remove('small');
+  $('#rrOk').textContent = '✓ Správně';
 }
 // progress of an unfinished day is kept, so leaving by accident does not start it over
 const progKey = ()=> 'rprog_'+curL.id+'_'+curDay;
@@ -287,7 +283,7 @@ function showCur(){
   if (RR.lastShown !== c){ $('#rrHeard').textContent = ''; RR.lastShown = c; }
   $('#rrOk').classList.remove('hint');
   const what = c.s.length > 2 ? 'slovo' : 'slabiku';
-  $('#rrBubble').textContent = RR.manual ? `Přečti ${what} nahlas.` : `Přečti ${what} nahlas (klidně 2×).`;
+  $('#rrBubble').textContent = `Přečti ${what} nahlas.`;
 }
 function setMic(state){ const m=$('#rrMic'); m.className='mic '+(state||''); m.textContent = state==='busy'?'⏳':'🎤'; }
 async function loop(){
@@ -329,12 +325,12 @@ async function success(c){
 }
 async function miss(c, heard){
   c.tries++; sfx.bad();
-  if (A.progress && A.progress.heard) A.progress.heard(c.s, heard);
+  if (heard.length && A.progress && A.progress.heard) A.progress.heard(c.s, heard);
   const el = cellEl(c); if (el) el.classList.add('bad');
   $('#rrHeard').textContent = heard.length ? `slyšela jsem: ${heard.slice(0,3).join(' / ')}` : '';
   if (c.tries === 1){ $('#rrBubble').textContent='Zkus to znovu!'; await speak(R_MSG.again); }
   else if (c.tries === 2){ $('#rrBubble').textContent='Poslouchej: '+c.s; $('#rrOk').classList.add('hint'); await speak(R_MSG.listen); await speak(say(c.s), {queue:true}); }
-  else { RR.queue.push(RR.queue.shift()); c.tries = 2; $('#rrBubble').textContent='Vrátíme se k ní.'; await speak(R_MSG.later); }
+  else { RR.queue.push(RR.queue.shift()); c.tries = 2; $('#rrBubble').textContent='Vrátíme se k tomu později.'; await speak(R_MSG.later); }
 }
 function finishRead(){
   if (curDay >= 0){ const done = A.store.get('rdone', {}); done[curL.id+'_'+curDay] = true; A.store.set('rdone', done); }
@@ -345,12 +341,12 @@ function finishRead(){
     A.finishRound(RR.firstTry, ()=>startRead(true), 'rlesson', RR.total);
   });
 }
-$('#rrMode').addEventListener('click',()=>{
-  sfx.tap(); micWanted = micWanted ? 0 : 1; A.store.set('rmic', micWanted);
-  RR.run++; stopListen(); hush(); setMic('off'); applyMode();
-  if (!RR.manual) loop(); else showCur();
+// the parent heard a mistake: try again, the second time Ayra reads it, the third time it goes to the end
+$('#rrMicBtn').addEventListener('click', async ()=>{
+  const c = RR.queue[0]; if (!c || okBusy) return; okBusy = true;
+  hush(); await miss(c, []); okBusy = false;
+  if (isOn('rread')) showCur();
 });
-$('#rrMicBtn').addEventListener('click',()=>{ sfx.tap(); RR.run++; stopListen(); hush(); loop(); });
 let okBusy = false;
 $('#rrOk').addEventListener('click', async ()=>{   // manual confirm (no microphone / parent)
   const c = RR.queue[0]; if (!c || okBusy) return; okBusy = true;
