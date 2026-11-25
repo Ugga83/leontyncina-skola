@@ -8,7 +8,7 @@ import base64, json, os, re, subprocess, urllib.request
 
 KEY = os.environ["GOOGLE_TTS_KEY"]
 WWW = os.path.join(os.path.dirname(__file__), "..", "app", "src", "main", "assets", "www", "voice")
-C = {'m': 'm', 'l': 'l', 'p': 'p', 's': 's', 'z': 'z', 'c': 't͡s', 'š': 'ʃ', 'ž': 'ʒ', 'č': 't͡ʃ'}
+C = {'m': 'm', 'l': 'l', 'p': 'p', 't': 't', 's': 's', 'z': 'z', 'c': 't͡s', 'š': 'ʃ', 'ž': 'ʒ', 'č': 't͡ʃ'}
 V = {'a': 'a', 'e': 'ɛ', 'i': 'ɪ', 'o': 'ɔ', 'u': 'u', 'á': 'aː', 'é': 'ɛː', 'í': 'iː', 'ó': 'ɔː',
      'ú': 'uː', 'ů': 'uː', 'y': 'ɪ', 'ý': 'iː'}
 
@@ -29,7 +29,7 @@ for p in phrases:
     s = p['t']
     if re.fullmatch(r'[aeiou]', s):                     # a short vowel alone
         ipa = V[s]
-    elif re.fullmatch(r'[mlpszcšžč][aeiouáéíóúůyý]', s) and s[0] in C:
+    elif re.fullmatch(r'[mlptszcšžč][aeiouáéíóúůyý]', s) and s[0] in C:
         ipa = C[s[0]] + V[s[1]]
     else:
         continue
