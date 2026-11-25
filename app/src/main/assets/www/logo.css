@@ -539,68 +539,39 @@
 @keyframes gdrop{from{transform:translateY(-20px);opacity:0}30%{opacity:1}to{transform:translateY(110px);opacity:0}}
 .gmini{display:inline-block;width:44px}
 .lesson.hopen{outline:4px solid #ffd23f}
-/* ---------- animovaná Ayra (ayra.js) ---------- */
-.owl,.owl.full,.kennel .kdog.walk .kayra,.kennel .kdog.sleep .kayra{background-image:none !important}
-.owl{position:relative}
-.owl .ayra-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
-.ayra-svg *{transform-box:view-box}
-.ayra-svg .a-body{transform-origin:46px 96px;animation:aBreathe 3.2s ease-in-out infinite}
-.ayra-svg .a-head{transform-origin:46px 54px;animation:aHead 6.5s ease-in-out infinite}
-.ayra-svg .a-tail{transform-origin:66px 84px;animation:aWag 1.1s ease-in-out infinite alternate}
-.ayra-svg .a-eye{transform-box:fill-box;transform-origin:center;animation:aBlink 4.6s infinite}
-.ayra-svg .a-eye:nth-child(2){animation-delay:.02s}
-.ayra-svg .a-earL{transform-origin:33px 20px}.ayra-svg .a-earR{transform-origin:59px 20px}
-.ayra-svg .a-legL{transform-origin:39.5px 78px}.ayra-svg .a-legR{transform-origin:52.5px 78px}
-.ayra-svg .a-tongue{transform-box:fill-box;transform-origin:50% 0;animation:aTongue 1.6s ease-in-out infinite}
-.ayra-svg .a-closed,.ayra-svg .a-zzz{opacity:0}
-.ayra-svg .a-zzz text{font:900 9px Nunito,sans-serif;fill:#7b8bd6}
-@keyframes aBreathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.015,1.035)}}
-@keyframes aHead{0%,100%{transform:rotate(0)}30%{transform:rotate(-2deg) translateY(-.4px)}60%{transform:rotate(1.5deg)}}
-@keyframes aWag{from{transform:rotate(-9deg)}to{transform:rotate(11deg)}}
-@keyframes aBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}
-@keyframes aTongue{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.15)}}
-/* idle moments (random, ayra.js) */
+/* ---------- živá Ayra (ayra.js): původní obrázek rozdělený na hlavu, tělo a ocásek ---------- */
+.owl.rig{background-image:none}
+.owl .arig{position:absolute;inset:0;pointer-events:none}
+.owl .arig img,.owl .arig .a-head{position:absolute;inset:0;width:100%;height:100%;display:block}
+.owl:not(.full) .arig{display:none}
+.owl:not(.full).rig{background-image:url(ayra.png)}
+.arig .a-body{transform-origin:46% 97%;animation:aBreathe 3.2s ease-in-out infinite}
+.arig .a-head{transform-origin:46% 58%;animation:aHead 6.5s ease-in-out infinite}
+.arig .a-tail{transform-origin:78% 88%;animation:aWag 1.1s ease-in-out infinite alternate}
+.arig .a-lid{position:absolute;width:7.4%;height:7.4%;top:27.3%;background:#fff;border-radius:50% 50% 45% 45%;
+  border-bottom:.012em solid #26262e;transform-origin:50% 0;transform:scaleY(0);animation:aBlink 4.6s infinite}
+.arig .a-lid.l{left:32.2%}.arig .a-lid.r{left:50.9%}
+@keyframes aBreathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.012,1.03)}}
+@keyframes aHead{0%,100%{transform:rotate(0) translateY(0)}25%{transform:rotate(-2deg) translateY(-.6%)}60%{transform:rotate(1.6deg) translateY(.3%)}}
+@keyframes aWag{from{transform:rotate(-5deg)}to{transform:rotate(6deg)}}
+@keyframes aBlink{0%,91%,100%{transform:scaleY(0)}94.5%{transform:scaleY(1)}}
+/* little moments now and then (random) */
 .owl.i-tilt .a-head{animation:aTilt 1.6s ease-in-out}
-@keyframes aTilt{0%,100%{transform:rotate(0)}30%,70%{transform:rotate(-9deg)}}
-.owl.i-ear .a-earL{animation:aEar .5s ease-in-out 2}
-.owl.i-ear .a-earR{animation:aEar .5s ease-in-out .15s 2}
-@keyframes aEar{0%,100%{transform:rotate(0)}50%{transform:rotate(-14deg)}}
-.owl.i-happy .a-tail{animation:aWag .18s ease-in-out infinite alternate}
-.owl.i-happy .a-eye{animation:none;transform:scaleY(.55)}
-/* tap: hop with a fast wag */
-.owl.hop .ayra-svg{animation:aHop .8s cubic-bezier(.3,.7,.4,1)}
-.owl.hop .a-tail{animation:aWag .14s ease-in-out infinite alternate}
-.owl.hop .a-earL,.owl.hop .a-earR{animation:aEar .4s ease-in-out}
-@keyframes aHop{0%,100%{transform:translateY(0) scale(1)}15%{transform:translateY(2%) scale(1.04,.94)}45%{transform:translateY(-16%) scale(.97,1.04)}75%{transform:translateY(0) scale(1.03,.96)}}
-/* waving with the right paw */
-.owl.wave .a-legR{transform-origin:57px 72px;animation:aWave .6s ease-in-out infinite alternate}
-@keyframes aWave{from{transform:rotate(-175deg)}to{transform:rotate(-135deg)}}
-/* kennel: walking (steps, body bob), sleeping, wagging, eating */
-.kennel .kdog .kayra{animation:none}
-.kennel .kdog.walk .kayra{animation:none}
-.kennel .kdog.walk .acc{display:block}
-.kdog.walk .a-legL{animation:aStep .36s ease-in-out infinite alternate}
-.kdog.walk .a-legR{animation:aStep .36s ease-in-out -.36s infinite alternate}
-.kdog.walk .a-body,.kdog.walk .a-head{animation:aBob .18s ease-in-out infinite alternate}
-.kdog.walk .a-tail{animation:aWag .25s ease-in-out infinite alternate}
-@keyframes aStep{from{transform:translateY(0) rotate(0)}to{transform:translateY(-4px) rotate(8deg)}}
-@keyframes aBob{from{transform:translateY(0)}to{transform:translateY(-1.6px)}}
-.kennel .kdog.sleep .kayra{width:1em;left:-.5em;height:1em}
-.kdog.sleep .a-eyes,.kdog.sleep .a-open,.kdog.sleep .a-tongue{opacity:0}
-.kdog.sleep .a-closed,.kdog.sleep .a-zzz{opacity:1}
-.kdog.sleep .a-head{animation:aSleepHead 4s ease-in-out infinite}
-.kdog.sleep .a-body{animation:aSleepBody 4s ease-in-out infinite}
-.kdog.sleep .a-legs{transform:translateY(5px) scaleY(.7);transform-origin:46px 96px}
-.kdog.sleep .a-tail{animation:none;transform:rotate(-20deg) translate(-4px,6px)}
-.kdog.sleep .a-zzz text{animation:aZ 3s ease-in-out infinite}
-.kdog.sleep .a-zzz text:nth-child(2){animation-delay:.5s}.kdog.sleep .a-zzz text:nth-child(3){animation-delay:1s}
-@keyframes aSleepHead{0%,100%{transform:translateY(13px) rotate(-4deg)}50%{transform:translateY(14px) rotate(-5deg)}}
-@keyframes aSleepBody{0%,100%{transform:translateY(5px) scale(1.08,.86)}50%{transform:translateY(5px) scale(1.1,.9)}}
-@keyframes aZ{0%{opacity:0;transform:translateY(4px)}40%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
-.kennel .kdog.wag .kayra,.kennel .kdog.eat .kayra{animation:none}
-.kdog.wag .a-tail{animation:aWag .14s ease-in-out infinite alternate}
-.kdog.wag .a-body{animation:aWiggle .28s ease-in-out infinite alternate}
-@keyframes aWiggle{from{transform:rotate(-2deg)}to{transform:rotate(2deg)}}
-.kdog.eat .a-head{animation:aEat .3s ease-in-out infinite alternate}
-@keyframes aEat{from{transform:translateY(0) rotate(0)}to{transform:translateY(6px) rotate(3deg)}}
-@media (prefers-reduced-motion:reduce){.ayra-svg *{animation:none !important}}
+@keyframes aTilt{0%,100%{transform:rotate(0)}30%,70%{transform:rotate(-8deg)}}
+.owl.i-happy .a-tail{animation:aWag .16s ease-in-out infinite alternate}
+.owl.i-nod .a-head{animation:aNod .5s ease-in-out 2}
+@keyframes aNod{0%,100%{transform:translateY(0)}50%{transform:translateY(2.5%) rotate(1deg)}}
+/* tap: a hop with a fast wag */
+.owl.hop .arig{animation:aHop .8s cubic-bezier(.3,.7,.4,1)}
+.owl.hop .a-tail{animation:aWag .13s ease-in-out infinite alternate}
+@keyframes aHop{0%,100%{transform:translateY(0) scale(1)}15%{transform:translateY(2%) scale(1.04,.94)}45%{transform:translateY(-15%) scale(.97,1.04)}75%{transform:translateY(0) scale(1.03,.96)}}
+/* kennel: walking and sleeping keep their own original pictures, now with motion */
+.kennel .kdog.walk .arig,.kennel .kdog.sleep .arig{display:none}
+.kennel .kdog.walk .kayra.rig{background-image:url(ayra_walk.png)}
+.kennel .kdog.sleep .kayra.rig{background-image:url(ayra_sleep.png);animation:aSleep 3.6s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes aSleep{0%,100%{transform:scale(1,1)}50%{transform:scale(1.02,1.04)}}
+.kdog.wag .a-tail{animation:aWag .13s ease-in-out infinite alternate}
+.kdog.eat .a-head{animation:aNod .3s ease-in-out infinite}
+.trophy .wavepaw{display:inline-block;transform-origin:70% 80%;animation:aWaveImg .6s ease-in-out infinite alternate}
+@keyframes aWaveImg{from{transform:rotate(-4deg)}to{transform:rotate(5deg)}}
+@media (prefers-reduced-motion:reduce){.arig *,.arig{animation:none !important}}
