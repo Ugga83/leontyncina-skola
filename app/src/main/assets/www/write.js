@@ -10,15 +10,15 @@ const FCLASS = () => isPrint() ? 'wprint' : 'wcur';
 
 const W_LESSONS = [
   {id:'vow',  c:'orange', t:'Samohlásky',     items:['a','e','i','o','u']},
-  {id:'mlsp', c:'teal',   t:'Písmena m l s p', items:['m','l','s','p']},
-  {id:'syl',  c:'violet', t:'Slabiky',        items:['ma','me','mi','mo','mu','la','le','li','lo','lu','sa','se','si','so','su','pa','pe','pi','po','pu']},
-  {id:'word', c:'coral',  t:'Slova',          items:['máma','mele','Ema','lama','pila','pes','osel','Pepa','lupa','sele']},
-  {id:'cap',  c:'teal',   t:'Velká písmena',  items:['A','E','I','O','U','M','L','S','P']},
+  {id:'mlsp', c:'teal',   t:'Písmena m l s p t', items:['m','l','s','p','t']},
+  {id:'syl',  c:'violet', t:'Slabiky',        items:['ma','me','mi','mo','mu','la','le','li','lo','lu','sa','se','si','so','su','pa','pe','pi','po','pu','ta','te','ti','to','tu']},
+  {id:'word', c:'coral',  t:'Slova',          items:['máma','mele','Ema','lama','pila','pes','osel','Pepa','lupa','sele','táta','teta','léto','mapa']},
+  {id:'cap',  c:'teal',   t:'Velká písmena',  items:['A','E','I','O','U','M','L','S','P','T']},
   {id:'num',  c:'orange', t:'Číslice',        items:['1','2','3','4','5','6','7','8','9','0']},
   // ---- tiskací písmo ----
-  {id:'pcap', c:'coral',  t:'Velká tiskací',  items:['A','E','I','O','U','M','L','S','P'], font:'print'},
-  {id:'plow', c:'teal',   t:'Malá tiskací',   items:['a','e','i','o','u','m','l','s','p'], font:'print'},
-  {id:'psyl', c:'violet', t:'Tiskací slabiky', items:['MA','ME','MI','MO','MU','LA','LE','LI','LO','LU','SA','SE','SI','SO','SU','PA','PE','PI','PO','PU'], font:'print'},
+  {id:'pcap', c:'coral',  t:'Velká tiskací',  items:['A','E','I','O','U','M','L','S','P','T'], font:'print'},
+  {id:'plow', c:'teal',   t:'Malá tiskací',   items:['a','e','i','o','u','m','l','s','p','t'], font:'print'},
+  {id:'psyl', c:'violet', t:'Tiskací slabiky', items:['MA','ME','MI','MO','MU','LA','LE','LI','LO','LU','SA','SE','SI','SO','SU','PA','PE','PI','PO','PU','TA','TE','TI','TO','TU'], font:'print'},
 ];
 // endless mode: everything mixed, it never ends – stars after every 10
 const ALL = {id:'all', c:'violet', t:'Ze všeho – bez konce', items:[...new Set(W_LESSONS.filter(l=>!l.font).flatMap(l=>l.items))], endless:true};
@@ -27,8 +27,8 @@ const isNum = x => /^[0-9]$/.test(x);
 // how a letter is said: consonants by name (em, el…), always with a word, so it can't be misheard.
 // A vowel on its own would be read long by the sentence voice ("é"), so it is said as a separate
 // short recorded sound (voice/fixed, exact pronunciation) between two parts of the sentence.
-const NAME = {m:'em', l:'el', s:'es', p:'pé'};
-const LIKE = {a:'auto', e:'Ema', i:'iglú', o:'osel', u:'ucho', m:'máma', l:'lama', s:'sova', p:'pes'};
+const NAME = {m:'em', l:'el', s:'es', p:'pé', t:'té'};
+const LIKE = {a:'auto', e:'Ema', i:'iglú', o:'osel', u:'ucho', m:'máma', l:'lama', s:'sova', p:'pes', t:'táta'};
 const isVowel = x => /^[aeiou]$/i.test(x);
 const ROUND = 6;
 const W_SAY = {
@@ -78,10 +78,10 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
 </section>
 <section id="wtrace" class="screen">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div>
-    <div class="scount" id="wStars">✓ 0</div><button class="round-btn" id="wSay" aria-label="Zopakovat">🔊</button></div>
+    <div class="scount" id="wStars">✓ 0</div><button class="round-btn" id="wShow" aria-label="Ukaž, jak se to píše">✏️</button><button class="round-btn" id="wSay" aria-label="Zopakovat">🔊</button></div>
   <div class="dots" id="wDots"></div>
   <div class="gtalk"><div class="owl"></div><div class="bubble" id="wBubble"></div></div>
-  <div class="card wcard" id="wCard"><canvas id="wGuide"></canvas><canvas id="wInk"></canvas></div>
+  <div class="card wcard" id="wCard"><canvas id="wGuide"></canvas><canvas id="wInk"></canvas><canvas id="wDemo"></canvas></div>
   <div class="btns" style="padding-bottom:6px">
     <button class="bigbtn" style="--c:var(--teal);--d:var(--teal-d)" id="wUndo">↩️ Zpět</button>
     <button class="bigbtn" style="--c:var(--violet);--d:var(--violet-d)" id="wClear">🧽 Smazat</button>
@@ -162,7 +162,53 @@ function draw(){
   WS.mask = o.getImageData(0, 0, W, H).data;
   o.clearRect(0, 0, W, H); o.lineWidth = L.fs * .03; o.strokeText(x, L.cx, L.base); o.fillText(x, L.cx, L.base);
   WS.target = o.getImageData(0, 0, W, H).data;
+  // the cursive letter writes itself first (left to right, like a pen), then a green dot shows where to start
+  const cur = !isPrint() && !isNum(x);
+  $('#wShow').style.display = cur ? '' : 'none';
+  if (cur) demo();
 }
+
+// ---------- the letter writes itself (cursive only: its strokes really go from left to right) ----------
+function demo(){
+  const my = ++WS.demo, g = $('#wGuide'), W = g.width, H = g.height, t = WS.target, L = WS.L, x = WS.items[WS.idx];
+  const d = sizeCanvas($('#wDemo'));
+  // ink of the letter, column by column
+  const step = 2, cols = [];
+  let x0 = -1, x1 = -1;
+  for (let cx = 0; cx < W; cx += step){
+    const ys = [];
+    for (let y = 0; y < H; y += step) if (t[(y * W + cx) * 4 + 3] > 100) ys.push(y);
+    cols.push(ys); if (ys.length){ if (x0 < 0) x0 = cx; x1 = cx; }
+  }
+  if (x0 < 0) return;
+  const startY = cols[x0 / step].reduce((a, b)=>a + b, 0) / cols[x0 / step].length;
+  const pic = document.createElement('canvas'); pic.width = W; pic.height = H;
+  const pc = pic.getContext('2d'); glyph(pc, x, L); pc.lineJoin = pc.lineCap = 'round';
+  pc.fillStyle = pc.strokeStyle = '#ff8a3d'; pc.lineWidth = L.fs * .03; pc.strokeText(x, L.cx, L.base); pc.fillText(x, L.cx, L.base);
+  WS.demoOn = true;
+  const dur = Math.min(4200, 900 + (x1 - x0) / L.fs * 1100), t0 = performance.now();
+  let py = startY;
+  const frame = now=>{
+    if (my !== WS.demo) return;
+    const k = Math.min(1, (now - t0) / dur), fx = x0 + (x1 - x0) * k;
+    const ys = cols[Math.round(fx / step)] || [];
+    if (ys.length) py = ys.reduce((a, b)=>Math.abs(b - py) < Math.abs(a - py) ? b : a);
+    d.clearRect(0, 0, W, H);
+    d.save(); d.beginPath(); d.rect(0, 0, fx + 1, H); d.clip(); d.drawImage(pic, 0, 0); d.restore();
+    d.fillStyle = '#ff8a3d'; d.strokeStyle = '#fff'; d.lineWidth = L.fs * .012;
+    d.beginPath(); d.arc(fx, py, L.fs * .035, 0, 7); d.fill(); d.stroke();
+    if (k < 1) return requestAnimationFrame(frame);
+    setTimeout(()=>{
+      if (my !== WS.demo) return;
+      d.clearRect(0, 0, W, H); WS.demoOn = false;
+      // green start dot on the guide: here the pen goes down
+      const gc = g.getContext('2d'); gc.fillStyle = '#2fc77a'; gc.strokeStyle = '#fff'; gc.lineWidth = L.fs * .012;
+      gc.beginPath(); gc.arc(x0, startY, L.fs * .04, 0, 7); gc.fill(); gc.stroke();
+    }, 450);
+  };
+  requestAnimationFrame(frame);
+}
+$('#wShow').addEventListener('click', ()=>{ sfx.tap(); if (!WS.done) demo(); });
 window.addEventListener('resize', ()=>{ if (isOn('wtrace') && WS.items.length) draw(); });
 
 // ---------- finger ----------
@@ -179,7 +225,7 @@ function isPalm(e){
 }
 ink.addEventListener('pointerdown', e=>{
   e.preventDefault();
-  if (WS.done || activeId !== null || isPalm(e)) return;
+  if (WS.done || WS.demoOn || activeId !== null || isPalm(e)) return;
   activeId = e.pointerId; try{ ink.setPointerCapture(e.pointerId); }catch(err){}
   const c = ink.getContext('2d');
   undo.push(c.getImageData(0, 0, ink.width, ink.height)); if (undo.length > 15) undo.shift();
@@ -263,7 +309,7 @@ $('#wUndo').addEventListener('click', ()=>{               // takes back the last
 });
 $('#wSay').addEventListener('click', ()=>{ sfx.tap(); sayItem(WS.items[WS.idx]); });
 
-WS.demo = 0;
+WS.demo = 0; WS.demoOn = false;
 // the game Ze všeho borrows this screen for one item: done(firstTry), or done(null) when she goes back
 A.write = {
   traceOne(x, done, font){
@@ -279,7 +325,7 @@ document.querySelector('#wtrace [data-back]').addEventListener('click', e=>{
   if (!WS.ext) return;
   e.stopPropagation(); const cb = WS.ext; WS.ext = null; sfx.tap(); cb(null);
 });
-A.onLeave(()=>{ WS.run++; WS.demo++; });
+A.onLeave(()=>{ WS.run++; WS.demo++; WS.demoOn = false; });
 // for automated tests
 window.__writeTest = {WS, PEN};
 

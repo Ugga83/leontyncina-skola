@@ -576,9 +576,11 @@ async function answer(btn){
     const slot=$('#slot'); slot.textContent = v; slot.classList.add('filled');
     sfx.good(); confetti(S.wrong===0?40:18);
     if (App.progress) App.progress.track('math', t.type+'|'+t.a+'|'+t.b, S.wrong===0);
-    if (S.wrong===0){ S.stars++; S.results[S.idx]=1; const sc=$('#scount'); sc.textContent='✓ '+S.stars; sc.classList.remove('pop'); void sc.offsetWidth; sc.classList.add('pop'); }
-    else S.results[S.idx]=2;
-    const p = withName(pick(PRAISE), .08);
+    if (S.wrong===0 && !t.check){ S.stars++; S.results[S.idx]=1; const sc=$('#scount'); sc.textContent='✓ '+S.stars; sc.classList.remove('pop'); void sc.offsetWidth; sc.classList.add('pop'); }
+    else S.results[S.idx] = S.wrong===0 ? 1 : 2;
+    // solved only with help: a similar task comes back a little later, to see she can do it alone
+    if (S.wrong>=2 && !t.check && S.tasks.filter(x=>x.check).length < 2) addCheck(t);
+    const p = t.check && S.wrong===0 ? CHECK_OK : withName(pick(PRAISE), .08);
     $('#gameBubble').textContent = p+' '+solutionShort(t);
     if (Math.random() < .2){ speak(pick(BARKS)); speak(p, {queue:true}); } else speak(p);
     await speak(solution(t), {queue:true});
@@ -604,6 +606,18 @@ async function answer(btn){
       hint(t);
     }
   }
+}
+const CHECK_OK = 'Vidíš? Už to zvládneš sama!';
+// a task like t, with slightly different numbers (never zero), two places later
+function addCheck(t){
+  let n = null;
+  for (let g = 0; g < 40 && !n; g++){
+    const c = genTask(t.type, S.max);
+    if (Math.abs(c.a - t.a) <= 2 && Math.abs(c.b - t.b) <= 2 && !(c.a===t.a && c.b===t.b)) n = c;
+  }
+  if (!n) n = genTask(t.type, S.max);
+  n.check = true; n.emoji = pick(EMOJI); n.emoji2 = pick(EMOJI.filter(e=>e!==n.emoji));
+  S.tasks.splice(Math.min(S.idx + 3, S.tasks.length), 0, n);
 }
 function solutionShort(t){
   if (t.type==='add') return `${t.a} + ${t.b} = ${t.answer}`;
@@ -759,7 +773,7 @@ window.appBack = back;
 // shared API for the other modules (logo.js, later reading)
 const phraseSources = [()=>{
   const out = [GREETING, READ_SOON, STATION_SAY, ...BARKS, 'Jdeme počítat!', 'Zvuk zapnutý.', 'Počítáme do pět.', 'Počítáme do deset.',
-    'To není ono. Zkus to znovu!', HINT_HIDDEN, HINT_SHOWN, NEW_STICKER,
+    'To není ono. Zkus to znovu!', HINT_HIDDEN, HINT_SHOWN, NEW_STICKER, CHECK_OK,
     ...END_TITLES, ...HUB_OWL, ...HOME_OWL, ...PICS_SAY, ...Object.values(MODE_SAY)];
   PRAISE.forEach(p=>out.push(p, nameVariant(p)));
   for (let n=1;n<=10;n++) out.push(W(n));

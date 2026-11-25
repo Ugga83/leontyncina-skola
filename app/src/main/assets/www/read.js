@@ -58,6 +58,12 @@ const R_LESSONS = [
        ['Pu','Sá','Mé','Lo','Pa','Si','Pí','Mo','Pe','Lu']]},
    ]},
 ];
+// words that have a clear picture: used by the game "Přečti a ukaž obrázek" (only words of the lesson are asked)
+const WORD_PICS = {'máma':'👩','táta':'👨','maso':'🥩','pila':'🪚','pusa':'💋','lupa':'🔍','léto':'🏖️','mísa':'🥣',
+  'lípa':'🌳','mapa':'🗺️','tele':'🐄','pata':'🦶','pípá':'🐤','topí':'🔥','mete':'🧹','lama':'🦙','pes':'🐕','osel':'🫏',
+  'sele':'🐷','sova':'🦉','auto':'🚗','ucho':'👂','pomelo':'🍊','meloun':'🍉'};
+const picWords = l => [...new Set(l.days.flatMap(d=>d.cols.flat()).filter(w=>WORD_PICS[w.toLowerCase()]))]
+  .filter((w,i,a)=>a.findIndex(v=>v.toLowerCase()===w.toLowerCase())===i);
 // the voice always gets lower case (upper case could be read as letters)
 const say = syl => syl.toLowerCase();
 const picWord = p => `${p[3]}.`;
@@ -69,6 +75,7 @@ const R_MSG = {
   later:'Tuhle si přečteme později.', silent:'Neslyšela jsem tě. Řekni to nahlas.',
   allDone:'Všechny slabiky máš přečtené!', noMic:'Mikrofon nefunguje. Čti nahlas a potvrď tlačítkem.',
   findHelp:'Poslouchej a najdi slabiku.', findWord:'Poslouchej a najdi slovo.',
+  picHelp:'Přečti slovo a ukaž správný obrázek.',
   readStartW:'Čti slova nahlas. Já poslouchám.', readManualW:'Čti slova nahlas. Maminka nebo tatínek ti řeknou, jestli to bylo správně.', allDoneW:'Všechna slova máš přečtená!'
 };
 const todayISO = ()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
@@ -88,7 +95,20 @@ document.getElementById('end').insertAdjacentHTML('beforebegin', `
 <section id="rlesson" class="screen scroll">
   <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><h1 class="subh" id="rlTitle"></h1></div>
   <div class="lcard"><h4>Slabiky s obrázky</h4><div class="rpics" id="rlPics"></div></div>
+  <div class="lsec" id="rlPicSec"><h3>🖼️ Hra se slovy</h3><div class="lessons">
+    <button class="lesson" style="--c:var(--orange);--d:var(--orange-d)" id="rlPicGame">
+      <span class="le">🖼️</span><span class="lt"><b>Přečti a ukaž obrázek</b><small>přečti slovo potichu a ťukni na obrázek</small></span></button>
+  </div></div>
   <div class="lsec"><h3>📅 Dny</h3><div class="lessons" id="rlDays"></div></div>
+</section>
+
+<section id="rpic" class="screen">
+  <div class="top"><button class="round-btn" data-back aria-label="Zpět">⬅️</button><div style="flex:1"></div>
+    <div class="scount" id="rpStars">✓ 0</div></div>
+  <div class="dots" id="rpDots"></div>
+  <div class="gtalk"><div class="owl"></div><div class="bubble" id="rpBubble"></div></div>
+  <div class="card rpcard"><div class="rsyl rpword" id="rpWord"></div></div>
+  <div class="answers rpans" id="rpAns"></div>
 </section>
 
 
@@ -136,6 +156,7 @@ function openLesson(id){
   $('#rlTitle').textContent = curL.title;
   $('#rlPics').innerHTML = curL.pics.map((p,i)=>`<button class="rpic" data-i="${i}"><span class="e">${p[2]}</span><b>${p[0]}</b><span>${p[1]}</span></button>`).join('');
   renderDays();
+  $('#rlPicSec').style.display = picWords(curL).length >= 4 ? '' : 'none';
   speak(R_MSG.pickDay);
 }
 function renderDays(){
@@ -357,6 +378,54 @@ $('#rrOk').addEventListener('click', async ()=>{   // manual confirm (no microph
   if (RR.manual) showCur(); else loop();
 });
 
+// ---------- read a word and show its picture (she checks herself, no microphone needed) ----------
+const RP = {items:[], idx:0, stars:0, wrong:0, res:[], busy:false, run:0};
+$('#rlPicGame').addEventListener('click', ()=>{ sfx.tap(); startPic(); });
+function startPic(){
+  const pool = picWords(curL); RP.items = [];
+  const n = Math.min(8, Math.max(6, pool.length));
+  while (RP.items.length < n){
+    const w = pick(pool);
+    if (RP.items[RP.items.length-1] !== w && (RP.items.filter(x=>x===w).length < 1 || pool.length < n)) RP.items.push(w);
+  }
+  RP.idx = 0; RP.stars = 0; RP.res = []; A.go('rpic'); showPic(true);
+}
+function showPic(first){
+  const w = RP.items[RP.idx], my = ++RP.run; RP.wrong = 0; RP.busy = false;
+  const right = WORD_PICS[w.toLowerCase()];
+  const others = Object.values(WORD_PICS).filter(e=>e!==right).sort(()=>Math.random()-.5).slice(0, 2);
+  const opts = [right, ...others].sort(()=>Math.random()-.5);
+  $('#rpDots').innerHTML = RP.items.map((_,i)=>`<div class="dot ${i===RP.idx?'cur':''} ${RP.res[i]===1?'gold':RP.res[i]===2?'ok':''}"></div>`).join('');
+  $('#rpStars').textContent = '✓ ' + RP.stars;
+  $('#rpBubble').textContent = 'Přečti slovo a ukaž obrázek.';
+  $('#rpWord').textContent = w; $('#rpWord').classList.remove('good');
+  $('#rpAns').classList.remove('locked');
+  $('#rpAns').innerHTML = opts.map(e=>`<button class="ans rpimg" data-v="${e}">${e}</button>`).join('');
+  if (first) speak(R_MSG.picHelp);
+}
+$('#rpAns').addEventListener('click', async e=>{
+  const b = e.target.closest('.ans'); if (!b || RP.busy) return;
+  const w = RP.items[RP.idx], my = RP.run;
+  if (b.dataset.v === WORD_PICS[w.toLowerCase()]){
+    RP.busy = true; $('#rpAns').classList.add('locked'); b.classList.add('right'); $('#rpWord').classList.add('good');
+    sfx.good(); confetti(RP.wrong ? 12 : 30);
+    if (A.progress) A.progress.track('read', w, RP.wrong === 0);
+    if (!RP.wrong){ RP.stars++; RP.res[RP.idx] = 1; } else RP.res[RP.idx] = 2;
+    $('#rpStars').textContent = '✓ ' + RP.stars;
+    const p = pick(R_PRAISE); $('#rpBubble').textContent = p + ' ' + w;
+    speak(p); await speak(say(w), {queue:true});
+    await new Promise(r=>setTimeout(r, 600));
+    if (my !== RP.run || !isOn('rpic')) return;
+    RP.idx++;
+    if (RP.idx >= RP.items.length) return A.finishRound(RP.stars, startPic, 'rlesson', RP.items.length);
+    showPic();
+  } else {
+    RP.wrong++; sfx.bad(); b.classList.add('wrong');
+    if (RP.wrong === 1){ $('#rpBubble').textContent = 'Zkus to znovu!'; speak(R_MSG.again); }
+    else { $('#rpBubble').textContent = 'Poslouchej: ' + w; speak(R_MSG.listen); speak(say(w), {queue:true}); }
+  }
+});
+
 // ---------- find the syllable (listen & pick) ----------
 const RF = {items:[], idx:0, stars:0, wrong:0, res:[], busy:false};
 let rfRun = 0;
@@ -407,7 +476,7 @@ $('#rfAns').addEventListener('click', async e=>{
     speak(R_MSG.again); sayFind(s, true);
   }
 });
-A.onLeave(id=>{ rfRun++; RR.run++; stopListen();
+A.onLeave(id=>{ rfRun++; RP.run++; RR.run++; stopListen();
   if (id==='rlesson' && curL) setTimeout(renderDays, 0); });
 
 // for automated tests

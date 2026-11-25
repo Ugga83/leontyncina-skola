@@ -470,3 +470,10 @@
 .wprint{font-family:'Nunito',sans-serif;font-weight:700}
 .lesson .le.wprint{font-size:clamp(26px,7vw,38px);min-width:3.4em;text-align:center}
 #wBubble .wprint{font-size:1.5em;line-height:.8;margin-left:.15em}
+#wDemo{z-index:3;pointer-events:none}
+/* Čtení: read a word and show its picture */
+#rpic .rpcard{flex:0 0 auto;min-height:0;padding:22px 10px}
+#rpic .rpword{font-size:clamp(56px,17vw,110px)}
+#rpic .rpword.good{color:var(--good)}
+#rpic .rpans{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:720px;align-content:center;margin-bottom:10px}
+#rpic .rpans .rpimg{font-size:clamp(54px,17vw,110px);line-height:1;aspect-ratio:1;width:100%;height:auto;padding:0}
