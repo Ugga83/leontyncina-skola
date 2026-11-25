@@ -32,7 +32,9 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
     **Ozdoby** (`ayra_wear.js`): všech 29 nositelných věcí nakreslených v SVG ve stylu Ayry, vkreslují se PŘÍMO do textury
     (kotvy head/eyes/neck pro full/walk/sleep, `s` = velikost), takže se hýbou s hlavou; staré `.acc` překryvy se schovají (`.ayra-wear`).
     Rodič NECHCE kreslenou/jinou Ayru – vždy vycházet z původních obrázků (SVG verze i rozstříhané díly byly odmítnuty).
-  - `rewards.js` – Ayřina bouda (nábytek, předměty, den/noc, triky, návštěvy kamarádů), cesta, tlapky + kolo štěstí,
+  - `rewards.js` – Ayřina bouda (nábytek, předměty, den/noc, triky, návštěvy kamarádů; rozmístění po řadách: u stěny / uprostřed /
+    vepředu / na stěně, střed volný pro Ayru `HOME`; každý předmět má reakci v `REACT` – kam Ayra dojde, co udělá, co řekne, jak se věc hýbe;
+    nově kreslené `FURN`: piano, guitar, micstand, rocker, dogbowl, dogball; úroveň je pod boudou `#kLevel`), cesta, tlapky + kolo štěstí,
     album sbírek (12×10), odznaky (5 stupňů), adventní kalendář, ozdoby na Ayře (`NECK`/`HEAD` SVG).
   - `play.js` – **Herna** (Zahrádka, Nakrm kamarády, Ubraň kostičky; hra stojí 1 🐾 – tlapek je tolik, kolik dní procvičovala,
     minus `pawSpent`; rozehraná hra se ukládá do `hplay` a pokračuje se v ní zdarma; Zahrádka = SVG květináč `plantSVG`), **návštěvy na Ayřině cestě** (na každé nové zastávce kamarád se 3 úkoly, `jvisit` = počet pozdravených,
@@ -61,5 +63,5 @@ mapa cesty šedá před Ayrou.
 Rozcvička ruky, Skládám slova, probraná písmena a délka kola – také v1.0.60.
 Nápady na později: Kolik má slovo slabik (tleskání), Na co to začíná, krátká/dlouhá slabika, doplň číslo, slovní úlohy, krátké věty.
 v1.0.61: Herna pokračuje v rozehrané hře bez další tlapky, nová kreslená Zahrádka, „Do kolika počítáme“ jen v nastavení rodiče.
-v1.0.62: Ayra z rozstříhaných dílů (rodiči se nelíbila). Po v1.0.62 (nevydáno): plynulá animace ohýbáním obrázku (WebGL), nově nakreslené ozdoby vkreslené do Ayry.
+v1.0.62: Ayra z rozstříhaných dílů (rodiči se nelíbila). Po v1.0.62 (nevydáno): plynulá animace ohýbáním obrázku (WebGL), nově nakreslené ozdoby vkreslené do Ayry, přeuspořádaná bouda s reakcemi na všechny předměty.
 Otevřené / k ověření s rodičem: zda je obtahování teď přísné akorát, adventní kalendář od 1. 12.
