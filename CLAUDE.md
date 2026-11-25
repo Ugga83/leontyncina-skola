@@ -22,6 +22,9 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
   - `read.js` – Čtení (lekce/dny z úkolů ze školy `R_LESSONS`, čtení s rodičem – mikrofon vypnutý, rodič potvrzuje ✓ Správně / ✗ Ještě ne, hra Najdi slabiku, hra „Přečti a ukaž obrázek“ (slova lekce s obrázkem z `WORD_PICS`), Opakování chyb),
     `A.stt` (rozpoznání), `A.syllables()`.
   - `write.js` – Psaní (obtahování; tiskací písmo Nunito, psací Slabikář; psací tvar se nejdřív sám napíše + zelený bod startu, ✏️ = ukázat znovu;
+    **Číslice 0–9** = skutečné tahy `DIGIT` podle české školní normy (rodič dodal pravidla: pásmo Y1–Y3, start, CW/CCW, ZVEDNOUT,
+    sklon 75° v psacím, 90° v tiskacím); kreslí se linky Y3/Y2/Y1/Y0, animace jede po tazích, zelený start + šipka + číslo tahu.
+    **Písmena**: animace s posouvanou tečkou vypnutá (ukazovala špatný start) – čeká na pravidla tahů písmen od rodiče.
     **Rozcvička ruky** = tvary `PAT` (vlnky, déšť, pila, kolečka, houpačky, kličky, šnek) jako tahy, animace jede po skutečném tahu), potlačení dlaně, `A.write.traceOne` pro Ze všeho.
   - `endless.js` – hra **Ze všeho** (3 srdíčka, matematika jako v Matematice, najdi slabiku (Ayra říká, Leontýnka hádá), psaní – bez mikrofonu;
     odměny 10/20/30/40 pohár/50/60/75 medaile/100 koruna; ukládání rozehrané hry).
@@ -66,4 +69,5 @@ Nápady na později: Kolik má slovo slabik (tleskání), Na co to začíná, kr
 v1.0.61: Herna pokračuje v rozehrané hře bez další tlapky, nová kreslená Zahrádka, „Do kolika počítáme“ jen v nastavení rodiče.
 v1.0.62: Ayra z rozstříhaných dílů (rodiči se nelíbila). v1.0.63: plynulá animace ohýbáním obrázku (WebGL), nově nakreslené ozdoby vkreslené do Ayry, přeuspořádaná bouda s reakcemi na všechny předměty.
 v1.0.64: sjednocená menší tlačítka všude.
+Po v1.0.64 (nevydáno): číslice jako skutečné tahy podle normy; u písmen vypnutá chybná animace.
 Otevřené / k ověření s rodičem: zda je obtahování teď přísné akorát, adventní kalendář od 1. 12.

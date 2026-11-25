@@ -5,7 +5,7 @@ const $ = s => document.querySelector(s);
 // Slabikář: Czech school cursive (shapes by Petr Olšák); print letters: the app's rounded font
 const isPrint = () => !!(WS.lesson && WS.lesson.font === 'print');
 const FSPEC = size => isPrint() ? `400 ${size}px Nunito` : `${size}px Slabikar`;
-const PEN = () => WS.pat ? .16 : isPrint() ? .15 : .075;                    // print letters are thicker: a thicker pen
+const PEN = () => WS.pat ? (DIGIT[WS.items[WS.idx]] ? .15 : .16) : isPrint() ? .15 : .075;                    // print letters are thicker: a thicker pen
 const FCLASS = () => isPrint() ? 'wprint' : 'wcur';
 
 const W_LESSONS = [
@@ -36,6 +36,38 @@ const PAT = {
   '~snek':    {n:'šnečka', e:'🐌', s:(w,h)=>{ const R = Math.min(h*.46, w*.3); return [curve(200, t=>[w*.5 + R*t*Math.cos(TAU*2.6*t), h*.5 + R*t*Math.sin(TAU*2.6*t)])]; }},
 };
 const isPat = x => x.charAt(0) === '~';
+// ---------- digits 0–9 drawn as real strokes (Czech school norm): units u 0..1 across, v 0 = Y3 (top) .. 1 = Y1 (baseline) ----------
+// angles: -90 = 12 h (top), 0 = 3 h, 90 = 6 h, 180 = 9 h; CW = growing angle, CCW = falling angle
+const ARC = (cx, cy, rx, ry, a0, a1, n) => curve(n || 48, t=>{ const a = (a0 + (a1 - a0) * t) * Math.PI / 180; return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)]; });
+const LINE = (a, b, n) => curve(n || 16, t=>[a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+const CAT = (...parts) => parts.reduce((out, p)=>out.concat(out.length ? p.slice(1) : p), []);
+const at = (cx, cy, rx, ry, a) => [cx + rx * Math.cos(a * Math.PI / 180), cy + ry * Math.sin(a * Math.PI / 180)];
+const DIGIT = {
+  // 0: from 12 h, a narrow closed oval CCW down to Y1 and back
+  '0': [ARC(.5, .5, .4, .5, -90, -450, 64)],
+  // 1: from below Y3 on the left a short slant up to Y3 (the beak), sharp turn, long straight line down to Y1 (no foot)
+  '1': [CAT(LINE([.16, .2], [.62, 0], 10), LINE([.62, 0], [.62, 1], 24))],
+  // 2: from below Y3 on the left, the top arc CW over Y3, slant down-left to Y1, sharp turn, along Y1 to the right
+  '2': [CAT(ARC(.5, .28, .4, .28, 190, 380, 40), LINE(at(.5, .28, .4, .28, 380), [.06, 1], 22), LINE([.06, 1], [.95, 1], 14))],
+  // 3: from below Y3 on the left, top arc CW to the middle (Y2), sharp turn, bottom arc CW over Y1, ends left above Y1
+  '3': [CAT(ARC(.47, .25, .36, .25, 200, 450, 36), ARC(.47, .75, .4, .25, 270, 520, 44))],
+  // 4 (open): from Y3 a little left, slant down just below Y2, sharp turn, to the right; LIFT; from the right between Y2 and Y3 straight down to Y1
+  '4': [CAT(LINE([.34, 0], [.08, .62], 18), LINE([.08, .62], [.95, .62], 16)), LINE([.72, .26], [.72, 1], 20)],
+  // 5: from Y3 on the left down to Y2, without lifting the belly CW to Y1 and back up left; LIFT; along Y3 from left to right
+  '5': [CAT(LINE([.22, 0], [.17, .47], 12), LINE([.17, .47], at(.47, .72, .38, .28, 218), 3), ARC(.47, .72, .38, .28, 218, 510, 44)), LINE([.22, 0], [.9, 0], 14)],
+  // 6: from 2 h a long arc CCW over Y3 to the left and down to Y1, on CCW up to Y2 closing the belly
+  '6': [CAT(ARC(.52, .5, .4, .5, -35, -270, 44), ARC(.52, .75, .38, .25, 90, -170, 40))],
+  // 7: from the left on Y3 to the right, sharp turn, slant down-left to Y1; LIFT; a short bar on Y2 from left to right through the middle
+  '7': [CAT(LINE([.06, 0], [.94, 0], 14), LINE([.94, 0], [.36, 1], 22)), LINE([.4, .5], [.9, .5], 12)],
+  // 8: one stroke like a closed S: from 2 h the top arc CCW over Y3 to the left and down to Y2, across down-right,
+  //    bottom arc CW over Y1 to the left and up, across up-right through the middle back to the start
+  '8': [CAT(ARC(.5, .25, .3, .25, -30, -225, 32), LINE(at(.5, .25, .3, .25, -225), at(.5, .75, .36, .25, -60), 10),
+            ARC(.5, .75, .36, .25, -60, 215, 44), LINE(at(.5, .75, .36, .25, 215), at(.5, .25, .3, .25, -30), 18))],
+  // 9: from 2 h a closed oval CCW in Y2–Y3, from the start without lifting straight down to Y1
+  '9': [CAT(ARC(.5, .27, .33, .27, -30, -390, 52), LINE(at(.5, .27, .33, .27, -30), [.79, 1], 22))],
+};
+const hasStrokes = x => isPat(x) || DIGIT[x] !== undefined;
+
 // endless mode: everything mixed, it never ends – stars after every 10
 const ALL = {id:'all', c:'violet', t:'Ze všeho – bez konce', items:[], endless:true};
 const NUM = {'0':'nula','1':'jedna','2':'dva','3':'tři','4':'čtyři','5':'pět','6':'šest','7':'sedm','8':'osm','9':'devět'};
@@ -144,8 +176,8 @@ function setup(first){
   const x = WS.items[WS.idx]; WS.miss = 0; WS.done = false; WS.restSaid = false; WS.run++;
   $('#wDots').innerHTML = WS.items.map((_,i)=>`<div class="dot ${i===WS.idx?'cur':''} ${WS.res[i]===1?'gold':WS.res[i]===2?'ok':''}"></div>`).join('');
   $('#wStars').textContent = '✓ ' + WS.stars;
-  WS.pat = isPat(x);
-  if (WS.pat){ $('#wBubble').innerHTML = `Obtáhni ${PAT[x].n} ${PAT[x].e}`; draw();
+  WS.pat = hasStrokes(x);
+  if (isPat(x)){ $('#wBubble').innerHTML = `Obtáhni ${PAT[x].n} ${PAT[x].e}`; draw();
     if (first){ speak(W_SAY.warm); sayItem(x, true); } else sayItem(x); return; }
   const what = isNum(x) ? 'číslo' : x.length===1 ? (x===x.toUpperCase() ? 'velké písmeno' : 'písmenko') : isSyl(x) ? 'slabiku' : 'slovo';
   $('#wBubble').innerHTML = `Obtáhni ${what} <b class="${FCLASS()}">${x}</b>`;
@@ -173,7 +205,7 @@ function layout(ctx, x){
 function glyph(ctx, x, L){ ctx.font = FSPEC(L.fs); ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; }
 function draw(){
   const x = WS.items[WS.idx], g = sizeCanvas($('#wGuide')); sizeCanvas($('#wInk')); undo.length = 0; activeId = null; drawing = false;
-  if (isPat(x)) return drawPat(g, x);
+  if (hasStrokes(x)) return drawPat(g, x);
   const L = layout(g, x); WS.fs = L.fs; WS.L = L;
   const W = g.canvas.width, H = g.canvas.height;
   // school lines: baseline, x-height and a faint top line
@@ -198,20 +230,31 @@ function draw(){
   o.clearRect(0, 0, W, H); o.lineWidth = L.fs * .03; o.strokeText(x, L.cx, L.base); o.fillText(x, L.cx, L.base);
   WS.target = o.getImageData(0, 0, W, H).data;
   // the cursive letter writes itself first (left to right, like a pen), then a green dot shows where to start
-  const cur = !isPrint() && !isNum(x);
-  $('#wShow').style.display = cur ? '' : 'none';
-  if (cur) demo();
+  // letters: no moving pen until their strokes are written down by the school rules (the old left-to-right sweep showed a wrong start)
+  $('#wShow').style.display = 'none';
 }
 
 // ---------- shapes of the warm-up: the same checking, the real stroke direction is shown ----------
 function patStrokes(x, W, H){
+  if (DIGIT[x]){
+    const hd = Math.min(H * .56, W * .9 / .62), wd = hd * .62, y1 = H * .5 + hd * .5, y3 = y1 - hd;
+    const sl = isPrint() ? 0 : Math.tan(15 * Math.PI / 180) * hd, ox = (W - wd) / 2 - sl / 2;
+    return {bh: hd * .8, lines:{y3, y2: y3 + hd / 2, y1, y0: y1 + hd / 2},
+      strokes: DIGIT[x].map(st=>st.map(([u, v])=>[ox + u * wd + (1 - v) * sl, y3 + v * hd]))};
+  }
   const bw = W * .86, bh = Math.min(H * .6, bw * .6), ox = (W - bw) / 2, oy = (H - bh) / 2;
   return {bh, strokes: PAT[x].s(bw, bh).map(st=>st.map(([a, b])=>[ox + a, oy + b]))};
 }
 function pathOf(ctx, strokes){ ctx.beginPath(); strokes.forEach(st=>{ ctx.moveTo(st[0][0], st[0][1]); st.slice(1).forEach(p=>ctx.lineTo(p[0], p[1])); }); }
 function drawPat(g, x){
-  const W = g.canvas.width, H = g.canvas.height, {bh, strokes} = patStrokes(x, W, H);
+  const W = g.canvas.width, H = g.canvas.height, {bh, strokes, lines} = patStrokes(x, W, H);
   WS.fs = bh; WS.L = {fs:bh}; WS.strokes = strokes;
+  if (lines){                                   // the school lines Y3, Y2 (dashed), Y1 and a faint Y0
+    g.lineWidth = Math.max(1, bh * .012);
+    [[lines.y3, '#dfe5f6', []], [lines.y2, '#dfe5f6', [bh * .05, bh * .05]], [lines.y1, '#c9d2ee', []], [lines.y0, '#f0f2fa', []]].forEach(([y, c, dsh])=>{
+      g.strokeStyle = c; g.setLineDash(dsh); g.beginPath(); g.moveTo(W * .04, y); g.lineTo(W * .96, y); g.stroke(); });
+    g.setLineDash([]);
+  }
   g.lineJoin = g.lineCap = 'round';
   pathOf(g, strokes); g.strokeStyle = '#eef2fd'; g.lineWidth = bh * .24; g.stroke();
   pathOf(g, strokes); g.strokeStyle = '#b7c0e3'; g.lineWidth = bh * .05; g.stroke();
@@ -245,7 +288,21 @@ function demoPat(){
       if (my !== WS.demo) return;
       d.clearRect(0, 0, W, H); WS.demoOn = false;
       const gc = g.getContext('2d'); gc.fillStyle = '#2fc77a'; gc.strokeStyle = '#fff'; gc.lineWidth = bh * .02;
-      strokes.forEach(st=>{ gc.beginPath(); gc.arc(st[0][0], st[0][1], bh * .07, 0, 7); gc.fill(); gc.stroke(); });
+      strokes.forEach((st, i)=>{
+        // a little arrow a bit along the stroke, pointing the way
+        const k = Math.min(st.length - 1, Math.max(3, Math.round(st.length * .18))), a = st[k], b = st[Math.min(st.length - 1, k + 2)];
+        const ang = Math.atan2(b[1] - a[1], b[0] - a[0]), r = bh * .07;
+        gc.save(); gc.translate(a[0], a[1]); gc.rotate(ang); gc.fillStyle = '#2fc77a';
+        gc.beginPath(); gc.moveTo(r, 0); gc.lineTo(-r * .7, -r * .75); gc.lineTo(-r * .7, r * .75); gc.closePath(); gc.fill(); gc.restore();
+        gc.fillStyle = '#2fc77a'; gc.strokeStyle = '#fff'; gc.lineWidth = bh * .02;
+        gc.beginPath(); gc.arc(st[0][0], st[0][1], bh * .07, 0, 7); gc.fill(); gc.stroke();
+        if (strokes.length > 1){                  // the number of the stroke beside its start, on the left of the way it goes
+          const vert = Math.abs(Math.sin(ang)) > Math.abs(Math.cos(ang)), nx = st[0][0] - (vert ? bh * .17 : 0), ny = st[0][1] - (vert ? 0 : bh * .17);
+          gc.fillStyle = '#ff8a3d'; gc.strokeStyle = '#fff'; gc.lineWidth = bh * .02;
+          gc.beginPath(); gc.arc(nx, ny, bh * .065, 0, 7); gc.fill(); gc.stroke();
+          gc.fillStyle = '#fff'; gc.font = `900 ${bh * .09}px Nunito, sans-serif`; gc.textAlign = 'center'; gc.textBaseline = 'middle';
+          gc.fillText(String(i + 1), nx, ny + bh * .005); }
+      });
     }, 450);
   };
   requestAnimationFrame(frame);
