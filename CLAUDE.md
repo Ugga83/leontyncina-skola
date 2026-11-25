@@ -25,9 +25,11 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
     **Rozcvička ruky** = tvary `PAT` (vlnky, déšť, pila, kolečka, houpačky, kličky, šnek) jako tahy, animace jede po skutečném tahu), potlačení dlaně, `A.write.traceOne` pro Ze všeho.
   - `endless.js` – hra **Ze všeho** (3 srdíčka, matematika jako v Matematice, najdi slabiku (Ayra říká, Leontýnka hádá), psaní – bez mikrofonu;
     odměny 10/20/30/40 pohár/50/60/75 medaile/100 koruna; ukládání rozehrané hry).
-  - `ayra.js` – **živá Ayra z původního obrázku**: `ayra_full.png` rozstříhaný na `ayra_head.png`, `ayra_body.png`, `ayra_tail.png`
-    (vloženo do každého `.owl`); dýchá, mrká (bílá víčka `.a-lid` přes oči), kývá/naklání hlavou, vrtí ocáskem, ťuknutí = poskok.
-    Rodič NECHCE kreslenou/jinou Ayru – vždy vycházet z původních obrázků. V boudě chůze/spánek = původní `ayra_walk.png`/`ayra_sleep.png`.
+  - `ayra.js` – **živá Ayra z původních obrázků**: WebGL mesh warp (síť 56×56) – obrázek se plynule ohýbá: hlava se naklání kolem krku,
+    tělo dýchá, oči se při mrknutí smáčknou do čárky, uši stříhají, jazýček oddechuje, ocásek se vrtí; v boudě chůze (`ayra_walk.png`,
+    kráčející tlapky) a spánek (`ayra_sleep.png`, dýchání). Souřadnice částí v `KIND`. Obrázky jsou vložené jako data v `ayra_img.js`
+    (WebGL nesmí brát obrázky z file://) – po změně PNG spustit `python3 tools/ayra_img.py`. Bez WebGL zůstane statický obrázek.
+    Rodič NECHCE kreslenou/jinou Ayru – vždy vycházet z původních obrázků (SVG verze i rozstříhané díly byly odmítnuty).
   - `rewards.js` – Ayřina bouda (nábytek, předměty, den/noc, triky, návštěvy kamarádů), cesta, tlapky + kolo štěstí,
     album sbírek (12×10), odznaky (5 stupňů), adventní kalendář, ozdoby na Ayře (`NECK`/`HEAD` SVG).
   - `play.js` – **Herna** (Zahrádka, Nakrm kamarády, Ubraň kostičky; hra stojí 1 🐾 – tlapek je tolik, kolik dní procvičovala,
@@ -57,5 +59,5 @@ mapa cesty šedá před Ayrou.
 Rozcvička ruky, Skládám slova, probraná písmena a délka kola – také v1.0.60.
 Nápady na později: Kolik má slovo slabik (tleskání), Na co to začíná, krátká/dlouhá slabika, doplň číslo, slovní úlohy, krátké věty.
 v1.0.61: Herna pokračuje v rozehrané hře bez další tlapky, nová kreslená Zahrádka, „Do kolika počítáme“ jen v nastavení rodiče.
-v1.0.62: živá Ayra z původního obrázku (ayra.js). Kreslená SVG verze byla odmítnuta (vypadala jako kočka).
+v1.0.62: Ayra z rozstříhaných dílů (rodiči se nelíbila). Po v1.0.62 (nevydáno): plynulá animace ohýbáním obrázku (WebGL).
 Otevřené / k ověření s rodičem: zda je obtahování teď přísné akorát, adventní kalendář od 1. 12.
