@@ -8,6 +8,35 @@ const native = window.AndroidTTS || null;
 
 // ---------- data: one lesson = one school worksheet. Add new ones at the top. ----------
 const R_LESSONS = [
+  {id:'t1', title:'Slabiky s T', sub:'úkol 23.–25. 11.', emo:'🌷', c:'coral',
+   pics:[['TA','ta','🛍️','taška'],['TE','te','🌡️','teploměr'],['TO','to','🏭','továrna'],['TU','tu','🌷','tulipán']],
+   days:[
+     {title:'Pondělí – slabiky', date:'23. 11.', dates:['2026-11-23'], cols:[
+       ['ME','LO','SU','PA','MI','LU','SA','PO'],
+       ['MA','LI','SO','PU','MO','LA','SI','PE'],
+       ['mo','li','sa','pu','me','la','so','pi','ma','lu'],
+       ['se','po','mu','le','si','pa','mi','lo','su','pe']]},
+     {title:'Pondělí – slova', date:'23. 11.', dates:['2026-11-23'], pic:'📝', cols:[
+       ['MÁMA','MALÁ','MASO','MÍLA','MÁLO','PILA'],
+       ['PUSA','SAMA','PASE','SOLÍ','MUSÍ','LUPA']]},
+     {title:'Úterý', date:'24. 11.', dates:['2026-11-24'], pic:'🌡️', cols:[
+       ['TA','TE','TO','TU','Ta','Te','To','Tu'],
+       ['ta','te','to','tu','tá','té','tó','tů'],
+       ['TULÍ','TOPÍ','TETA','METE','PATA','LÉTO','LÉTÁ','TUPÁ']]},
+     {title:'Středa – slabiky', date:'25. 11.', dates:['2026-11-25'], pic:'🔤', cols:[
+       ['MA','LA','SA','PA','TA'],
+       ['me','le','se','pe','te'],
+       ['Mi','Li','Si','Pi'],
+       ['mo','lo','so','po','to'],
+       ['Mu','Lu','Su','Pu','Tu'],
+       ['má','lí','sé','pó','tů'],
+       ['mí','lů','só','pá','té'],
+       ['ma','le','si','pe','to']]},
+     {title:'Středa – slova', date:'25. 11.', dates:['2026-11-25'], pic:'📝', cols:[
+       ['TETA','TÁTA','TOPÍ','MOTÁ','LÉTO','TULÍ','TELE'],
+       ['PASE','SOLÍ','MELA','LÁME','MÍSA','MASO','TUPÁ'],
+       ['PÍPÁ','LUPA','LÍPA','LEPÍ','MAPA','PÁLÍ','PILA']]},
+   ]},
   {id:'p1', title:'Slabiky s P', sub:'úkol 18.–22. 11.', emo:'🦜', c:'violet',
    pics:[['PA','pa','🦜','papoušek'],['PE','pe','👛','peněženka'],['PI','pi','🪚','pila'],['PO','po','👮','policista'],['PU','pu','🧩','puzzle']],
    days:[
@@ -39,7 +68,8 @@ const R_MSG = {
   readStart:'Čti slabiky nahlas. Já poslouchám.', readManual:'Čti slabiky nahlas. Po každé klepni na fajfku.', again:'Zkus to znovu.', listen:'Poslouchej.',
   later:'Tuhle si přečteme později.', silent:'Neslyšela jsem tě. Řekni to nahlas.',
   allDone:'Všechny slabiky máš přečtené!', noMic:'Mikrofon nefunguje. Čti nahlas a potvrď tlačítkem.',
-  findHelp:'Poslouchej a najdi slabiku.'
+  findHelp:'Poslouchej a najdi slabiku.', findWord:'Poslouchej a najdi slovo.',
+  readStartW:'Čti slova nahlas. Já poslouchám.', readManualW:'Čti slova nahlas. Po každém klepni na fajfku.', allDoneW:'Všechna slova máš přečtená!'
 };
 const todayISO = ()=>{ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 
@@ -93,6 +123,7 @@ const isOn = id => document.getElementById(id).classList.contains('active');
 // curDay -1 = repeating the syllables that went wrong lately (any lesson)
 const REP_DAY = () => { const w = A.progress ? A.progress.weak('read', 20) : []; return {title:'Opakování', date:'', dates:[], cols:[w]}; };
 const day = () => curDay < 0 ? (curL._rep || (curL._rep = REP_DAY())) : curL.days[curDay];
+const wordDay = () => day().cols.flat().every(s=>s.length > 2);   // a day of whole words only
 const dayCells = d => d.cols.flatMap((c,ci)=>c.map((s,ri)=>({s, ci, ri})));
 
 document.querySelectorAll('[data-rl]').forEach(b=>b.addEventListener('click',()=>{ sfx.tap(); openLesson(b.dataset.rl); }));
@@ -174,10 +205,11 @@ function stopListen(){
 const norm = s => s.toLowerCase().replace(/π/g,'pi').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/y/g,'i').replace(/[^a-z ]/g,' ');
 const CGROUP = {s:'szc', z:'szc', c:'szc', p:'pb', b:'pb', m:'mnb', n:'mn', l:'lr', r:'lr', t:'td', d:'td'};
 // how the recogniser writes a lone syllable or letter: "mo" -> "mol", "se" -> "C", "si" -> "sí"
-const LETTER = {c:'ce', s:'es', z:'zet', m:'em', l:'el', p:'pe'};
+const LETTER = {c:'ce', s:'es', z:'zet', m:'em', l:'el', p:'pe', t:'te'};
 function syllableOk(t, w){
   if (!w) return false;
   if (w.startsWith(t)) return true;
+  if (t.length > 2) return w.length >= t.length - 1 && t.startsWith(w);   // a whole word: (almost) all of it
   const c = t[0], v = t[1], g = CGROUP[c] || c;
   if (!v) return w[0]===c;
   if (g.includes(w[0]) && w[1]===v) return true;
@@ -218,8 +250,9 @@ function saveProgress(){
 function fitGrid(){
   const g = $('#rrGrid'), n = g.children.length; if (!n || !g.clientHeight) return;
   const W = g.clientWidth, H = g.clientHeight; let best = [0, 1];
+  const len = Math.max(2, ...[...g.children].map(x=>x.textContent.length));   // whole words need wider cells
   for (let c=2; c<=8; c++){
-    const r = Math.ceil(n/c), f = Math.min(H/r*.62, W/c*.36);
+    const r = Math.ceil(n/c), f = Math.min(H/r*.62, W/c*.72/len);
     if (f > best[0]) best = [f, c];
   }
   const c = best[1], r = Math.ceil(n/c);
@@ -242,7 +275,7 @@ function startRead(fresh){
   doneSet.forEach(k=>{ const [ci,ri]=k.split('-'); const el=document.querySelector(`#rrGrid .rs[data-c="${ci}"][data-r="${ri}"]`); if (el) el.classList.add('done'); });
   applyMode(); requestAnimationFrame(fitGrid);
   showCur(); setMic('off');
-  speak(RR.manual ? R_MSG.readManual : R_MSG.readStart).then(()=>{ if (isOn('rread')) loop(); });
+  speak(RR.manual ? (wordDay() ? R_MSG.readManualW : R_MSG.readManual) : (wordDay() ? R_MSG.readStartW : R_MSG.readStart)).then(()=>{ if (isOn('rread')) loop(); });
 }
 function cellEl(c){ return document.querySelector(`#rrGrid .rs[data-c="${c.ci}"][data-r="${c.ri}"]`); }
 function showCur(){
@@ -253,7 +286,8 @@ function showCur(){
   $('#rrCount').textContent = `✅ ${RR.total-RR.queue.length} / ${RR.total}`;
   if (RR.lastShown !== c){ $('#rrHeard').textContent = ''; RR.lastShown = c; }
   $('#rrOk').classList.remove('hint');
-  $('#rrBubble').textContent = RR.manual ? 'Přečti slabiku nahlas.' : 'Přečti slabiku nahlas (klidně 2×).';
+  const what = c.s.length > 2 ? 'slovo' : 'slabiku';
+  $('#rrBubble').textContent = RR.manual ? `Přečti ${what} nahlas.` : `Přečti ${what} nahlas (klidně 2×).`;
 }
 function setMic(state){ const m=$('#rrMic'); m.className='mic '+(state||''); m.textContent = state==='busy'?'⏳':'🎤'; }
 async function loop(){
@@ -306,7 +340,7 @@ function finishRead(){
   if (curDay >= 0){ const done = A.store.get('rdone', {}); done[curL.id+'_'+curDay] = true; A.store.set('rdone', done); }
   try{ localStorage.removeItem('mat_'+progKey()); }catch(e){}
   setMic('off');
-  speak(R_MSG.allDone).then(()=>{
+  speak(wordDay() ? R_MSG.allDoneW : R_MSG.allDone).then(()=>{
     if (!isOn('rread')) return;
     A.finishRound(RR.firstTry, ()=>startRead(true), 'rlesson', RR.total);
   });
@@ -348,10 +382,10 @@ function showFind(first){
   opts.sort(()=>Math.random()-.5);
   $('#rfDots').innerHTML = RF.items.map((_,i)=>`<div class="dot ${i===RF.idx?'cur':''} ${RF.res[i]===1?'gold':RF.res[i]===2?'ok':''}"></div>`).join('');
   $('#rfStars').textContent = '✓ ' + RF.stars;
-  $('#rfBubble').textContent = 'Kterou slabiku slyšíš?';
+  $('#rfBubble').textContent = s.length > 2 ? 'Které slovo slyšíš?' : 'Kterou slabiku slyšíš?';
   $('#rfAns').classList.remove('locked');
   $('#rfAns').innerHTML = opts.map(o=>`<button class="ans rsylb" data-v="${o}">${o}</button>`).join('');
-  if (first) speak(R_MSG.findHelp).then(()=>{ if (isOn('rfind')) sayFind(s, true); });
+  if (first) speak(s.length > 2 ? R_MSG.findWord : R_MSG.findHelp).then(()=>{ if (isOn('rfind')) sayFind(s, true); });
   else sayFind(s);
 }
 $('#rfSay').addEventListener('click',()=>{ const s=RF.items[RF.idx]; if (s) sayFind(s); });
@@ -394,6 +428,6 @@ A.phraseSources.push(()=>{
 });
 // for the endless game: speech recognition of one syllable
 A.stt = {available: ()=>sttAvailable() && !!micWanted, listenOnce, matches, stop: ()=>stopListen(), error: sttError};
-// all syllables of the school tasks (used by the endless game)
-A.syllables = () => [...new Set(R_LESSONS.flatMap(l=>l.days.flatMap(d=>d.cols.flat())))];
+// all syllables of the school tasks, without whole words (used by the endless game)
+A.syllables = () => [...new Set(R_LESSONS.flatMap(l=>l.days.flatMap(d=>d.cols.flat())).filter(s=>s.length<=2))];
 })();
