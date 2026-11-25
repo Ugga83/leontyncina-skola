@@ -43,7 +43,8 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
   - Nastavení rodiče (Pro rodiče): **probraná písmena** (`letters`, `App.allowed()` – filtruje Psaní, Skládání, Hernu, cestu, Ze všeho;
     úkoly ze školy ve Čtení zůstávají celé) a **do kolika počítáme** (5/10, `max` – dětský přepínač v Matematice je schovaný) a **délka kola** (`rlen` short/normal/long → `App.roundLen()`).
   - `progress.js` – sledování chyb/opakování, výzva dne, Přehled pro rodiče (podržet nadpis 2 s), logopedie tam.
-  - `logo.js` – logopedie. `logo.css` – styly.
+  - `logo.js` – logopedie. `logo.css` – styly; na konci „jednotný vzhled tlačítek“ = všechna velká tlačítka (`.tile`, `.lesson`, `.challenge`,
+    `.advcard`, `.rewbtn`) jako kompaktní pruh (ikona – tučný název – malý popisek), podle Herny/Adventního kalendáře (rodič to tak chce).
   - `voice/` – nahrávky: `phrases.json` (generuje `node tools/collect_phrases.js`), mp3 podle FNV-1a klíče,
     `voice/fixed/` slabiky a krátké samohlásky (hlas cs-CZ-Wavenet-A s IPA, dlouhé natažené atempo 0.7).
 - `app/src/main/java/cz/matematika/sovicka/` – MainActivity (WebView, TTS most), CloudSpeech (Google STT), Updater.
@@ -64,4 +65,5 @@ Rozcvička ruky, Skládám slova, probraná písmena a délka kola – také v1.
 Nápady na později: Kolik má slovo slabik (tleskání), Na co to začíná, krátká/dlouhá slabika, doplň číslo, slovní úlohy, krátké věty.
 v1.0.61: Herna pokračuje v rozehrané hře bez další tlapky, nová kreslená Zahrádka, „Do kolika počítáme“ jen v nastavení rodiče.
 v1.0.62: Ayra z rozstříhaných dílů (rodiči se nelíbila). v1.0.63: plynulá animace ohýbáním obrázku (WebGL), nově nakreslené ozdoby vkreslené do Ayry, přeuspořádaná bouda s reakcemi na všechny předměty.
+Po v1.0.63 (nevydáno): sjednocená menší tlačítka všude.
 Otevřené / k ověření s rodičem: zda je obtahování teď přísné akorát, adventní kalendář od 1. 12.

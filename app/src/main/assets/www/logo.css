@@ -578,3 +578,35 @@
 .klevelbar .klevel{display:inline-flex;flex-direction:column;gap:4px;min-width:62%;background:#ffffffd9;border-radius:12px;padding:5px 12px;
   font:800 14px 'Nunito',sans-serif;color:var(--ink);box-shadow:0 3px 0 #00000012}
 .klevelbar .klevel i{display:block;height:6px;background:#e3e7f5;border-radius:6px;overflow:hidden}.klevelbar .klevel b{display:block;height:100%;background:#ffb02e}
+/* ---------- jednotný vzhled tlačítek: kompaktní pruh jako Herna a Adventní kalendář ---------- */
+body .tiles,body .hubtiles{grid-template-columns:1fr;gap:10px}
+body .tile,body .lesson,body .challenge,body .advcard{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;
+  min-height:56px;padding:8px 14px;border-radius:16px;text-align:left;font-size:16px;width:100%;margin:0}
+body .tile,body .lesson{box-shadow:0 4px 0 var(--d),0 6px 10px #0000001a}
+body .tile:active,body .lesson:active{transform:translateY(3px);box-shadow:0 1px 0 var(--d)}
+body .tile .ic,body .lesson .le,body .challenge .ci{font-size:30px;line-height:1;flex:0 0 auto;min-width:1.15em;text-align:center}
+body .tile .t,body .lesson .lt b,body .challenge .ct b,body .advcard b{font-size:19px;font-weight:900;line-height:1.15;flex:0 1 auto}
+body .tile .t{flex:1}
+body .tile .t br{display:none}
+body .tile .s{font-size:13px;font-weight:800;background:#ffffff33;border-radius:10px;padding:2px 8px;margin:0 0 0 auto;white-space:nowrap}
+body .lesson .lt{flex:1;gap:1px}
+body .lesson .lt small{font-size:13px;font-weight:700;opacity:.92;line-height:1.2}
+body .lesson .le.wcur{font-size:26px;min-width:3.2em}
+body .lesson .le.wprint{font-size:22px;min-width:3.2em}
+body .lesson.game{flex:0 0 56px;width:56px;min-height:56px;padding:0;justify-content:center}
+body .lesson.game .le{min-width:0}
+body .lessons{gap:10px}
+body .challenge{box-shadow:0 4px 0 #f0b44a,0 0 0 3px #ffd36b inset}
+body .challenge .ct small{font-size:11px}
+body .challenge .cb{font-size:15px}
+body .advcard{margin-top:8px;box-shadow:0 4px 0 #1f7a43}
+body .advcard.hernacard{box-shadow:0 4px 0 #1f9f7e}
+body .advcard span{font-size:13px}
+body .rewbtns{grid-template-columns:1fr 1fr;gap:8px}
+body .rewbtn{flex-direction:row;justify-content:flex-start;gap:10px;min-height:50px;padding:6px 12px;border-radius:16px;font-size:16px;box-shadow:0 4px 0 #efd08a}
+body .rewbtn span{font-size:26px}
+body .dayrow{gap:8px}
+body .hubtiles .tile{flex-direction:row;gap:12px;padding:8px 14px;text-align:left}
+body .hubtiles .tile .ic{font-size:30px}
+body .hubtiles .tile .t,body .tile .t{font-size:19px;text-align:left}
+body .hgarden small{font-size:14px}
