@@ -8,7 +8,7 @@ const native = window.AndroidTTS || null;
 
 // ---------- data: one lesson = one school worksheet. Add new ones at the top. ----------
 const R_LESSONS = [
-  {id:'t1', title:'Slabiky s T', sub:'úkol 23.–25. 11.', emo:'🌷', c:'coral',
+  {id:'t1', title:'Slabiky s T', sub:'úkol 23.–26. 11.', emo:'🌷', c:'coral',
    pics:[['TA','ta','🛍️','taška'],['TE','te','🌡️','teploměr'],['TO','to','🏭','továrna'],['TU','tu','🌷','tulipán']],
    days:[
      {title:'Pondělí – slabiky', date:'23. 11.', dates:['2026-11-23'], cols:[
@@ -36,6 +36,13 @@ const R_LESSONS = [
        ['TETA','TÁTA','TOPÍ','MOTÁ','LÉTO','TULÍ','TELE'],
        ['PASE','SOLÍ','MELA','LÁME','MÍSA','MASO','TUPÁ'],
        ['PÍPÁ','LUPA','LÍPA','LEPÍ','MAPA','PÁLÍ','PILA']]},
+     {title:'Čtvrtek – dvojice slabik', date:'26. 11.', dates:['2026-11-26'], pic:'🪜', cols:[
+       ['ma so','ma lá','ma pa','ma lé','má lo','má ma'],
+       ['me le','Mí la','mí sa','mi lé','mi lá','mu sí'],
+       ['lá me','la so','lá mu','le pí','lí pa','lí sá'],
+       ['pa se','pá lí','Pe pa','Pe pu','Pe po','pi la'],
+       ['lo mí','pi la','lu pe','po le','pu sa','sa mo'],
+       ['sa ma','se le','so lí','sí la','sí lí']]},
    ]},
   {id:'p1', title:'Slabiky s P', sub:'úkol 18.–22. 11.', emo:'🦜', c:'violet',
    pics:[['PA','pa','🦜','papoušek'],['PE','pe','👛','peněženka'],['PI','pi','🪚','pila'],['PO','po','👮','policista'],['PU','pu','🧩','puzzle']],
@@ -497,7 +504,7 @@ A.stt = {available: ()=>sttAvailable() && !!micWanted, listenOnce, matches, stop
 // words of the school tasks that have a picture: [[word, emoji], …] (Herna, Ayřina cesta)
 A.wordPics = () => R_LESSONS.flatMap(picWords).filter(w=>A.allowed(w)).map(w=>[w, WORD_PICS[w.toLowerCase()]]);
 // all words of the school tasks that use only taught letters (Skládám slova)
-A.words = () => [...new Set(R_LESSONS.flatMap(l=>l.days.flatMap(d=>d.cols.flat())).filter(w=>w.length>2 && A.allowed(w)).map(w=>w.toUpperCase()))];
+A.words = () => [...new Set(R_LESSONS.flatMap(l=>l.days.flatMap(d=>d.cols.flat())).filter(w=>w.length>2 && !w.includes(' ') && A.allowed(w)).map(w=>w.toUpperCase()))];
 A.allPics = () => Object.values(WORD_PICS);
 A.syllables = () => [...new Set(R_LESSONS.flatMap(l=>l.days.flatMap(d=>d.cols.flat())).filter(s=>s.length<=2 && A.allowed(s)))];
 })();

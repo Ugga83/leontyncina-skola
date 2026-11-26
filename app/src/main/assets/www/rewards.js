@@ -619,6 +619,28 @@ function spot(it, own){
   const [x, d, m] = it.pos, k = kOf(d);
   return {x, bottom: 100 - (FLOOR + d*(97-FLOOR)), size: m*M*k, z: 10+Math.round(d*100)};
 }
+// floor things must not stand on each other: move a thing sideways to the nearest free place in its row
+let PLACED = {};
+function layoutFloor(items, own){
+  PLACED = {};
+  const box = it=>{ const onSomething = it.on && own.includes(it.on);
+    if (onSomething || it.wall || !it.pos) return null;
+    const p = spot(it, own);
+    const w = it.svg ? it.pos[2]*M*kOf(it.pos[1]) : p.size * .9;
+    return {p, w, d: it.pos[1], fallback: !!it.on}; };
+  const list = items.map(it=>({it, b: box(it)})).filter(o=>o.b)
+    .sort((a, b)=>(a.b.fallback - b.b.fallback) || (b.b.w - a.b.w));
+  const done = [];
+  list.forEach(({it, b})=>{
+    const clash = x => done.some(o=>Math.abs(o.d - b.d) < .16 && Math.abs(o.x - x) < (o.w + b.w) / 2 * .8);
+    let x = b.p.x;
+    for (const k of [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8]){
+      const nx = b.p.x + k * 4; if (nx < 3 || nx > 97) continue;
+      if (!clash(nx)){ x = nx; break; }
+    }
+    done.push({x, w: b.w, d: b.d}); PLACED[it.id] = x;
+  });
+}
 function kitHTML(it, own){
   if (it.id==='books' && own.includes('bookcase')) return '';          // drawn inside the bookcase
   if (it.wall && it.slot!=='furn')
@@ -628,6 +650,7 @@ function kitHTML(it, own){
     return `<svg class="kit furn" data-id="${it.id}" viewBox="0 0 ${f.w} ${f.h}" style="left:${it.wall[0]}%;top:${it.wall[1]}%;width:${w}cqw;margin-left:${-w/2}cqw;z-index:5">${f.draw()}</svg>`;
   }
   const p = spot(it, own);
+  if (PLACED[it.id] !== undefined) p.x = PLACED[it.id];
   if (it.svg){
     const f = FURN[it.svg], w = it.pos[2]*M*kOf(it.pos[1]);
     const full = it.id==='bookcase' && own.includes('books');
@@ -673,7 +696,7 @@ function hearts(n, emo){
     k.appendChild(h); setTimeout(()=>h.remove(), 2000);
   }
 }
-const near = (id, dx) => { const it = SHOP.find(i=>i.id===id); return [it.pos[0] + (dx||0), Math.max(.2, it.pos[1] - .04)]; };
+const near = (id, dx) => { const it = SHOP.find(i=>i.id===id); return [(PLACED[id] ?? it.pos[0]) + (dx||0), Math.max(.2, it.pos[1] - .04)]; };
 const isShop = () => document.getElementById('shop').classList.contains('active');
 async function act(fn){
   if (DOG.busy) return; DOG.busy = true; const my = ++DOG.run;
@@ -735,7 +758,7 @@ function targetOf(it, dx){
   if (it.wall) return [it.wall[0] + (dx || 0), .42];
   if (base && base.wall) return [base.wall[0] + (dx || 0), .42];
   if (base) return [base.pos[0] + (dx || 0), Math.min(.75, base.pos[1] + .3)];
-  return [it.pos[0] + (dx || 0), Math.max(.25, Math.min(.8, it.pos[1] - .06))];
+  return [(PLACED[it.id] ?? it.pos[0]) + (dx || 0), Math.max(.25, Math.min(.8, it.pos[1] - .06))];
 }
 // what Ayra does with each thing: dx = where she stands, pose = her move, kit = how the thing moves
 const REACT = {
@@ -806,14 +829,14 @@ function renderKennel(){
   $('#kennel').className = 'kennel floor-'+floor + (w.light ? ' lit' : '') + ' ' + ph + (own.includes('w_snow') && isWinter() && win ? ' snowy' : '');
   $('#kennel').innerHTML = `
     <div class="roof"></div><div class="wallz"></div><div class="floorz"></div>
-    ${win ? `<div class="win"><span>${ph==='night' ? '🌙' : win}</span></div>` : ''}
+    <div class="win"><span>${ph==='night' ? '🌙' : (win || '')}</span></div>
     ${ph==='night' && own.includes('sofa') ? `<div class="lampglow" style="left:${sofa.pos[0]+8}%"></div>` : ''}
     ${trophyShelf()}
     ${(()=>{ const v = visitor(); if (!v || ph==='night') return '';
       const onSofa = own.includes('sofa'), p = spot({pos: onSofa ? [sofa.pos[0] - 4, sofa.pos[1] + .02, .42] : [38,.86,.42]}, []);
       return `<span class="kit floor visitor" data-id="visitor" style="left:${p.x}%;bottom:${p.bottom + (onSofa ? 7 : 0)}%;font-size:${p.size}cqw;z-index:${p.z + 5}">${v}</span>`; })()}
     ${w.light ? '<div class="garland">✨ ✨ ✨ ✨ ✨ ✨ ✨</div>' : ''}
-    ${items.map(i=>kitHTML(i, own)).join('')}
+    ${(layoutFloor(items, own), items.map(i=>kitHTML(i, own)).join(''))}
     <div class="kdog" id="kdog"><div class="kshadow"></div><div class="owl kayra full"></div></div>
     ${!items.length && !win && !w.wall ? '<div class="kempty">Ayřina bouda je zatím prázdná. Kup jí něco hezkého! 🛍️</div>' : ''}`;
   const kl = $('#kLevel'); if (kl) kl.innerHTML = levelTag();

@@ -198,7 +198,7 @@
 .kennel.floor-carpet .floorz{background:repeating-linear-gradient(45deg,#f28b9a 0 12px,#ef7c8d 12px 24px)}
 .kennel.floor-wood .floorz{background:repeating-linear-gradient(90deg,#c48a52 0 14%,#b57b45 14% 14.5%)}
 .kennel .roof{position:absolute;left:-2%;right:-2%;top:-1%;height:8%;background:#b5651d;border-bottom:4px solid #7a3e0e;z-index:2}
-.kennel .win{position:absolute;left:40%;top:15%;width:20%;height:24%;background:#bfe6ff;border:5px solid #fff;border-radius:10px;box-shadow:0 0 0 3px #c9a86a;display:grid;place-items:center;font-size:7cqw}
+.kennel .win{position:absolute;left:43%;top:14%;width:19%;height:24%;background:#bfe6ff;border:5px solid #fff;border-radius:10px;box-shadow:0 0 0 3px #c9a86a;display:grid;place-items:center;font-size:7cqw}
 .kennel .win::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 48%,#fff 48% 52%,transparent 52%),linear-gradient(transparent 48%,#fff 48% 52%,transparent 52%)}
 .kennel .garland{position:absolute;top:8%;left:0;right:0;text-align:center;font-size:4.5cqw;letter-spacing:2cqw;z-index:3}
 .kennel.lit{box-shadow:0 8px 0 #00000018,inset 0 0 60px #ffe9a8}
@@ -396,7 +396,7 @@
 .kennel .klevel{position:absolute;left:2%;bottom:2%;z-index:190;background:#ffffffd9;border-radius:10px;padding:.4cqw 1.4cqw;
   font:800 2.6cqw 'Nunito',sans-serif;color:var(--ink);display:flex;flex-direction:column;gap:.4cqw}
 .kennel .klevel i{display:block;height:.9cqw;background:#e3e7f5;border-radius:1cqw;overflow:hidden}.kennel .klevel b{display:block;height:100%;background:#ffb02e}
-.kennel .trophies{position:absolute;left:8%;top:9%;z-index:4;display:flex;gap:.6cqw;padding:0 1cqw .4cqw;font-size:3.4cqw;
+.kennel .trophies{position:absolute;left:3%;top:9%;max-width:34%;z-index:4;display:flex;flex-wrap:wrap;gap:.3cqw .5cqw;padding:0 1cqw .4cqw;font-size:3cqw;
   border-bottom:1.2cqw solid #b8763d;border-radius:0 0 .6cqw .6cqw}
 .kennel .ktrick{position:absolute;transform:translateX(-50%);z-index:210;background:#fff;border-radius:2cqw;padding:.6cqw 1.8cqw;
   font:900 3.4cqw 'Nunito',sans-serif;color:var(--ink);box-shadow:0 .6cqw 0 #0002;white-space:nowrap;animation:pop .4s}
