@@ -144,6 +144,22 @@ CAP_START = {'A': (0, 1, U), 'B': (.45, 0, D), 'C': (1, .15, Lf), 'Č': (1, .15,
     'X': (0, .1, R), 'Y': (0, .15, R), 'Z': (0, .1, R), 'Ž': (0, .1, R)}
 for k, v in list(CAP_START.items()): CAP_START[{'A': 'Á', 'E': 'É', 'U': 'Ú', 'I': 'Í', 'O': 'Ó', 'Y': 'Ý'}.get(k, k)] = v
 
+# capitals whose pen way needs the school order spelled out (from the parent's norm): the pen passes these points in order
+# (x, y in the letter box 0..1, the first one is the start); '|' = lift the pen; bridge = the line ends close to another one and goes on there
+WAY = {
+    'A': [(.62, 0), (.05, .8), (.45, .97), (.62, .05), (1, .5)],                    # big a: oval CCW from the top, back up, stem down
+    'B': [(.45, 0), (.02, .85), (.35, .55), (.98, .2), (.56, .46), (.98, .75), (.5, .97)],                 # stem down, loop, up, upper bowl, lower bowl
+    'D': [(.72, 0), (0, .97), (.98, .45), (.3, .2)],                                # stem down, loop, big arc up, curl in
+    'F': [(0, .12), (1, .02), (.4, .6), (0, .95), '|', (.2, .55), (.95, .5)],        # wave, stem, lift, crossbar
+    'K': [(0, .15), (.35, 0), (0, .92), '|', (1, .12), (.45, .45), (1, .5)],
+    'L': [(.1, .05), (.4, .25), (.95, .05), (.4, .3), (0, .97), (1, .5)],
+    'S': [(.15, .05), (.95, .1), (.4, .5), (0, .8)],
+    'T': [(0, .12), (1, .02), (.4, .6), (0, .9)],
+    'X': [(0, .15), (.45, .48), (1, .5), '|', (1, .12), (.45, .48), (0, .85)],
+}
+for k, v in [('Á', 'A'), ('Ď', 'D'), ('Š', 'S'), ('Ť', 'T')]: WAY[k] = WAY[v]
+BRIDGE = set('AÁ')
+
 def solve(item):
     t = item['t']
     img = np.array(Image.open(os.path.join(OUT_DIR, item['file'])).convert('L')) < 235
@@ -192,7 +208,7 @@ def solve(item):
         if e['b'] != e['a']: deg.setdefault(e['b'], []).append(i)
     deferred = set()
     for n, ids in deg.items():
-        if len(ids) != 4: continue
+        if len(ids) != 4 or first in WAY: continue
         outs = []
         for i in ids:
             e = edges[i]; pts = e['pts'] if e['a'] == n else e['pts'][::-1]
@@ -265,6 +281,11 @@ def solve(item):
             else:
                 start = ('node', e['a'] if k == 0 else e['b'])
         exit_n = max(ends, key=lambda n: node_pos[n][1]) if ends else None
+        if letter and letter in WAY:
+            top = base - xh * 2.05
+            wps = [w if w == '|' else (top + w[1] * (base - top), x0 + w[0] * w1) for w in WAY[letter]]
+            strokes.extend(way_walk(edges, ids, wps, xh, letter in BRIDGE))
+            continue
         strokes.extend(walk(edges, ids, start[1], ccw, exit_n=exit_n, init=init))
     # dots that thinned down to (almost) a single point
     inline = set(q for e in edges for q in e['pts'])
@@ -293,6 +314,94 @@ def solve(item):
         s = walk(edges, ids, None, False, mark=True)
         later.extend(s)
     return [[(round((q[1] - item['x0']) / xh, 3), round((q[0] - base) / xh, 3)) for q in simplify(st, xh)] for st in strokes + later]
+
+def split_at(edges, ids, q, name):
+    """Cut the line nearest to point q there; returns the node at q."""
+    best = None
+    for i in ids:
+        for k, p in enumerate(edges[i]['pts']):
+            d = math.dist(p, q)
+            if best is None or d < best[0]: best = (d, i, k)
+    _, i, k = best; e = edges[i]; pts = e['pts']
+    if k == 0: return e['a'], ids
+    if k == len(pts) - 1: return e['b'], ids
+    edges.append({'a': e['a'], 'b': name, 'pts': pts[:k + 1]}); edges.append({'a': name, 'b': e['b'], 'pts': pts[k:]})
+    return name, [x for x in ids if x != i] + [len(edges) - 2, len(edges) - 1]
+
+def way_walk(edges, ids, wps, xh, bridge):
+    """Try every way the pen can go through the drawing (retracing or lifting at dead ends) and keep the one that
+    passes the school points in order with the fewest lifts and the least going back."""
+    ids = list(ids)
+    pos = {}
+    for i in ids:
+        e = edges[i]; pos[e['a']] = e['pts'][0]; pos[e['b']] = e['pts'][-1]
+    if bridge:                                       # a free end close to another line (A: the oval closes at the stem)
+        deg = {}
+        for i in ids: deg[edges[i]['a']] = deg.get(edges[i]['a'], 0) + 1; deg[edges[i]['b']] = deg.get(edges[i]['b'], 0) + 1
+        for n in [n for n, d in deg.items() if d == 1]:
+            own = next(i for i in ids if n in (edges[i]['a'], edges[i]['b']))
+            best = None
+            for i in ids:
+                pts = edges[i]['pts']
+                for k, p in enumerate(pts):
+                    if i == own and min(k, len(pts) - 1 - k) < xh * .8 * 1: continue
+                    d = math.dist(p, pos[n])
+                    if best is None or d < best[0]: best = (d, i, k, p)
+            if best and best[0] < xh * .3:
+                m, ids = split_at(edges, ids, best[3], 'br%d' % n if isinstance(n, int) else 'br' + str(n))
+                edges.append({'a': n, 'b': m, 'pts': [pos[n], best[3]]}); ids.append(len(edges) - 1)
+    start, ids = split_at(edges, ids, wps[0], 'ws')
+    adj = {}
+    for i in ids:
+        e = edges[i]; adj.setdefault(e['a'], []).append(i)
+        if e['b'] != e['a']: adj.setdefault(e['b'], []).append(i)
+    def orient(i, n):
+        e = edges[i]; return e['pts'] if e['a'] == n else e['pts'][::-1]
+    def other(i, n):
+        e = edges[i]; return e['b'] if e['a'] == n else e['a']
+    lifts = wps.count('|'); pts_w = [w for w in wps if w != '|']
+    results = []
+    def go(node, used, strokes, back):
+        if len(results) > 6000: return
+        free = [i for i in adj.get(node, []) if i not in used]
+        if free:
+            for i in free:
+                p = orient(i, node)
+                st = [s[:] for s in strokes]; st[-1].extend(p if not st[-1] else p[1:])
+                go(other(i, node), used | {i}, st, back)
+            return
+        if len(used) == len(ids): results.append((strokes, back)); return
+        # back along the written line to the nearest node with a free line
+        prev = {node: None}; queue = [node]; goal = None
+        while queue:
+            n = queue.pop(0)
+            if any(i not in used for i in adj.get(n, [])): goal = n; break
+            for i in adj.get(n, []):
+                m = other(i, n)
+                if m not in prev: prev[m] = (n, i); queue.append(m)
+        if goal is not None:
+            chain = []; n = goal
+            while prev[n] is not None: p_, i = prev[n]; chain.append((p_, i)); n = p_
+            st = [s[:] for s in strokes]; b = back
+            for p_, i in reversed(chain): q = orient(i, p_); st[-1].extend(q[1:]); b += length(q)
+            go(goal, used, st, b)
+        if lifts:                                      # or lift the pen and start again at a free end
+            for n, l in adj.items():
+                if any(i not in used for i in l) and (len(l) == 1 or n == goal):
+                    go(n, used, [s[:] for s in strokes] + [[]], back)
+    go(start, frozenset(), [[]], 0)
+    W = np.array(pts_w)
+    def cost(res):
+        strokes, back = res
+        P = np.array([q for s in strokes for q in s[::3]], float)
+        D = np.sqrt(((P[None, :, :] - W[:, None, :]) ** 2).sum(-1))   # waypoints x path points
+        c = D[0].copy(); c[1:] += 1e9 * 0                               # the first point must be the start
+        c = np.full(len(P), 1e12); c[0] = D[0][0]
+        for j in range(1, len(W)):
+            c = np.minimum.accumulate(c) + D[j]
+        return c.min() + back * .15 + abs(len(strokes) - 1 - lifts) * xh * 20
+    best = min(results, key=cost)
+    return [s for s in best[0] if len(s) > 1]
 
 def walk(edges, ids, start, ccw, mark=False, exit_n=None, init=None):
     """The pen's way through one connected drawing: straight on at crossings, back along a dead end when more is left."""
@@ -378,6 +487,12 @@ if __name__ == '__main__':
     for it in index:
         try: res[it['t']] = solve(it)
         except Exception as e: print('fail', it['t'], e, file=sys.stderr)
+    # ť: the font joins its háček to the stem; the school writes t and then the háček as the 2nd stroke (like ď)
+    if 't' in res and 'ď' in res and 'd' in res:
+        top = lambda st: min((q for s_ in st for q in s_), key=lambda q: q[1])
+        hk = res['ď'][-1]; dt, tt = top(res['d']), top(res['t'])
+        dx, dy = tt[0] - dt[0], tt[1] - dt[1] + .15
+        res['ť'] = [s_[:] for s_ in res['t']] + [[(round(x + dx, 3), round(y + dy, 3)) for x, y in hk]]
     with open(os.path.join(WWW, 'write_font.js'), 'w') as f:
         f.write('// generated by tools/font_strokes.py from the school font Slabikář – cursive strokes in writing order\n')
         f.write('window.FONT_STROKES = ' + json.dumps(res, ensure_ascii=False, separators=(',', ':')) + ';\n')
