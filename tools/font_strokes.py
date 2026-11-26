@@ -120,6 +120,30 @@ def contract(edges, small):
             out.append(e)
         edges = out
 
+def join_cusps(edges, xh):
+    """A sharp turn (bottom of g, tip of r, corner of z) can thin into two loose ends: join them again."""
+    deg = {}
+    for e in edges:
+        deg[e['a']] = deg.get(e['a'], 0) + 1; deg[e['b']] = deg.get(e['b'], 0) + 1
+    pos = {}
+    for e in edges: pos[e['a']] = e['pts'][0]; pos[e['b']] = e['pts'][-1]
+    ends = [n for n, d in deg.items() if d == 1]
+    comp = {}
+    def find(a):
+        while comp.setdefault(a, a) != a: a = comp[a]
+        return a
+    for e in edges: comp[find(e['a'])] = find(e['b'])
+    pairs = sorted((math.dist(pos[a], pos[b]), a, b) for i, a in enumerate(ends) for b in ends[i + 1:])
+    done = set(); new = []
+    for d, a, b in pairs:
+        if d > xh * .2 or a in done or b in done: continue
+        if find(a) != find(b): continue                                   # within one drawing (never a háček to its letter)
+        if any({a, b} == {e['a'], e['b']} for e in edges): continue      # not the two ends of one line
+        ea = next(e for e in edges if a in (e['a'], e['b'])); eb = next(e for e in edges if b in (e['a'], e['b']))
+        if length(ea['pts']) < xh * .3 or length(eb['pts']) < xh * .3: continue
+        done |= {a, b}; new.append({'a': a, 'b': b, 'pts': [pos[a], pos[b]]})
+    return merge_twos(edges + new) if new else edges
+
 def merge_twos(edges):
     # a node with exactly two edges is not a real crossing: join the two edges
     while True:
@@ -158,6 +182,7 @@ WAY = {
     'K': [(0, .15), (.35, 0), (0, .92), '|', (1, .12), (.45, .45), (1, .5)],
     'L': [(.1, .05), (.4, .25), (.95, .05), (.4, .3), (0, .97), (1, .5)],
     'S': [(.15, .05), (.95, .1), (.4, .5), (0, .8)],
+    'x': [(.64, .51), (.16, 1), (0, .86), '|', (.46, .51), (.37, 1), (1, .51)],     # x: left part | right part with the exit
     'T': [(0, .12), (1, .02), '|', (.5, .03), (.4, .6), (0, .9)],                             # wave | stem
     'Q': [(.55, .11), (.03, .98), (.46, .56), (.19, 1.45), '|', (.33, .95), (1, .55)],  # oval + stem to Y0 | line across
     'Ch': [(.33, .2), (.07, .97), (.69, .1), (.45, .98), (.76, .5), (1, .55)],      # C on into h, one stroke
@@ -180,6 +205,8 @@ def solve(item):
     edges = contract(edges, xh * .14)
     edges = prune(nodes, edges, xh * .2)
     edges = merge_twos(edges)
+    edges = merge_twos([e for e in edges if not (e['a'] == e['b'] and length(e['pts']) < xh * .06)])   # 1-pixel rings left at sharp turns
+    edges = join_cusps(edges, xh)
     if not edges: return []
     # connected components of edges
     comp = list(range(len(nodes)))
