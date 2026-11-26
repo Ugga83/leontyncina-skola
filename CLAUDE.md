@@ -28,7 +28,8 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
     **Písmena, slabiky, slova** = tahy z `write_strokes.js` podle normy od rodiče (Y0–Y3, CW/CCW, ZVEDNOUT): tiskací velká/malá
     (`PR`, zvlášť s mezerou), psací malá (`CUR`: start up/oval/arch, mistička [DOLNÍ], o = [HORNÍ]) a velká (`CAP`, nap = napojuje),
     vázané psaní slov (napojení do oválu od 2 h, nenapojující velké = zvednout), diakritika/tečky/přeškrtnutí až po dopsání slova.
-    Zatím jen písmena, která aplikace používá (a e i o u m l s p t + velká); další doplnit do `CUR`/`CAP`/`PR`.
+    Celá abeceda a–z, A–Z vč. Ch a diakritiky (háček, čárka, kroužek, zobáček u ď ť); psací tvary podle plakátu „Česká psací
+    abeceda“ (rodič poslal obrázek; S = háček dole, strmý dřík, velká smyčka nahoře doleva).
     **Rozcvička ruky** = tvary `PAT` (vlnky, déšť, pila, kolečka, houpačky, kličky, šnek) jako tahy, animace jede po skutečném tahu), potlačení dlaně, `A.write.traceOne` pro Ze všeho.
   - `endless.js` – hra **Ze všeho** (3 srdíčka, matematika jako v Matematice, najdi slabiku (Ayra říká, Leontýnka hádá), psaní – bez mikrofonu;
     odměny 10/20/30/40 pohár/50/60/75 medaile/100 koruna; ukládání rozehrané hry).
