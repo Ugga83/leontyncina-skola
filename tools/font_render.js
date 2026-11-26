@@ -6,7 +6,7 @@ const {chromium} = require('playwright');
 const WWW = path.resolve(__dirname, '../app/src/main/assets/www');
 const OUT = path.join(__dirname, 'font_out');
 const lower = 'a á b c č d ď e é ě f g h ch i í j k l m n ň o ó p q r ř s š t ť u ú ů v w x y ý z ž'.split(' ');
-const upper = 'A Á B C Č D Ď E É F G H Ch I J K L M N Ň O P Q R Ř S Š T Ť U Ú V W X Y Z Ž'.split(' ');
+const upper = 'A Á B C Č D Ď E É F G H Ch I Í J K L M N Ň O Ó P Q R Ř S Š T Ť U Ú V W X Y Ý Z Ž'.split(' ');
 // everything the app lets her trace in cursive (write.js W_LESSONS) + whole words from school tasks
 const lessons = ['ma','me','mi','mo','mu','la','le','li','lo','lu','sa','se','si','so','su','pa','pe','pi','po','pu','ta','te','ti','to','tu',
   'máma','mele','Ema','lama','pila','pes','osel','Pepa','lupa','sele','táta','teta','léto','mapa'];

@@ -150,11 +150,13 @@ WAY = {
     'A': [(.62, 0), (.05, .8), (.45, .97), (.62, .05), (1, .5)],                    # big a: oval CCW from the top, back up, stem down
     'B': [(.45, 0), (.02, .85), (.35, .55), (.98, .2), (.56, .46), (.98, .75), (.5, .97)],                 # stem down, loop, up, upper bowl, lower bowl
     'D': [(.72, 0), (0, .97), (.98, .45), (.3, .2)],                                # stem down, loop, big arc up, curl in
-    'F': [(0, .12), (1, .02), (.4, .6), (0, .95), '|', (.2, .55), (.95, .5)],        # wave, stem, lift, crossbar
+    'F': [(0, .12), (1, .02), '|', (.5, .03), (.4, .6), (0, .95), '|', (.2, .55), (.95, .5)],   # wave | stem | crossbar
     'K': [(0, .15), (.35, 0), (0, .92), '|', (1, .12), (.45, .45), (1, .5)],
     'L': [(.1, .05), (.4, .25), (.95, .05), (.4, .3), (0, .97), (1, .5)],
     'S': [(.15, .05), (.95, .1), (.4, .5), (0, .8)],
-    'T': [(0, .12), (1, .02), (.4, .6), (0, .9)],
+    'T': [(0, .12), (1, .02), '|', (.5, .03), (.4, .6), (0, .9)],                             # wave | stem
+    'Q': [(.55, .11), (.03, .98), (.46, .56), (.19, 1.45), '|', (.33, .95), (1, .55)],  # oval + stem to Y0 | line across
+    'Ch': [(.33, .2), (.07, .97), (.69, .1), (.45, .98), (.76, .5), (1, .55)],      # C on into h, one stroke
     'X': [(0, .15), (.45, .48), (1, .5), '|', (1, .12), (.45, .48), (0, .85)],
 }
 for k, v in [('Á', 'A'), ('Ď', 'D'), ('Š', 'S'), ('Ť', 'T')]: WAY[k] = WAY[v]
@@ -281,7 +283,8 @@ def solve(item):
             else:
                 start = ('node', e['a'] if k == 0 else e['b'])
         exit_n = max(ends, key=lambda n: node_pos[n][1]) if ends else None
-        if letter and letter in WAY:
+        if letter and (t if t == 'Ch' else letter) in WAY:
+            letter = t if t == 'Ch' else letter
             top = base - xh * 2.05
             wps = [w if w == '|' else (top + w[1] * (base - top), x0 + w[0] * w1) for w in WAY[letter]]
             strokes.extend(way_walk(edges, ids, wps, xh, letter in BRIDGE))
@@ -390,16 +393,23 @@ def way_walk(edges, ids, wps, xh, bridge):
                 if any(i not in used for i in l) and (len(l) == 1 or n == goal):
                     go(n, used, [s[:] for s in strokes] + [[]], back)
     go(start, frozenset(), [[]], 0)
-    W = np.array(pts_w)
+    segs, cur = [], []
+    for w in wps:
+        if w == '|': segs.append(cur); cur = []
+        else: cur.append(w)
+    segs.append(cur)
+    def fit(seg, pts):
+        # each stroke starts at its first point and passes the others in order
+        W = np.array(seg, float); P = np.array(pts[::3] + [pts[-1]], float)
+        D = np.sqrt(((P[None, :, :] - W[:, None, :]) ** 2).sum(-1))
+        c = np.full(len(P), 1e12); c[0] = D[0][0]
+        for j in range(1, len(W)): c = np.minimum.accumulate(c) + D[j]
+        return c.min()
     def cost(res):
         strokes, back = res
-        P = np.array([q for s in strokes for q in s[::3]], float)
-        D = np.sqrt(((P[None, :, :] - W[:, None, :]) ** 2).sum(-1))   # waypoints x path points
-        c = D[0].copy(); c[1:] += 1e9 * 0                               # the first point must be the start
-        c = np.full(len(P), 1e12); c[0] = D[0][0]
-        for j in range(1, len(W)):
-            c = np.minimum.accumulate(c) + D[j]
-        return c.min() + back * .15 + abs(len(strokes) - 1 - lifts) * xh * 20
+        strokes = [s for s in strokes if len(s) > 1]
+        if len(strokes) != len(segs): return 1e15 + abs(len(strokes) - len(segs))
+        return sum(fit(sg, st) for sg, st in zip(segs, strokes)) + back * .15
     best = min(results, key=cost)
     return [s for s in best[0] if len(s) > 1]
 
