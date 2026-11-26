@@ -246,7 +246,8 @@ function patStrokes(x, W, H){
     const F = !isPrint() && window.FONT_STROKES && FONT_STROKES[x];   // cursive straight from the school font Slabikář (write_font.js)
     const r = F ? {strokes: F} : WSTROKES.build(x, isPrint()), sl = (isPrint() || F) ? 0 : Math.tan(15 * Math.PI / 180);
     const pts = r.strokes.flat().map(([a, b])=>a - b * sl), x0 = Math.min(...pts), x1 = Math.max(...pts);
-    const u = Math.min(H * .86 / 3.2, W * .82 / Math.max(.6, x1 - x0)), y1 = H / 2 + u * .5, ox = W / 2 - (x0 + x1) / 2 * u;
+    const ys = r.strokes.flat().map(q=>q[1]), yT = Math.min(-2, ...ys), yB = Math.max(1, ...ys);   // fit the height too (háček above Ť)
+    const u = Math.min(H * .86 / 3.2, W * .82 / Math.max(.6, x1 - x0), (H / 2 - H * .05) / (-yT - .5), (H / 2 - H * .05) / (yB + .5)), y1 = H / 2 + u * .5, ox = W / 2 - (x0 + x1) / 2 * u;
     return {bh: u * 1.6, lines:{y3: y1 - 2 * u, y2: y1 - u, y1, y0: y1 + u},
       strokes: r.strokes.map(st=>st.map(([a, b])=>[ox + (a - b * sl) * u, y1 + b * u]))};
   }

@@ -582,6 +582,43 @@ def oval_2h(st):
     if j is None: return st
     return [s0[j:k + 1] + s0] + st[1:]
 
+def puff(st, sel, k, R):
+    """Make a small loop clearer: push the chosen points out from their centre, fading out smoothly over R."""
+    pts = [q for i, q in enumerate(st) if sel(i, q)]
+    if not pts: return st
+    cx = sum(q[0] for q in pts) / len(pts); cy = sum(q[1] for q in pts) / len(pts)
+    out = []
+    for q in st:
+        d = math.dist(q, (cx, cy)); w = max(0, 1 - d / R) ** .7
+        out.append((round(q[0] + (q[0] - cx) * k * w, 3), round(q[1] + (q[1] - cy) * k * w, 3)))
+    return out
+
+def polish(res):
+    """Fine touches the parent asked for on the capitals (school norm over the bare font)."""
+    wave = spline([(.06, -1.42), (.1, -1.68), (.28, -1.86), (.6, -1.88), (.9, -1.83), (1.2, -1.86), (1.45, -1.96), (1.66, -2.07)])
+    wave = [(round(x + y * SLANT, 3), y) for x, y in wave]          # spline() slants; these points are already in the font's slant
+    for k in ('T', 'Ť', 'F'):
+        if k not in res: continue
+        st = res[k]; stem = st[1]
+        j = min(range(len(wave)), key=lambda i: abs(wave[i][0] - (stem[0][0] + .06)))
+        st[0] = wave; st[1] = [wave[j]] + stem                         # the stem starts on the wave
+        if k == 'Ť':                                                   # the háček above the higher wave
+            hk = st[-1]; by = max(q[1] for q in hk); st[-1] = [(x, round(y + (-2.3 - by), 3)) for x, y in hk]
+    for k in ('V', 'W'):                                               # a longer, smooth way out up to the right
+        if k not in res: continue
+        st = res[k][0]; n0 = len(st)
+        tp = min(range(int(n0 * .6), n0), key=lambda i: st[i][1])       # top of the right stroke (the little loop starts there)
+        t = max(range(tp, n0), key=lambda i: st[i][1])                 # bottom of the little loop
+        p0 = st[t]
+        cp = [p0, (p0[0] + .28, p0[1] - .1), (p0[0] + .58, p0[1] - .28), (p0[0] + .85, p0[1] - .45)]
+        res[k][0] = st[:t] + [(round(x - y * SLANT, 3) if False else round(x, 3), round(y, 3)) for x, y in [(a_ + b_ * SLANT, b_) for a_, b_ in spline([(x - y * 0, y) for x, y in cp])]][1:]
+    for k in ('D', 'Ď'):                                              # bigger loop at the bottom left, clear curl in at the top
+        if k not in res: continue
+        st = res[k][0]; n = len(st)
+        st = puff(st, lambda i, q: q[1] > -.35 and q[0] < .32, .8, .45)
+        st = puff(st, lambda i, q: i > n * .86, .18, .5)
+        res[k][0] = st
+
 if __name__ == '__main__':
     index = json.load(open(os.path.join(OUT_DIR, 'index.json')))
     res = {}
@@ -591,6 +628,7 @@ if __name__ == '__main__':
     for k in list(res):
         if k and k[0] in 'aádďgoóq': res[k] = oval_2h(res[k])
     hand(res)
+    polish(res)
     # ť: the font joins its háček to the stem; the school writes t and then the háček as the 2nd stroke (like ď)
     if 't' in res and 'ď' in res and 'd' in res:
         top = lambda st: min((q for s_ in st for q in s_), key=lambda q: q[1])
