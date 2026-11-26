@@ -75,4 +75,7 @@ v1.0.61: Herna pokračuje v rozehrané hře bez další tlapky, nová kreslená 
 v1.0.62: Ayra z rozstříhaných dílů (rodiči se nelíbila). v1.0.63: plynulá animace ohýbáním obrázku (WebGL), nově nakreslené ozdoby vkreslené do Ayry, přeuspořádaná bouda s reakcemi na všechny předměty.
 v1.0.64: sjednocená menší tlačítka všude.
 Po v1.0.64 (nevydáno): číslice, písmena, slabiky i slova jako skutečné tahy podle normy (animace, start, šipky, čísla tahů).
+Psací písmo (malá, velká, slabiky, slova) se bere PŘÍMO z písma Slabikář: `node tools/font_render.js` (vykreslí) →
+`python3 tools/font_strokes.py` (kostra → seřazené tahy, start oválu ve 2 h, CAP_START pro velká, diakritika až po slově) →
+`www/write_font.js` (`FONT_STROKES`). Po přidání nových slov/slabik do Psaní obojí spustit znovu. Tiskací zůstává z `write_strokes.js`.
 Otevřené / k ověření s rodičem: zda je obtahování teď přísné akorát, adventní kalendář od 1. 12.

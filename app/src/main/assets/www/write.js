@@ -66,7 +66,7 @@ const DIGIT = {
   // 9: from 2 h a closed oval CCW in Y2–Y3, from the start without lifting straight down to Y1
   '9': [CAT(ARC(.5, .27, .33, .27, -30, -390, 52), LINE(at(.5, .27, .33, .27, -30), [.79, 1], 22))],
 };
-const hasStrokes = x => isPat(x) || DIGIT[x] !== undefined || !!(window.WSTROKES && WSTROKES.knows(x, isPrint()));
+const hasStrokes = x => isPat(x) || DIGIT[x] !== undefined || !!(window.WSTROKES && WSTROKES.knows(x, isPrint())) || !!(!isPrint() && window.FONT_STROKES && FONT_STROKES[x]);
 
 // endless mode: everything mixed, it never ends – stars after every 10
 const ALL = {id:'all', c:'violet', t:'Ze všeho – bez konce', items:[], endless:true};
@@ -243,9 +243,10 @@ function patStrokes(x, W, H){
       strokes: DIGIT[x].map(st=>st.map(([u, v])=>[ox + u * wd + (1 - v) * sl, y3 + v * hd]))};
   }
   if (!isPat(x)){                              // letters, syllables and words by the school norm (write_strokes.js)
-    const r = WSTROKES.build(x, isPrint()), sl = isPrint() ? 0 : Math.tan(15 * Math.PI / 180);
+    const F = !isPrint() && window.FONT_STROKES && FONT_STROKES[x];   // cursive straight from the school font Slabikář (write_font.js)
+    const r = F ? {strokes: F} : WSTROKES.build(x, isPrint()), sl = (isPrint() || F) ? 0 : Math.tan(15 * Math.PI / 180);
     const pts = r.strokes.flat().map(([a, b])=>a - b * sl), x0 = Math.min(...pts), x1 = Math.max(...pts);
-    const u = Math.min(H * .86 / 3.2, W * .78 / Math.max(.6, x1 - x0)), y1 = H / 2 + u * .5, ox = W / 2 - (x0 + x1) / 2 * u;
+    const u = Math.min(H * .86 / 3.2, W * .9 / Math.max(.6, x1 - x0)), y1 = H / 2 + u * .5, ox = W / 2 - (x0 + x1) / 2 * u;
     return {bh: u * 1.6, lines:{y3: y1 - 2 * u, y2: y1 - u, y1, y0: y1 + u},
       strokes: r.strokes.map(st=>st.map(([a, b])=>[ox + (a - b * sl) * u, y1 + b * u]))};
   }
