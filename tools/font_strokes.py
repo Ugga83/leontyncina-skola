@@ -524,12 +524,72 @@ def simplify(pts, xh):
     sm.append(out[-1])
     return sm
 
+# ---------- letters drawn by hand by the Czech school method (where the parent wanted more than the bare font) ----------
+# units: x-height 1, Y1 = 0, Y2 = -1, Y3 = -2, Y0 = 1, y down; written upright, then slanted like the font; '#' = a sharp turn
+SLANT = math.tan(math.radians(14))
+HAND = {
+    'r': [[(0, 0), (.35, -.45), (.68, -.85), (.85, -1.02), '#', (.86, -.7), (.8, -.3), (.8, -.06), (.92, .01), (1.12, -.06), (1.38, -.4), (1.62, -.93)]],
+    'z': [[(0, 0), (.3, -.5), (.52, -.85), (.72, -1.0), (.95, -.96), (1.0, -.76), (.86, -.46), (.62, -.16), (.42, 0), '#',
+           (.7, -.05), (.98, .01), (1.2, -.12), (1.44, -.47), (1.64, -.93)]],
+    's': [[(0, 0), (.3, -.4), (.58, -.78), (.8, -1.04), '#', (.92, -.72), (.96, -.36), (.84, -.06), (.62, .01), (.46, -.1), (.4, -.27)]],
+    'f': [[(0, 0), (.4, -.55), (.82, -1.25), (1.04, -1.78), (.98, -2.0), (.84, -1.94), (.74, -1.5), (.63, -.8), (.56, 0), (.5, .6), (.45, .96), '#',
+           (.6, .82), (.68, .46), (.62, .13), (.5, 0), '#', (.68, -.06), (.95, -.12), (1.22, -.42), (1.45, -.93)]],
+    'x': [[(.12, -1.0), (.42, -.88), (.56, -.52), (.48, -.16), (.3, 0), (.12, -.04), (.04, -.14)],
+          [(1.02, -1.0), (.74, -.88), (.6, -.52), (.66, -.16), (.86, 0), (1.08, -.06), (1.34, -.4), (1.56, -.93)]],
+}
+def spline(cp, step=.03):
+    """Catmull-Rom through the points; '#' starts a new smooth piece (a sharp turn)."""
+    pieces, cur = [], []
+    for p in cp:
+        if p == '#': pieces.append(cur); cur = [cur[-1]]
+        else: cur.append(p)
+    pieces.append(cur); out = []
+    for pc in pieces:
+        P = [pc[0]] + pc + [pc[-1]]
+        for i in range(1, len(P) - 2):
+            p0, p1, p2, p3 = P[i - 1], P[i], P[i + 1], P[i + 2]
+            n = max(2, int(math.dist(p1, p2) / step))
+            for k in range(n):
+                t = k / n
+                out.append(tuple(.5 * (2 * p1[j] + (-p0[j] + p2[j]) * t + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t * t
+                                       + (-p0[j] + 3 * p1[j] - 3 * p2[j] + p3[j]) * t ** 3) for j in (0, 1)))
+        out.append(pc[-1])
+    return [(round(x - y * SLANT, 3), round(y, 3)) for x, y in out]
+
+def top(st): return min((q for s_ in st for q in s_), key=lambda q: q[1])
+
+def hand(res):
+    for k, st in HAND.items():
+        new = [spline(c) for c in st]
+        res[k] = new
+        for acc in {'r': 'ř', 'z': 'ž', 's': 'š'}.get(k, ''):          # the háček from the font, over the new letter
+            if acc in res:
+                hk = res[acc][-1]; a = top(new)
+                cx = (min(q[0] for q in hk) + max(q[0] for q in hk)) / 2; by = max(q[1] for q in hk)
+                dx = a[0] + .02 - cx; dy = -1.3 - by                    # centred over the top of the letter, just above Y2
+                res[acc] = [s_[:] for s_ in new] + [[(round(x + dx, 3), round(y + dy, 3)) for x, y in hk]]
+
+def oval_2h(st):
+    """Oval letters start at 2 o'clock under Y2: go up from there, over the top to the left, round, and on as before."""
+    s0 = st[0]; y0 = s0[0][1]
+    ib = next((i for i, q in enumerate(s0) if q[1] > -.2), None)
+    if ib is None: return st
+    x0 = s0[0][0]
+    k = next((i for i in range(ib, len(s0)) if s0[i][1] < y0 + .08 and abs(s0[i][0] - x0) < .45), None)   # back at the top of the same oval
+    if k is None: return st
+    j = max((i for i in range(ib, k) if s0[i][1] > y0 + .2), default=None)
+    if j is None: return st
+    return [s0[j:k + 1] + s0] + st[1:]
+
 if __name__ == '__main__':
     index = json.load(open(os.path.join(OUT_DIR, 'index.json')))
     res = {}
     for it in index:
         try: res[it['t']] = solve(it)
         except Exception as e: print('fail', it['t'], e, file=sys.stderr)
+    for k in list(res):
+        if k and k[0] in 'aádďgoóq': res[k] = oval_2h(res[k])
+    hand(res)
     # ť: the font joins its háček to the stem; the school writes t and then the háček as the 2nd stroke (like ď)
     if 't' in res and 'ď' in res and 'd' in res:
         top = lambda st: min((q for s_ in st for q in s_), key=lambda q: q[1])

@@ -78,4 +78,6 @@ Po v1.0.64 (nevydáno): číslice, písmena, slabiky i slova jako skutečné tah
 Psací písmo (malá, velká, slabiky, slova) se bere PŘÍMO z písma Slabikář: `node tools/font_render.js` (vykreslí) →
 `python3 tools/font_strokes.py` (kostra → seřazené tahy, start oválu ve 2 h, CAP_START pro velká, diakritika až po slově) →
 `www/write_font.js` (`FONT_STROKES`). Po přidání nových slov/slabik do Psaní obojí spustit znovu. Tiskací zůstává z `write_strokes.js`.
+Rodič chce školní metodiku i tam, kde se font liší: velká s pořadím tahů v `WAY` (průchozí body, '|' = zvednout), malá r ř z ž s š f x
+nakreslená ručně v `HAND` (r ostrá špička, z jako psací dvojka, s kapka, f smyčka doprava, x „)(“ na 2 tahy), oválová písmena začínají ve 2 h (`oval_2h`).
 Otevřené / k ověření s rodičem: zda je obtahování teď přísné akorát, adventní kalendář od 1. 12.
