@@ -96,13 +96,17 @@ def prune(nodes, edges, spur):
         if not cut: return edges
         edges = [e for e in edges if e not in cut]
 
+def area(pts):
+    return abs(sum(pts[i][0] * pts[i + 1][1] - pts[i + 1][0] * pts[i][1] for i in range(len(pts) - 1))) / 2
+
 def contract(edges, small):
     # a crossing that thinned into several tiny bits: make it one node again
     while True:
         deg = {}
         for e in edges:
             deg[e['a']] = deg.get(e['a'], 0) + 1; deg[e['b']] = deg.get(e['b'], 0) + 1
-        loops = [e for e in edges if e['a'] == e['b'] and length(e['pts']) < small * 2.5 and deg[e['a']] > 2]
+        # a tiny ring at a crossing is a thinning artefact; a real small loop (top of r, v, w, b) encloses some area
+        loops = [e for e in edges if e['a'] == e['b'] and length(e['pts']) < small * 2.5 and deg[e['a']] > 2 and area(e['pts']) < (small * .45) ** 2]
         if loops: edges = [e for e in edges if e not in loops]; continue
         tiny = next((e for e in edges if e['a'] != e['b'] and length(e['pts']) < small and deg[e['a']] >= 2 and deg[e['b']] >= 2), None)
         if tiny is None: return edges
@@ -289,7 +293,7 @@ def solve(item):
             wps = [w if w == '|' else (top + w[1] * (base - top), x0 + w[0] * w1) for w in WAY[letter]]
             strokes.extend(way_walk(edges, ids, wps, xh, letter in BRIDGE))
             continue
-        strokes.extend(walk(edges, ids, start[1], ccw, exit_n=exit_n, init=init))
+        strokes.extend(walk(edges, ids, start[1], ccw, exit_n=exit_n, init=init, up_first=letter in ('s', 'š')))
     # dots that thinned down to (almost) a single point
     inline = set(q for e in edges for q in e['pts'])
     blobs, seen_px = [], set()
@@ -413,7 +417,7 @@ def way_walk(edges, ids, wps, xh, bridge):
     best = min(results, key=cost)
     return [s for s in best[0] if len(s) > 1]
 
-def walk(edges, ids, start, ccw, mark=False, exit_n=None, init=None):
+def walk(edges, ids, start, ccw, mark=False, exit_n=None, init=None, up_first=False):
     """The pen's way through one connected drawing: straight on at crossings, back along a dead end when more is left."""
     ids = list(ids)
     adj = {}
@@ -432,7 +436,7 @@ def walk(edges, ids, start, ccw, mark=False, exit_n=None, init=None):
             start = left if abs(ps[left][0] - ps[right][0]) < abs(ps[left][1] - ps[right][1]) * .5 else min(ends, key=lambda n: ps[n][0])
         else:
             start = edges[ids[0]]['a']
-    used = set(); path = []; node = start; incoming = None; strokes = []
+    used = set(); path = []; node = start; incoming = None; strokes = []; up = [up_first]
     def orient(i, n):
         e = edges[i]; return e['pts'] if e['a'] == n else e['pts'][::-1]
     def other(i, n):
@@ -447,11 +451,13 @@ def walk(edges, ids, start, ccw, mark=False, exit_n=None, init=None):
                 pen = 0
                 if o == exit_n and len(free) > 1: pen += 10                     # the way out of the word comes last
                 elif is_end(o) and o != exit_n and len(free) > 1: pen -= 5      # a dead end first (then back along it)
+                if up[0] and incoming is not None and len(free) > 1: return pen + d[1] * 3   # s: up to the peak first
                 if incoming is None:
                     if init: return pen - (d[0] * init[0] + d[1] * init[1])   # the first way the pen goes
                     return pen + (d[0] if ccw else (-d[1] if mark else 0))
                 return pen - (d[0] * incoming[0] + d[1] * incoming[1])
             i = min(free, key=score)
+            if len(free) > 1 and incoming is not None: up[0] = False
             pts = orient(i, node)
             path.extend(pts if not path else pts[1:])
             used.add(i)

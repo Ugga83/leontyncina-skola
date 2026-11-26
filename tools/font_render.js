@@ -18,12 +18,12 @@ const items = [...new Set([...lower, ...upper, ...lessons])];
     <body><canvas id=c></canvas><span style="font-family:S">a</span></body></html>`);
   await p.goto('file://' + WWW + '/index.html'); // a file:// page so the font file may load
   await p.evaluate(()=>{ const s = document.createElement('style'); s.textContent = '@font-face{font-family:SLB;src:url(fonts/slabikar.otf)}'; document.head.appendChild(s); });
-  await p.evaluate(()=>document.fonts.load('300px SLB'));
+  await p.evaluate(()=>document.fonts.load('600px SLB'));
   const index = [];
   for (let i = 0; i < items.length; i++){
     const t = items[i];
     const r = await p.evaluate(t=>{
-      const FS = 300, c = document.createElement('canvas'), g = c.getContext('2d');
+      const FS = 600, c = document.createElement('canvas'), g = c.getContext('2d');
       g.font = `${FS}px SLB`;
       const m = g.measureText(t), mx = g.measureText('x'), ml = g.measureText('l');
       const f1 = g.measureText(t.startsWith('Ch') || t.startsWith('ch') ? t.slice(0, 2) : t[0]);
