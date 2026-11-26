@@ -11,7 +11,8 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
 - Nevytvářet pull requesty, pokud o to rodič nepožádá.
 - Klíče jsou jen v GitHub secrets (`SPEECH_API_KEY` = rozpoznávání řeči, vkládá se do aplikace; `GOOGLE_TTS_KEY` = namlouvání,
   jen pro workflow). Nikdy nežádat o vložení klíče do chatu, nic nedávat do repa.
-- Oslovení jen „Leontýnko“, ženský rod. Bez nuly v matematice. Psací písmo = font Slabikář.
+- Oslovení jen „Leontýnko“, ženský rod. Bez nuly v matematice. Psací písmo: obtahovací předlohy = tahy podle české školní normy
+  (`write_strokes.js`, specifikaci dodal rodič); font Slabikář jen pro popisky.
 - Po každé změně: otestovat v Playwrightu (Chromium je předinstalovaný, `file://…/www/index.html`, zařízení Pixel 7),
   poslat rodiči snímek, commit + push. Vydat až na „vydej“.
 
@@ -24,7 +25,10 @@ hra Ze všeho a odměny. Provází ji samojed **Ayra** (čte se „Ajra“), mlu
   - `write.js` – Psaní (obtahování; tiskací písmo Nunito, psací Slabikář; psací tvar se nejdřív sám napíše + zelený bod startu, ✏️ = ukázat znovu;
     **Číslice 0–9** = skutečné tahy `DIGIT` podle české školní normy (rodič dodal pravidla: pásmo Y1–Y3, start, CW/CCW, ZVEDNOUT,
     sklon 75° v psacím, 90° v tiskacím); kreslí se linky Y3/Y2/Y1/Y0, animace jede po tazích, zelený start + šipka + číslo tahu.
-    **Písmena**: animace s posouvanou tečkou vypnutá (ukazovala špatný start) – čeká na pravidla tahů písmen od rodiče.
+    **Písmena, slabiky, slova** = tahy z `write_strokes.js` podle normy od rodiče (Y0–Y3, CW/CCW, ZVEDNOUT): tiskací velká/malá
+    (`PR`, zvlášť s mezerou), psací malá (`CUR`: start up/oval/arch, mistička [DOLNÍ], o = [HORNÍ]) a velká (`CAP`, nap = napojuje),
+    vázané psaní slov (napojení do oválu od 2 h, nenapojující velké = zvednout), diakritika/tečky/přeškrtnutí až po dopsání slova.
+    Zatím jen písmena, která aplikace používá (a e i o u m l s p t + velká); další doplnit do `CUR`/`CAP`/`PR`.
     **Rozcvička ruky** = tvary `PAT` (vlnky, déšť, pila, kolečka, houpačky, kličky, šnek) jako tahy, animace jede po skutečném tahu), potlačení dlaně, `A.write.traceOne` pro Ze všeho.
   - `endless.js` – hra **Ze všeho** (3 srdíčka, matematika jako v Matematice, najdi slabiku (Ayra říká, Leontýnka hádá), psaní – bez mikrofonu;
     odměny 10/20/30/40 pohár/50/60/75 medaile/100 koruna; ukládání rozehrané hry).
@@ -69,5 +73,5 @@ Nápady na později: Kolik má slovo slabik (tleskání), Na co to začíná, kr
 v1.0.61: Herna pokračuje v rozehrané hře bez další tlapky, nová kreslená Zahrádka, „Do kolika počítáme“ jen v nastavení rodiče.
 v1.0.62: Ayra z rozstříhaných dílů (rodiči se nelíbila). v1.0.63: plynulá animace ohýbáním obrázku (WebGL), nově nakreslené ozdoby vkreslené do Ayry, přeuspořádaná bouda s reakcemi na všechny předměty.
 v1.0.64: sjednocená menší tlačítka všude.
-Po v1.0.64 (nevydáno): číslice jako skutečné tahy podle normy; u písmen vypnutá chybná animace.
+Po v1.0.64 (nevydáno): číslice, písmena, slabiky i slova jako skutečné tahy podle normy (animace, start, šipky, čísla tahů).
 Otevřené / k ověření s rodičem: zda je obtahování teď přísné akorát, adventní kalendář od 1. 12.
